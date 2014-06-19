@@ -1,0 +1,1 @@
+@base <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/HostsAdHocMeetingStore> .

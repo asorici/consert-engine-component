@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/rcc#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/rcc">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
+    <owl:versionInfo>cvs:$Revision: 1.2 $, $Date: 2004/03/07 22:59:13 $</owl:versionInfo>
+    <rdfs:label>Region Connection Calculus Ontology</rdfs:label>
+    <rdfs:comment></rdfs:comment>
+    <spin:imports rdf:resource="http://topbraid.org/spin/rdfsplus"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
+  </owl:Ontology>
+  <owl:Class rdf:ID="RCCSpatialRegion">
+    <rdfs:label>RCCSpatialRegion</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="partOf">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>partOf</rdfs:label>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="isExternallyConnectedWith">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:label>isExternallyConnectedWith</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="partiallyOverlaps">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>partiallyOverlaps</rdfs:label>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="overlaps">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>overlaps</rdfs:label>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="tangentialProperPartOf">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:label>tangentialProperPartOf</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="connectsWith">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>connectsWith</rdfs:label>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="isDisconnectedFrom">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>isDisconnectedFrom</rdfs:label>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="nontangentialProperPartOf">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:label>nontangentialProperPartOf</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="properPartOf">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>properPartOf</rdfs:label>
+    <rdfs:domain rdf:resource="#RCCSpatialRegion"/>
+    <rdfs:range rdf:resource="#RCCSpatialRegion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  </owl:ObjectProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

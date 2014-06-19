@@ -1,0 +1,10 @@
+@base <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/deviceRoomSectionStore> .
+
+@prefix models: <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#> .
+@prefix contextassertion: <http://pervasive.semanticweb.org/ont/2013/05/contextassertion#> .
+
+<http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/deviceRoomSectionIDGraph> 
+    contextassertion:assertionType  contextassertion:Profiled.
+
+<http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/deviceRoomSectionIDGraph2> 
+    contextassertion:assertionType  contextassertion:Profiled.

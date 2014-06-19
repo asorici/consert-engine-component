@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:models="http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns="http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/test/testscenario#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/test/testscenario">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Created with TopBraid Composer</owl:versionInfo>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+  </owl:Ontology>
+  <models:Microphone rdf:ID="micAlex1">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >micAlex1</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Microphone1 near Alex's desk</rdfs:comment>
+    <models:hasNoiseLevel rdf:datatype="http://www.w3.org/2001/XMLSchema#double"
+    >0</models:hasNoiseLevel>
+  </models:Microphone>
+  <models:Microphone rdf:ID="micAlex2">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >micAlex2</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Microphone2 near Alex's desk</rdfs:comment>
+    <models:hasNoiseLevel rdf:datatype="http://www.w3.org/2001/XMLSchema#double"
+    >0</models:hasNoiseLevel>
+  </models:Microphone>
+  <models:KinectCamera rdf:ID="kinectCameraAlex">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >kinectCameraAlex</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Kinect camera near Alex's desk</rdfs:comment>
+  </models:KinectCamera>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

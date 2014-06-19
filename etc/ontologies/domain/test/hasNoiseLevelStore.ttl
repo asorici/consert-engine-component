@@ -1,0 +1,23 @@
+@base <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevelStore> .
+
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix models: <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#> .
+@prefix contextassertion: <http://pervasive.semanticweb.org/ont/2013/05/contextassertion#> .
+
+<http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/micIDGraph1> 
+    contextassertion:hasTimestamp  "2013-10-13T17:30:00Z"^^xsd:dateTime ;
+    contextassertion:hasAccuracy  "1.0"^^xsd:double ;
+    contextassertion:validDuring "{[2013-10-13T17:30:00Z,2013-11-13T17:30:00Z]}"^^contextassertion:intervalListType ;
+    contextassertion:assertedBy models:room-coordinator.
+    
+<http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/micIDGraph2> 
+    contextassertion:hasTimestamp  "2013-11-13T17:30:02Z"^^xsd:dateTime ;
+    contextassertion:hasAccuracy  "0.9"^^xsd:double ;
+    contextassertion:validDuring "{[2013-11-13T17:30:02Z,2013-11-13T17:40:02Z]}"^^contextassertion:intervalListType ;
+    contextassertion:assertedBy models:room-coordinator.
+    
+<http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/micIDGraph3> 
+    contextassertion:hasTimestamp  "2013-11-13T17:30:04Z"^^xsd:dateTime ;
+    contextassertion:hasAccuracy  "0.9"^^xsd:double ;
+    contextassertion:validDuring "{[2013-11-13T17:30:04Z,2013-11-13T17:40:04Z]}"^^contextassertion:intervalListType ;
+    contextassertion:assertedBy models:room-coordinator.

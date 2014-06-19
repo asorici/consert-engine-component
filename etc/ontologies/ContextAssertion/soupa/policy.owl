@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:tme="http://pervasive.semanticweb.org/ont/2004/06/time#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:act="http://pervasive.semanticweb.org/ont/2004/06/action#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/policy#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/policy">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <spin:imports rdf:resource="http://topbraid.org/spin/rdfsplus"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time"/>
+    <owl:versionInfo>$Revision: 1.7 $, $Date: 2004/06/03 20:27:01 $</owl:versionInfo>
+    <rdfs:label>SOUPA Policy Ontology</rdfs:label>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
+  </owl:Ontology>
+  <owl:Class rdf:ID="Mode">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <owl:oneOf rdf:parseType="Collection">
+      <Mode rdf:ID="RequiresExplicitPermission"/>
+      <Mode rdf:ID="RequiresNoExplicitPermission"/>
+    </owl:oneOf>
+    <rdfs:label>Mode</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="PermittedAction">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="ForbiddenAction"/>
+    </owl:disjointWith>
+    <rdfs:label>PermittedAction</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action#Action"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Policy">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:label>Policy</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#ForbiddenAction">
+    <owl:disjointWith rdf:resource="#PermittedAction"/>
+    <rdfs:label>ForbiddenAction</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action#Action"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="policyOf">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:label>policyOf</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="defaultPolicyMode">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:range rdf:resource="#Mode"/>
+    <rdfs:label>rulePrecedence</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="enforcer">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:label>enforcer</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="createdOn">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#InstantThing"/>
+    <rdfs:label>createdOn</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="creator">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:label>creator</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="permits">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:range rdf:resource="#PermittedAction"/>
+    <rdfs:label>permits</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="forbids">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Policy"/>
+    <rdfs:range rdf:resource="#ForbiddenAction"/>
+    <rdfs:label>forbids</rdfs:label>
+  </owl:ObjectProperty>
+  <Mode rdf:ID="Conservative">
+    <owl:sameAs rdf:resource="#RequiresExplicitPermission"/>
+  </Mode>
+  <Mode rdf:ID="Liberal">
+    <owl:sameAs rdf:resource="#RequiresExplicitPermission"/>
+  </Mode>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

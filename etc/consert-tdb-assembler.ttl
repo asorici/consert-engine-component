@@ -1,0 +1,44 @@
+@prefix tdb:     <http://jena.hpl.hp.com/2008/tdb#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ja:      <http://jena.hpl.hp.com/2005/11/Assembler#> .
+@prefix ctxspec:  <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/specification#> .
+
+[] ja:loadClass "com.hp.hpl.jena.tdb.TDB" .
+tdb:DatasetTDB  rdfs:subClassOf  ja:RDFDataset .
+tdb:GraphTDB    rdfs:subClassOf  ja:Model .
+
+# A dataset which will consist of:
+#   - the adhocmeeting ontology models together with the SPIN derivation rule and constraint definitions
+#   - a "Store" named graph for the ContextAnnotations of each ContextAssertion
+#	- a named graph for each ContextAssertion instance - the identifier graph
+# They will all be backed by the TDB graph created here
+<#dataset> rdf:type		tdb:DatasetTDB ;
+	 tdb:location "store" ;
+     tdb:unionDefaultGraph true
+     .
+	
+#ctxspec:context-model-graph rdf:type tdb:GraphTDB ;
+#    tdb:dataset <#dataset> ;
+#    tdb:graphName <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models> ;
+#    ja:content [ja:externalContent <file:///home/alex/work/PhD/projects/context-representation/etc/ontologies/AdHocMeeting/models/adhocmeeting.rdf> ] ;   
+#    .
+
+#ctxspec:context-model-graph rdf:type ja:OntModel ;
+#    ja:baseModel [ 	a tdb:GraphTDB ;
+#                    tdb:dataset <#dataset> ;
+#                    tdb:graphName <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/> ;
+#                    ja:content [ja:externalContent <file:etc/ontologies/AdHocMeeting/models/adhocmeeting.rdf> ] 
+#                 ] ;
+#    ja:ontModelSpec [   ja:ontLanguage <http://www.w3.org/2002/07/owl#> ; 
+#    					ja:reasonerFactory [ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLMiniFBRuleReasoner>]
+#    				] ;
+#    .
+
+#<#context-model-graph> rdf:type ja:OntModel ;
+#    ja:ontModelSpec ja:OWL_MEM_RULE_INF;
+#    ja:baseModel [
+#    	a ja:MemoryModel ;
+#    	ja:content [ja:externalContent <file:///home/alex/work/PhD/projects/context-representation/etc/ontologies/AdHocMeeting/models/adhocmeeting.rdf> ]
+#    ] 
+#    .

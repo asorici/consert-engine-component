@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:sp="http://spinrdf.org/sp#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:orgconf="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spl="http://spinrdf.org/spl#"
+  xml:base="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf" > 
+  <rdf:Description rdf:about="#OrgMgrSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:OrgMgrSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of OrgMgr Agent specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#Configurable">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:Configurable</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A base class for different configurable elements of Application and Agent specifications.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#appIdentificationName">
+    <rdfs:domain rdf:resource="#ApplicationSpec"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:appIdentificationName</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The property specifying the unique application identification name.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#CtxQueryHandlerSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:CtxQueryHandlerSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of Context Query Handler Agent specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A0">
+    <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+    <rdf:first rdf:resource="#RootManager"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#OrgMgrType">
+    <owl:oneOf rdf:nodeID="A1"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:OrgMgrType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The enumeration class of OrgMgr agent functionality types: Node or Root.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#DeploymentType">
+    <owl:oneOf rdf:nodeID="A2"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:DeploymentType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The enumeration class defining the application deployment types.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#NodeManager">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:NodeManager</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OrgMgr Agent option of running as a Node in a hierarchy.</rdfs:comment>
+    <rdf:type rdf:resource="#OrgMgrType"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#CentralizedLocal">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:CentralizedLocal</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The centralized-local deployment option.</rdfs:comment>
+    <rdf:type rdf:resource="#DeploymentType"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#appDeploymentType">
+    <rdfs:domain rdf:resource="#ApplicationSpec"/>
+    <rdfs:range rdf:resource="#DeploymentType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:appDeploymentType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The property specifying the deployment option chosen for a CONSERT CMM based application.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#AgentSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:AgentSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of CONSERT CMM agent specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Specification"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#CtxUserSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:CtxUserSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of Context User Agent specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A3">
+    <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:cardinality>
+    <owl:onProperty rdf:resource="#appIdentificationName"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Restriction"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#DecentralizedHierarchical">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:DecentralizedHierarchical</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The decentralized-hierarchical deployment option.</rdfs:comment>
+    <rdf:type rdf:resource="#DeploymentType"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#CtxCoordSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:CtxCoordSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of Context Coordinator Agent specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#ApplicationSpec">
+    <rdfs:subClassOf rdf:nodeID="A3"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:ApplicationSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of application (the one that runs on top of the CMM) specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Specification"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Created with TopBraid Composer</owl:versionInfo>
+    <owl:imports rdf:resource="http://spinrdf.org/spin"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A4">
+    <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+    <rdf:first rdf:resource="#DecentralizedHierarchical"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A1">
+    <rdf:rest rdf:nodeID="A0"/>
+    <rdf:first rdf:resource="#NodeManager"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#RootManager">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:RootManager</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OrgMgr Agent option of running as a Root in a hierarchy.</rdfs:comment>
+    <rdf:type rdf:resource="#OrgMgrType"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#CtxSensorSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:CtxSensorSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The class of Context Sensor Agent specific configurations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A2">
+    <rdf:rest rdf:nodeID="A4"/>
+    <rdf:first rdf:resource="#CentralizedLocal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="#Specification">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The base class for CONSERT middleware specifications.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">orgconf:Specification</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+  </rdf:Description>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

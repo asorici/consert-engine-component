@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:functions="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns="http://pervasive.semanticweb.org/ont/2013/11/test/performanceSeed#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:arg="http://spinrdf.org/arg#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:performanceTpl="http://pervasive.semanticweb.org/ont/2013/11/test/performanceTpl#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2013/11/test/performanceSeed">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2013/11/test/performanceTpl"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Created with TopBraid Composer</owl:versionInfo>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions"/>
+  </owl:Ontology>
+  <contextassertion:ContextAgent rdf:ID="room-coordinator">
+    <contextassertion:agentType rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#CtxCoord"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >room-coordinator</rdfs:label>
+  </contextassertion:ContextAgent>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

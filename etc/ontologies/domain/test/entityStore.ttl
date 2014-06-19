@@ -1,0 +1,19 @@
+@base <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/entityStore> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix test: <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/test#> .
+@prefix models: <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#> .
+
+test:deskAlex rdf:type models:BuildingRoomSection.
+
+test:cameraAlex1 rdf:type models:KinectCamera.
+test:cameraAlex2 rdf:type models:KinectCamera.
+
+test:micAlex1 rdf:type models:Microphone.
+test:micAlex2 rdf:type models:Microphone.
+
+test:skeleton1 rdf:type models:Skeleton.
+test:skeleton2 rdf:type models:Skeleton.
+test:skeleton3 rdf:type models:Skeleton.

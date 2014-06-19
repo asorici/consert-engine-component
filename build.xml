@@ -1,0 +1,19 @@
+<project name="TestDM" default="bnd">
+    <property name="bnd" value="../cnf/gradle/dependencies/biz.aQute.bnd.jar" />
+    <property name="dmannot" value="../cnf/plugins/org.apache.felix.dependencymanager/org.apache.felix.dependencymanager.annotation-3.0.0.jar" />
+    <property name="scr" value="../cnf/plugins/org.apache.felix.scr/org.apache.felix.scr.bnd-1.1.0.jar" />
+    <property name="spin" value="lib/spin-1.3.0.jar" />
+    <property name="jena" value="../jena-bundle-2.7.2/generated/jena-bundle-2.7.2.jar" />
+    <property name="consertmodel" value="../consert-model/generated/consert-model.jar" />
+
+    <target name="compile">
+        <delete dir="target/classes" quiet="yes" />
+        <mkdir dir="target/classes" />
+        <javac srcdir="src/" destdir="target/classes" classpath="${dmannot}:${scr}:${spin}:${jena}:${consertmodel}" />
+    </target>
+
+    <target name="bnd" depends="compile">
+        <taskdef resource="aQute/bnd/ant/taskdef.properties" classpath="${dmannot}:${bnd}:${scr}:${spin}:${jena}:${consertmodel}" />
+        <bnd classpath="target/classes" eclipse="false" files="bnd.bnd" output="dm-consert-engine.jar" />
+    </target>
+</project>

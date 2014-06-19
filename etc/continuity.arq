@@ -1,0 +1,11 @@
+BASE <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#>
+PREFIX contextassertion: <http://pervasive.semanticweb.org/ont/2013/05/contextassertion#>
+PREFIX functions: <http://pervasive.semanticweb.org/ont/2013/05/contextassertion/functions#>
+
+SELECT ?assertionUUID ?validity
+WHERE {
+    GRAPH ?contextAssertionStore {
+      ?assertionUUID contextassertion:validDuring ?validity .
+    } .
+    FILTER (?assertionUUID != ?newAssertionUUID) .
+}

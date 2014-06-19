@@ -1,0 +1,62 @@
+BASE <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#>
+PREFIX contextassertion: <http://pervasive.semanticweb.org/ont/2013/05/contextassertion#>
+PREFIX functions: <http://pervasive.semanticweb.org/ont/2013/05/contextassertion/functions#>
+
+SELECT ?assertionUUID ?validity
+WHERE {
+    {
+        GRAPH <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevelStore> {
+            ?assertionUUID contextassertion:validDuring ?validity .
+        } .
+        {
+            {
+                SELECT ?assertionUUID
+                WHERE {
+                    GRAPH ?assertionUUID {
+                        _:0 a <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#hasNoiseLevel> .
+                    } .
+                }
+            } .
+            MINUS {
+                {
+                    SELECT ?assertionUUID
+                    WHERE {
+                        {
+                            GRAPH ?assertionUUID {
+                                _:1 a <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#hasNoiseLevel> .
+                            } .
+                            GRAPH ?assertionUUID {
+                                _:2 ?p ?o .
+                            } .
+                        } .
+                        MINUS {
+                            GRAPH <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevel-01cf6354-a99a-4a7c-8ae9-32dcf724832a> {
+                                _:3 ?p ?o .
+                            } .
+                        } .
+                    }
+                    GROUP BY ?assertionUUID
+                } .
+            } .
+        } .
+        FILTER (?assertionUUID != <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevel-01cf6354-a99a-4a7c-8ae9-32dcf724832a>) .
+    }
+    UNION
+    {
+        GRAPH <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevelStore> {
+            ?assertionUUID contextassertion:validDuring ?validity .
+        } .
+        {
+            SELECT ?assertionUUID
+            WHERE {
+                GRAPH ?assertionUUID {
+                    ?s <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#hasNoiseLevel> ?o .
+                } .
+                GRAPH <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevel-01cf6354-a99a-4a7c-8ae9-32dcf724832a> {
+                    ?s <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#hasNoiseLevel> ?o .
+                } .
+            }
+        } .
+        FILTER (?assertionUUID != <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/hasNoiseLevel-01cf6354-a99a-4a7c-8ae9-32dcf724832a>) .
+    } .
+}

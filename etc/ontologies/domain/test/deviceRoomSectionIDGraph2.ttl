@@ -1,0 +1,5 @@
+@base <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models/deviceRoomSectionIDGraph2> .
+@prefix test: <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/test#> .
+@prefix models: <http://pervasive.semanticweb.org/ont/2013/09/adhocmeeting/models#> .
+
+test:cameraAlex2 models:deviceRoomSection test:deskAlex.
