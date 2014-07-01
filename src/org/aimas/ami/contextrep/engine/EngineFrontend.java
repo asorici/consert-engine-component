@@ -1,11 +1,10 @@
 package org.aimas.ami.contextrep.engine;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Calendar;
-import java.util.Dictionary;
-import java.util.Properties;
+import java.util.Enumeration;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.aimas.ami.contextrep.engine.api.CommandException;
@@ -18,10 +17,12 @@ import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.query.ContextQueryTask;
+import org.aimas.ami.contextrep.update.ContextBulkUpdateTask;
+import org.aimas.ami.contextrep.update.ContextUpdateTask;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.framework.Bundle;
 import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 import com.hp.hpl.jena.update.Update;
+import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 
@@ -40,70 +42,72 @@ import com.hp.hpl.jena.update.UpdateRequest;
 @Service
 public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHandler, StatsHandler {
 	private Logger log = LoggerFactory.getLogger(getClass());
-	
-	private Dictionary<String, String> consertEngineConfig;
-	private Dictionary<String, String> domainModelConfig;
+	private Bundle modelResourceBundle;
 	
 	public EngineFrontend() {}
 	
 	// ==================== INITIALIZATION AND TAKE-DOWN HANDLING ==================== //
-	
-	/*
-	@ConfigurationDependency(pid="domain-model-config")
-	void configure(Dictionary<String, String> domainModelConfig) throws ConfigurationException {
-		validateDomainModelConfig(domainModelConfig);
-		this.domainModelConfig = domainModelConfig;
-	}
-	*/
-	
-	private void validateDomainModelConfig(Dictionary<String, String> domainModelConfig) 
-			throws ConfigurationException {
-		// Step 1) Check for existence of Context Model Core URI (this MUST exist)
-		if (domainModelConfig.get(ConfigKeys.DOMAIN_ONT_CORE_URI) == null) {
-				throw new ConfigurationException(ConfigKeys.DOMAIN_ONT_CORE_URI, "No value for required" 
-						+ "Context Domain core module key: " + ConfigKeys.DOMAIN_ONT_CORE_URI);
+	@SuppressWarnings("unused")
+    private void setModelResourceBundle(Bundle modelResourceBundle) {
+		this.modelResourceBundle = modelResourceBundle;
+		Enumeration<String> resources = modelResourceBundle.getEntryPaths("");
+		
+		System.out.println("Bundle resources");
+		for (;resources.hasMoreElements();) {
+			System.out.println(resources.nextElement());
 		}
 		
-		// Step 2) Check for existence of the Context Model document manager file key
-		if (domainModelConfig.get(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE) == null) {
-			throw new ConfigurationException(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE, "Configuration properties has no value for "
-					+ "Context Domain ontology document manager key: " + ConfigKeys.DOMAIN_ONT_DOCMGR_FILE);
-		}
+		System.out.println("Bundle classpath");
+		URL[] urls = ((URLClassLoader)modelResourceBundle.getClass().getClassLoader()).getURLs();
+		 
+        for(URL url: urls){
+        	System.out.println(url.getFile());
+        }
     }
+	
 	
 	// We first wait for the context-domain specific configuration above and now try
 	// initialization. We try to read the CONSERT Engine specific configuration file and process it. 
 	void initEngine(org.apache.felix.dm.Component component) throws ConfigurationException {
-		System.out.println("Initializing CONSERT Engine component");
-		
-		URL configURL = this.getClass().getResource("/etc/config.properties");
-		System.out.println(configURL);
-		if (configURL != null) {
+		if (modelResourceBundle != null) {
 			try {
-	            InputStream configStream = configURL.openStream();
-	            Properties configProperties = Engine.readConfiguration(configStream);
+	            // initialize the EngineResourceManager
+				EngineResourceManager resourceManager = new BundleResourceManager(modelResourceBundle);
+				Engine.setResourceManager(resourceManager);
 	            
 	            // initialize the engine
-	            Engine.init(configProperties, true);
+	            Engine.init(true);
             }
-            catch (IOException e) {
-	            throw new ConfigurationException(null, "CONSERT Engine configuration file unreadable.", e);
-            }
-			catch (ConfigException e) {
+            catch (ConfigException e) {
+				e.printStackTrace();
+				e.getCause().printStackTrace();
 				throw new ConfigurationException(null, "CONSERT Engine configuration invalid.", e);
 			}
+			catch (Exception e) {
+				e.printStackTrace();
+				throw new ConfigurationException(null, "Unknown engine initialization error.", e);
+			}
 		}
-		else {
-			throw new ConfigurationException(null, "CONSERT Engine configuration file not found.");
-		}
-	}
-	
-	
-	void startEngine(ComponentContext context) {
 		
 	}
 	
-	void stopEngine(ComponentContext context) {
+	
+	// Call this when the bundle containing the CONSERT Engine is destroyed
+	void closeEngine(org.apache.felix.dm.Component component) {
+		try {
+			Engine.close(false);
+		}
+		catch (Exception e) {
+			log.error("This should not have happened to a dog!", e);
+		}
+	} 
+	
+	
+	void startEngine(org.apache.felix.dm.Component component) {
+		
+	}
+	
+	void stopEngine(org.apache.felix.dm.Component component) {
 		
 	}
 	
@@ -111,15 +115,24 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// =============================== INSERT HANDLING =============================== //
 	
 	@Override
-	public InsertResult insert(UpdateRequest insertionRequest) {
-		// TODO Auto-generated method stub
-		return null;
+	public Future<InsertResult> insert(UpdateRequest insertionRequest) {
+		return Engine.assertionInsertExecutor().submit(new ContextUpdateTask(insertionRequest));
+	}
+	
+	
+	@Override
+	public Future<InsertResult> insert(Update assertionIdentifier, Update assertionContents, Update assertionAnnotations) {
+		UpdateRequest insertionRequest = UpdateFactory.create() ;
+		insertionRequest.add(assertionIdentifier);
+		insertionRequest.add(assertionContents);
+		insertionRequest.add(assertionAnnotations);
+		
+		return Engine.assertionInsertExecutor().submit(new ContextUpdateTask(insertionRequest));
 	}
 	
 	@Override
-	public InsertResult insert(Update assertionContents, Update assertionAnnotations) {
-		// TODO Auto-generated method stub
-		return null;
+	public Future<?> bulkInsert(UpdateRequest bulkInsertionRequest) {
+		return Engine.assertionInsertExecutor().submit(new ContextBulkUpdateTask(bulkInsertionRequest));
 	}
 	
 	

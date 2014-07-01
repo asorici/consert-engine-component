@@ -1,5 +1,9 @@
 package org.aimas.ami.contextrep.engine;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -24,6 +28,7 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.base.file.Location;
+import com.hp.hpl.jena.util.Locator;
 import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
 
@@ -37,7 +42,7 @@ public class Loader {
 	private static Map<String, OntDocumentManager> ontDocumentManagers;
 	
 	
-	public static int getInsertThreadPoolSize(Properties execConfiguration) throws ConfigException {
+	static int getInsertThreadPoolSize(Properties execConfiguration) throws ConfigException {
 		String sizeStr = execConfiguration.getProperty(ConfigKeys.CONSERT_ENGINE_NUM_INSERTION_THREADS, "1");
 		
 		try {
@@ -49,7 +54,7 @@ public class Loader {
 	}
 	
 	
-	public static int getInferenceThreadPoolSize(Properties execConfiguration) throws ConfigException {
+	static int getInferenceThreadPoolSize(Properties execConfiguration) throws ConfigException {
 		String sizeStr = execConfiguration.getProperty(ConfigKeys.CONSERT_ENGINE_NUM_INFERENCE_THREADS, "1");
 		
 		try {
@@ -61,7 +66,7 @@ public class Loader {
 	}
 	
 	
-	public static int getQueryThreadPoolSize(Properties execConfiguration) throws ConfigException {
+	static int getQueryThreadPoolSize(Properties execConfiguration) throws ConfigException {
 		String sizeStr = execConfiguration.getProperty(ConfigKeys.CONSERT_ENGINE_NUM_QUERY_THREADS, "1");
 		
 		try {
@@ -136,12 +141,13 @@ public class Loader {
 		TDB.sync(graphStore);
 	}
 	
+	
 	/**
 	 * Use the configuration file to create the map of base URIs for each module of the domain Context Model:
 	 * <i>core, annotation, constraints, functions, rules</i>
 	 * @return A map of the base URIs for each type of module within the current domain Context Model
 	 */
-	public static Map<String, String> getContextModelURIs(Properties contextModelConfig) throws ConfigException {
+	static Map<String, String> getContextModelURIs(Properties contextModelConfig) throws ConfigException {
 	    Map<String, String> contextModelURIMap = new HashMap<String, String>();
 	    
 	    /* build the mapping from context domain model keys to the corresponding URIs (if defined)
@@ -178,52 +184,99 @@ public class Loader {
 	 * Setup the document managers for the CONSERT, SPIN and Context Domain ontologies 
 	 * with configuration files taken from the config.properties file
 	 */
-	private static void setupOntologyDocManagers(Properties contextModelConfig) throws ConfigException {
+	private static void setupOntologyDocManagers(Properties contextModelConfig, 
+			EngineResourceManager resourceManager) throws ConfigException {
 		ontDocumentManagers = new HashMap<String, OntDocumentManager>();
+		Locator engineLocator = resourceManager.getResourceLocator();
 		
 		String consertOntDocMgrFile = contextModelConfig.getProperty(ConfigKeys.CONSERT_ONT_DOCMGR_FILE, CONSERT_ONT_DOCMGR_FILE_DEFAULT);
 		String spinOntDocMgrFile = contextModelConfig.getProperty(ConfigKeys.SPIN_ONT_DOCMGR_FILE, SPIN_ONT_DOCMGR_FILE_DEFAULT);
 		String domainOntDocMgrFile = contextModelConfig.getProperty(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE);
 		
-		// ======== create a document manager configuration for the CONSERT ontology ========
-        Model consertDocMgrModel = ModelFactory.createDefaultModel();
-        consertDocMgrModel.read(consertOntDocMgrFile);
-        OntDocumentManager consertDocManager = new OntDocumentManager(consertDocMgrModel);
-        ontDocumentManagers.put(ConfigKeys.CONSERT_ONT_DOCMGR_FILE, consertDocManager);
-        
-        // ======== create a document manager configuration for the SPIN ontology ========
-        Model spinDocMgrModel = ModelFactory.createDefaultModel();
-        spinDocMgrModel.read(spinOntDocMgrFile);
-        OntDocumentManager spinDocManager = new OntDocumentManager(spinDocMgrModel);
-        ontDocumentManagers.put(ConfigKeys.SPIN_ONT_DOCMGR_FILE, spinDocManager);
-        
-		// ======== create a document manager configuration for the Context Domain ========
-        Model domainDocMgrModel = ModelFactory.createDefaultModel();
-        
-        // read the CONSERT and domain specific document manager config into it
-        domainDocMgrModel.read(consertOntDocMgrFile);
-        domainDocMgrModel.read(domainOntDocMgrFile);
-        OntDocumentManager domainDocManager = new OntDocumentManager(domainDocMgrModel);
-        ontDocumentManagers.put(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE, domainDocManager);
-        
-        // ======== setup the global document manager to block no imports and define the path to everything ========
-        Model globalDocMgrModel = ModelFactory.createDefaultModel();
-        globalDocMgrModel.read(spinOntDocMgrFile);
-        globalDocMgrModel.read(consertOntDocMgrFile);
-        globalDocMgrModel.read(domainOntDocMgrFile);
-        
-        OntDocumentManager globalDocManager = OntDocumentManager.getInstance();
-        globalDocManager.configure(globalDocMgrModel);
-        
-        // remove all the import restrictions in previous documentManagers
-        for (Iterator<String> ignoreIt = consertDocManager.listIgnoredImports(); ignoreIt.hasNext();) {
-        	String ignoredURI = ignoreIt.next();
-        	globalDocManager.removeIgnoreImport(ignoredURI);
-        }
-        
-        for (Iterator<String> ignoreIt = domainDocManager.listIgnoredImports(); ignoreIt.hasNext();) {
-        	String ignoredURI = ignoreIt.next();
-        	globalDocManager.removeIgnoreImport(ignoredURI);
+		try {
+			// ======== create a document manager configuration for the CONSERT ontology ========
+	        Model consertDocMgrModel = ModelFactory.createDefaultModel();
+	        //InputStream consertDocMgrStream = openResourceFileAsStream(resourceLoader, consertOntDocMgrFile);
+	        InputStream consertDocMgrStream = resourceManager.getResourceAsStream(consertOntDocMgrFile);
+	        consertDocMgrModel.read(consertDocMgrStream, null);
+	        consertDocMgrStream.close();
+	        
+	        // create the consert ont doc manager and add this bundle's classloader as a Locator
+	        OntDocumentManager consertDocManager = new OntDocumentManager(consertDocMgrModel);
+	        consertDocManager.getFileManager().addLocator(engineLocator);
+	        ontDocumentManagers.put(ConfigKeys.CONSERT_ONT_DOCMGR_FILE, consertDocManager);
+	        
+	        // ======== create a document manager configuration for the SPIN ontology ========
+	        Model spinDocMgrModel = ModelFactory.createDefaultModel();
+	        //InputStream spinDocMgrStream = openResourceFileAsStream(resourceLoader, spinOntDocMgrFile);
+	        InputStream spinDocMgrStream = resourceManager.getResourceAsStream(spinOntDocMgrFile);
+	        spinDocMgrModel.read(spinDocMgrStream, null);
+	        spinDocMgrStream.close();
+	        
+	        // create the spin ont doc manager and add this bundle's classloader as a Locator
+	        OntDocumentManager spinDocManager = new OntDocumentManager(spinDocMgrModel);
+	        spinDocManager.getFileManager().addLocator(engineLocator);
+	        ontDocumentManagers.put(ConfigKeys.SPIN_ONT_DOCMGR_FILE, spinDocManager);
+	        
+			// ======== create a document manager configuration for the Context Domain ========
+	        Model domainDocMgrModel = ModelFactory.createDefaultModel();
+	        //consertDocMgrStream = openResourceFileAsStream(resourceLoader, consertOntDocMgrFile);
+	        consertDocMgrStream = resourceManager.getResourceAsStream(consertOntDocMgrFile);
+	        //InputStream domainDocMgrStream = openResourceFileAsStream(resourceLoader, domainOntDocMgrFile);
+	        InputStream domainDocMgrStream = resourceManager.getResourceAsStream(domainOntDocMgrFile);
+	        
+	        // read the CONSERT and domain specific document manager config into it
+	        domainDocMgrModel.read(consertDocMgrStream, null);
+	        domainDocMgrModel.read(domainDocMgrStream, null);
+	        consertDocMgrStream.close();
+	        domainDocMgrStream.close();
+	        
+	        // create the domain ont doc manager and add this bundle's classloader as a Locator
+	        OntDocumentManager domainDocManager = new OntDocumentManager(domainDocMgrModel);
+	        domainDocManager.getFileManager().addLocator(engineLocator);
+	        ontDocumentManagers.put(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE, domainDocManager);
+	        
+	        // ======== setup the global document manager to block no imports and define the path to everything ========
+	        Model globalDocMgrModel = ModelFactory.createDefaultModel();
+	        /*
+	        consertDocMgrStream = openResourceFileAsStream(engineLocator, consertOntDocMgrFile); 
+	        spinDocMgrStream = openResourceFileAsStream(engineLocator, spinOntDocMgrFile); 
+	        domainDocMgrStream = openResourceFileAsStream(engineLocator, domainOntDocMgrFile);
+	        */
+	        consertDocMgrStream = resourceManager.getResourceAsStream(consertOntDocMgrFile); 
+	        spinDocMgrStream = resourceManager.getResourceAsStream(spinOntDocMgrFile); 
+	        domainDocMgrStream = resourceManager.getResourceAsStream(domainOntDocMgrFile);
+	        
+	        
+	        globalDocMgrModel.read(spinDocMgrStream, null);
+	        globalDocMgrModel.read(consertDocMgrStream, null);
+	        globalDocMgrModel.read(domainDocMgrStream, null);
+	        
+	        consertDocMgrStream.close(); 
+	        spinDocMgrStream.close(); 
+	        domainDocMgrStream.close();
+	        
+	        OntDocumentManager globalDocManager = OntDocumentManager.getInstance();
+	        globalDocManager.configure(globalDocMgrModel);
+	        globalDocManager.getFileManager().addLocator(engineLocator);
+	        
+	        // remove all the import restrictions in previous documentManagers
+	        for (Iterator<String> ignoreIt = consertDocManager.listIgnoredImports(); ignoreIt.hasNext();) {
+	        	String ignoredURI = ignoreIt.next();
+	        	globalDocManager.removeIgnoreImport(ignoredURI);
+	        }
+	        
+	        for (Iterator<String> ignoreIt = domainDocManager.listIgnoredImports(); ignoreIt.hasNext();) {
+	        	String ignoredURI = ignoreIt.next();
+	        	globalDocManager.removeIgnoreImport(ignoredURI);
+	        }
+	        
+		}
+		catch(FileNotFoundException ex) {
+			throw new ConfigException("Failed to load context model document managers.", ex);
+		}
+        catch (IOException ex) {
+        	throw new ConfigException("Failed to load context model document managers.", ex);
         }
 	}
 	
@@ -234,7 +287,7 @@ public class Loader {
 	 * @return The OntDocumentManager for the specified configuration key or <b>null</b> if the document managers
 	 * have not yet been initialized or no document manager is found for the specified key.
 	 */
-	public static OntDocumentManager getOntDocumentManager(String configKey) {
+	static OntDocumentManager getOntDocumentManager(String configKey) {
 		if (ontDocumentManagers != null) {
 			return ontDocumentManagers.get(configKey);
 		}
@@ -251,11 +304,11 @@ public class Loader {
 	 * @see getContextModelURIs
 	 */
 	public static Map<String, OntModel> getContextModelModules(Properties contextModelConfig, 
-			Map<String, String> contextModelURIMap) throws ConfigException {
+			EngineResourceManager resourceManager, Map<String, String> contextModelURIMap) throws ConfigException {
 		Map<String, OntModel> contextModelMap = new HashMap<String, OntModel>();
 		
 		// ======== setup document managers for ontology importing ========
-        setupOntologyDocManagers(contextModelConfig);
+        setupOntologyDocManagers(contextModelConfig, resourceManager);
 		
         OntDocumentManager domainDocManager = ontDocumentManagers.get(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE);
         OntModelSpec domainContextModelSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
@@ -265,10 +318,12 @@ public class Loader {
         // 1) build the core context model
         String consertCoreURI = contextModelConfig.getProperty(ConfigKeys.CONSERT_ONT_CORE_URI);
         String contextModelCoreURI = contextModelURIMap.get(ConfigKeys.DOMAIN_ONT_CORE_URI);
-        
         OntModel contextModelCore = ModelFactory.createOntologyModel(domainContextModelSpec);
-        contextModelCore.read(consertCoreURI);
-        contextModelCore.read(contextModelCoreURI);
+        
+        contextModelCore.add(domainDocManager.getFileManager().loadModel(consertCoreURI));
+        contextModelCore.addSubModel(domainDocManager.getFileManager().loadModel(contextModelCoreURI));
+        //contextModelCore.read(consertCoreURI);
+        //contextModelCore.read(contextModelCoreURI);
         contextModelMap.put(ConfigKeys.DOMAIN_ONT_CORE_URI, contextModelCore);
         
         // 2) build the annotation context model
@@ -276,13 +331,12 @@ public class Loader {
         String contextModelAnnotationURI = contextModelURIMap.get(ConfigKeys.DOMAIN_ONT_ANNOTATION_URI);
         OntModel contextModelAnnotations = ModelFactory.createOntologyModel(domainContextModelSpec);
         
-        contextModelAnnotations.read(consertAnnotationURI);
+        //contextModelAnnotations.read(consertAnnotationURI);
+        contextModelAnnotations.add(domainDocManager.getFileManager().loadModel(consertAnnotationURI));
         if (contextModelAnnotationURI != null) {
-        	contextModelAnnotations.read(contextModelAnnotationURI);
+        	//contextModelAnnotations.read(contextModelAnnotationURI);
+        	contextModelAnnotations.addSubModel(domainDocManager.getFileManager().loadModel(contextModelAnnotationURI));
         }
-//        else {
-//        	contextModelAnnotations.read(consertAnnotationURI);
-//        }
         contextModelMap.put(ConfigKeys.DOMAIN_ONT_ANNOTATION_URI, contextModelAnnotations);
         
         // 3) build the constraints context model
@@ -290,13 +344,12 @@ public class Loader {
         String contextModelConstraintsURI = contextModelURIMap.get(ConfigKeys.DOMAIN_ONT_CONSTRAINT_URI);
         OntModel contextModelConstraints = ModelFactory.createOntologyModel(domainContextModelSpec);
         
-        contextModelConstraints.read(consertConstraintsURI);
+        //contextModelConstraints.read(consertConstraintsURI);
+        contextModelConstraints.add(domainDocManager.getFileManager().loadModel(consertConstraintsURI));
         if (contextModelConstraintsURI != null) {
-        	contextModelConstraints.read(contextModelConstraintsURI);
+        	//contextModelConstraints.read(contextModelConstraintsURI);
+        	contextModelConstraints.addSubModel(domainDocManager.getFileManager().loadModel(contextModelConstraintsURI));
         }
-//      else {
-//      	contextModelConstraints.read(consertConstraintsURI);
-//      }
         contextModelMap.put(ConfigKeys.DOMAIN_ONT_CONSTRAINT_URI, contextModelConstraints);
         
         
@@ -305,13 +358,12 @@ public class Loader {
         String contextModelFunctionsURI = contextModelURIMap.get(ConfigKeys.DOMAIN_ONT_FUNCTIONS_URI);
         OntModel contextModelFunctions = ModelFactory.createOntologyModel(domainContextModelSpec);
         
-        contextModelFunctions.read(consertFunctionsURI);
+        //contextModelFunctions.read(consertFunctionsURI);
+        contextModelFunctions.add(domainDocManager.getFileManager().loadModel(consertFunctionsURI));
         if (contextModelFunctionsURI != null) {
-        	contextModelFunctions.read(contextModelFunctionsURI);
+        	//contextModelFunctions.read(contextModelFunctionsURI);
+        	contextModelFunctions.addSubModel(domainDocManager.getFileManager().loadModel(contextModelFunctionsURI));
         }
-//        else {
-//        	contextModelFunctions.read(consertFunctionsURI);
-//        }
         contextModelMap.put(ConfigKeys.DOMAIN_ONT_FUNCTIONS_URI, contextModelFunctions);
         
         // 5) build the rules context model
@@ -319,13 +371,12 @@ public class Loader {
         String contextModelRulesURI = contextModelURIMap.get(ConfigKeys.DOMAIN_ONT_RULES_URI);
         OntModel contextModelRules = ModelFactory.createOntologyModel(domainContextModelSpec);
         
-        contextModelRules.read(consertRulesURI);
+        //contextModelRules.read(consertRulesURI);
+        contextModelRules.add(domainDocManager.getFileManager().loadModel(consertRulesURI));
         if (contextModelRulesURI != null) {
-        	contextModelRules.read(contextModelRulesURI);
+        	//contextModelRules.read(contextModelRulesURI);
+        	contextModelRules.addSubModel(domainDocManager.getFileManager().loadModel(contextModelRulesURI));
         }
-//        else {
-//        	contextModelRules.read(consertRulesURI);
-//        }
         contextModelMap.put(ConfigKeys.DOMAIN_ONT_RULES_URI, contextModelRules);
         
 	    return contextModelMap;
@@ -421,4 +472,27 @@ public class Loader {
 			union.addGraph(model.getGraph());
 		}
 	}
+	
+	/**
+     * Open a resource file for reading. Code similar to Apache Jena FileUtils.
+     */
+    public static InputStream openResourceFileAsStream(ClassLoader loader, String filename) throws FileNotFoundException {
+        // first try system resource
+    	InputStream is = ClassLoader.getSystemResourceAsStream(filename);
+        if (is == null) {
+            // Try local loader with absolute path
+            is = loader.getResourceAsStream("/" + filename);
+            if (is == null) {
+                // Try local loader, relative, just in case
+                is = loader.getResourceAsStream(filename);
+                if (is == null) {
+                    // Can't find it on classpath, so try relative to current directory
+                    // Will throw security exception under and applet but there's not other choice left
+                    is = new FileInputStream(filename);
+                }
+            }
+        }
+        
+        return is;
+    }
 }

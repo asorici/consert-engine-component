@@ -43,7 +43,6 @@ import com.hp.hpl.jena.sparql.core.Quad;
 import com.hp.hpl.jena.sparql.modify.request.QuadDataAcc;
 import com.hp.hpl.jena.sparql.modify.request.UpdateCreate;
 import com.hp.hpl.jena.sparql.modify.request.UpdateDataInsert;
-import com.hp.hpl.jena.sparql.util.NodeFactory;
 import com.hp.hpl.jena.update.Update;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
@@ -84,7 +83,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 				List<ContextUpdateTask> inferred = attemptDerivationRule(derivationWrapper, queryModel, contextModelCore, contextDataset);
 				
 				if (!inferred.isEmpty()) {
-					inferredContextAssertions.add(derivationWrapper.getDerivedResource());
+					inferredContextAssertions.add(derivationWrapper.getDerivedAssertion());
 					inferredContext.addAll(inferred);
 				}
 			}

@@ -23,6 +23,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 
 public class ContextStoreUtil {
+	public static final String UNION_GRAPH_URN = "urn:x-arq:UnionGraph";
 	
 	/**
 	 * Get the union model of all named graphs contained within a TDB-transaction snapshot 

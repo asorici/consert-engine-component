@@ -1,6 +1,6 @@
 package org.aimas.ami.contextrep.utils;
 
-import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.uuid.JenaUUID;
 import com.hp.hpl.jena.shared.uuid.UUID_V4_Gen;
 
@@ -14,7 +14,7 @@ public class GraphUUIDGenerator {
 		return baseURI + "/" + assertionName + "-" + uuid.asString();
 	}
 	
-	public static String createUUID(OntResource res) {
+	public static String createUUID(Resource res) {
 		String resURI = res.getURI();
 		resURI = resURI.replaceAll("#", "/");
 		

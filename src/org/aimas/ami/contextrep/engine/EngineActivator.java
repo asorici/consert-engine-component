@@ -20,7 +20,13 @@ public class EngineActivator extends DependencyActivatorBase {
 					StatsHandler.class.getName(), CommandHandler.class.getName()}, null)
 			.setImplementation(EngineFrontend.class)
 			//.setCallbacks("initEngine", "startEngine", "stopEngine", null)
-			.setCallbacks("initEngine", null, null, null)
+			.setCallbacks("initEngine", null, null, "closeEngine")
+			.add(createBundleDependency()
+					.setFilter("(Bundle-Name=consert-model-resources)")
+					.setRequired(true)
+					.setCallbacks("setModelResourceBundle", null)
+					.setPropagate(true)
+			)
 		);
 	}
 	

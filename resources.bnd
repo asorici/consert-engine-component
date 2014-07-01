@@ -1,0 +1,9 @@
+Bundle-Version: 1.0.0
+Bundle-Name: consert-model-resources
+Bundle-Description: Contains the configuration files and resources required by the CONSERT Engine.
+Bundle-Vendor: org.aimas.ami
+
+Bundle-ClassPath: .
+Include-Resource: \
+    etc=etc/
+-exportcontents: etc, etc.*

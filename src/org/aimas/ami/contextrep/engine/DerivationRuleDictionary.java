@@ -38,6 +38,15 @@ public class DerivationRuleDictionary {
 		rule2EntityMap = new HashMap<>();
 	}
 	
+	/* IMPORTANT TODO:
+	 * 	- Order the derivation commands by their specificity - that is from the most specific 
+	 * 	  derived context assertion to the most general one
+	 * 
+	 *  - include a mapping from Derived Assertion to list of body assertions - this list is to be
+	 *    used in computing the schedule for running the associated derivation rule when using
+	 *    the Prioritization Policy for Context Derivation Rules
+	 */
+	
 	public Map<ContextAssertion, List<DerivedAssertionWrapper>> getAssertion2QueryMap() {
 		return assertion2RuleMap;
 	}

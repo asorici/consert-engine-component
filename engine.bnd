@@ -1,0 +1,26 @@
+Bundle-Activator: org.aimas.ami.contextrep.engine.EngineActivator
+Bundle-ClassPath: ., spin-1.3.0.jar
+Bundle-Description: The bundle offering the CONSERT Engine Component.
+Bundle-Name: consert-engine
+Bundle-Version: 1.0.0
+Export-Package:  \
+    org.aimas.ami.contextrep.engine.api
+Import-Package:  \
+    org.aimas.ami.contextrep.engine.api,\
+    javax.xml.datatype;resolution:=optional,\
+    javax.xml.transform;resolution:=optional,\
+    javax.xml.transform.dom;resolution:=optional,\
+    javax.xml.transform.stream;resolution:=optional,\
+    org.w3c.dom;resolution:=optional,\
+    *
+Include-Resource:  \
+    lib/spin-1.3.0.jar
+Private-Package:  \
+	org.aimas.ami.contextrep.engine,\
+	org.aimas.ami.contextrep.functions,\
+	org.aimas.ami.contextrep.query,\
+	org.aimas.ami.contextrep.update,\
+	org.aimas.ami.contextrep.update.exceptions,\
+	org.aimas.ami.contextrep.update.performance,\
+	org.aimas.ami.contextrep.utils,\
+	org.aimas.ami.contextrep.utils.spin

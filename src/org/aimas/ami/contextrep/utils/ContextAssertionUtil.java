@@ -25,7 +25,6 @@ import org.topbraid.spin.util.JenaUtil;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.enhanced.EnhGraph;
-import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntProperty;
@@ -132,68 +131,6 @@ public class ContextAssertionUtil {
 		}
 		
 		return null;
-	}
-	
-	public static List<Statement> createAnnotationStatements(String graphURI, OntModel contextModel, 
-			ContextAssertionType assertionType, Calendar timestamp, CalendarIntervalList validity, 
-			double accuracy, String sourceURI) {
-		List<Statement> annotationStatements = new ArrayList<>();
-		
-		Resource idGraph = ResourceFactory.createResource(graphURI);
-		
-		OntProperty assertionTypeProp = contextModel.getOntProperty(ConsertCore.CONTEXT_ASSERTION_TYPE_PROPERTY.getURI());
-		OntProperty hasSourceProp = contextModel.getOntProperty(ConsertAnnotation.HAS_SOURCE.getURI());
-		OntProperty hasTimestampProp = contextModel.getOntProperty(ConsertAnnotation.HAS_TIMESTAMP.getURI());
-		OntProperty hasValidityProp = contextModel.getOntProperty(ConsertAnnotation.HAS_VALIDITY.getURI());
-		OntProperty hasCertaintyProp = contextModel.getOntProperty(ConsertAnnotation.HAS_CERTAINTY.getURI());
-		
-		// Create type statement
-		Individual typeIndividual = contextModel.getIndividual(assertionType.getTypeURI());
-		Statement typeStatement = ResourceFactory.createStatement(idGraph, assertionTypeProp, typeIndividual);
-		annotationStatements.add(typeStatement);
-		
-		// Create validity statement
-		Literal validityAnnVal = ResourceFactory.createTypedLiteral(validity);
-		Resource validityAnn = ResourceFactory.createResource();
-		Statement validityStatement = ResourceFactory.createStatement(idGraph, hasValidityProp, validityAnn);
-		Statement validityTypeStatement = ResourceFactory.createStatement(validityAnn, RDF.type, ConsertAnnotation.TEMPORAL_VALIDITY);
-		Statement validityValStatement = ResourceFactory.createStatement(validityAnn, ConsertAnnotation.HAS_STRUCTURED_VALUE, validityAnnVal);
-		annotationStatements.add(validityStatement);
-		annotationStatements.add(validityTypeStatement);
-		annotationStatements.add(validityValStatement);
-		
-		// Create timestamp Literal
-		XSDDateTime xsdTimestamp = new XSDDateTime(timestamp);
-		Literal timestampValAnn = ResourceFactory.createTypedLiteral(xsdTimestamp);
-		Resource timestampAnn = ResourceFactory.createResource();
-		Statement timestampStatement = ResourceFactory.createStatement(idGraph, hasTimestampProp, timestampAnn);
-		Statement timestampTypeStatement = ResourceFactory.createStatement(timestampAnn, RDF.type, ConsertAnnotation.DATETIME_TIMESTAMP);
-		Statement timestampValStatement = ResourceFactory.createStatement(timestampAnn, ConsertAnnotation.HAS_STRUCTURED_VALUE, timestampValAnn);
-		annotationStatements.add(timestampStatement);
-		annotationStatements.add(timestampTypeStatement);
-		annotationStatements.add(timestampValStatement);
-				
-		// Create certainty Literal
-		Literal certaintyAnnVal = ResourceFactory.createTypedLiteral(new Double(accuracy));
-		Resource certaintyAnn = ResourceFactory.createResource();
-		Statement certaintyStatement = ResourceFactory.createStatement(idGraph, hasCertaintyProp, certaintyAnn);
-		Statement certaintyTypeStatement = ResourceFactory.createStatement(certaintyAnn, RDF.type, ConsertAnnotation.NUMERIC_VALUE_CERTAINTY);
-		Statement certaintyValStatement = ResourceFactory.createStatement(certaintyAnn, ConsertAnnotation.HAS_STRUCTURED_VALUE, certaintyAnnVal);
-		annotationStatements.add(certaintyStatement);
-		annotationStatements.add(certaintyTypeStatement);
-		annotationStatements.add(certaintyValStatement);
-		
-		// Create source Literal
-		Literal sourceAnnVal = ResourceFactory.createTypedLiteral(sourceURI, XSDDatatype.XSDanyURI);
-		Resource sourceAnn = ResourceFactory.createResource();
-		Statement sourceStatement = ResourceFactory.createStatement(idGraph, hasSourceProp, sourceAnn);
-		Statement sourceTypeStatement = ResourceFactory.createStatement(sourceAnn, RDF.type, ConsertAnnotation.SOURCE_ANNOTATION);
-		Statement sourceValStatement = ResourceFactory.createStatement(sourceAnn, ConsertAnnotation.HAS_UNSTRUCTURED_VALUE, sourceAnnVal);
-		annotationStatements.add(sourceStatement);
-		annotationStatements.add(sourceTypeStatement);
-		annotationStatements.add(sourceValStatement);
-		
-		return annotationStatements;
 	}
 	
 	

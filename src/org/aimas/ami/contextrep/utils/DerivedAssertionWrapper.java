@@ -24,7 +24,7 @@ public class DerivedAssertionWrapper {
 		return derivationCommand;
 	}
 
-	public ContextAssertion getDerivedResource() {
+	public ContextAssertion getDerivedAssertion() {
 		return derivedAssertion;
 	}
 	

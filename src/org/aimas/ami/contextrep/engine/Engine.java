@@ -24,8 +24,25 @@ import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.tdb.base.file.Location;
 
 public class Engine {
+	// ========== CONSERT Engine configuration properties ==========
+	public static final String CONFIG_FILENAME = "etc/config.properties";
+	private static Properties configurationProperties;
 	
-	private static final String CONFIG_FILENAME = "etc/config.properties";
+	public static Properties getConfiguration() {
+		return configurationProperties;
+	}
+	
+	// ========== CONSERT Engine configuration properties ==========
+	private static EngineResourceManager resourceManager;
+	
+	static void setResourceManager(EngineResourceManager manager) {
+		resourceManager = manager;
+	}
+	
+	static EngineResourceManager getResourceManager() {
+		return resourceManager;
+	}
+	
 	
 	// ========== CONSERT Engine storage ==========
 	/** Path to persistent TDB contextStore */
@@ -74,7 +91,7 @@ public class Engine {
 	private static SubscriptionMonitor subscriptionMonitor;
 	
 	
-	public static Properties readConfiguration(String configurationFilename) 
+	static Properties readConfiguration(String configurationFilename) 
 			throws ConfigException {
 		if (configurationFilename == null) {
 			configurationFilename = CONFIG_FILENAME;
@@ -91,7 +108,7 @@ public class Engine {
 	}
 	
 	
-	public static Properties readConfiguration(InputStream configStream) throws ConfigException {
+	static Properties readConfiguration(InputStream configStream) throws ConfigException {
 		try {
 			// load the properties file
 			Properties engineConfiguration = new Properties();
@@ -106,15 +123,31 @@ public class Engine {
 	}
 	
 	
-	private static void validate(Properties configProperties) throws ConfigException {
+	private static void validate(Properties engineConfiguration) throws ConfigException {
 	    // Step 1) Check for the required entries detailing the CONSERT Ontology modules
 		for (String moduleKey : ConfigKeys.CONSERT_ONT_MODULE_KEYS) {
-			if (configProperties.getProperty(moduleKey) == null) {
+			if (engineConfiguration.getProperty(moduleKey) == null) {
 				throw new ConfigException("Configuration properties has no value for key: " + moduleKey);
 			}
 		}
+		
+		// Step 2) Check for existence of Context Model Core URI (this MUST exist)
+		if (engineConfiguration.get(ConfigKeys.DOMAIN_ONT_CORE_URI) == null) {
+				throw new ConfigException("No value for required" 
+					+ "Context Domain core module key: " + ConfigKeys.DOMAIN_ONT_CORE_URI);
+		}
+		
+		// Step 3) Check for existence of the Context Model document manager file key
+		if (engineConfiguration.get(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE) == null) {
+			throw new ConfigException("Configuration properties has no value for "
+					+ "Context Domain ontology document manager key: " + ConfigKeys.DOMAIN_ONT_DOCMGR_FILE);
+		}
     }
 	
+	
+	public static void init(boolean printDurations) throws ConfigException {
+		init(CONFIG_FILENAME, printDurations);
+	}
 	
 	/**
 	 * Do initialization setup:
@@ -126,16 +159,29 @@ public class Engine {
 	 * 	<li>compute derivationRuleDictionary</li>
 	 * </ul>
 	 */
-	public static void init(Properties engineConfiguration, boolean printDurations) throws ConfigException {
+	//public static void init(Properties engineConfiguration, boolean printDurations) throws ConfigException {
+	public static void init(String configFile, boolean printDurations) throws ConfigException {
 		long timestamp = System.currentTimeMillis();
+		
+		// ====================== read and store CONSERT Engine configuration ======================
+		if (resourceManager == null) {
+			throw new ConfigException("Engine resource manager not initialized.");
+		}
+		
+		InputStream configurationStream = resourceManager.getResourceAsStream(configFile);
+		if (configurationStream == null) {
+			throw new ConfigException("Engine configuration file not found in resources.");
+		}
+		
+		configurationProperties = readConfiguration(configurationStream);
 		
 		// ==================== prepare contextStore storage locations ====================
 		// retrieve the runtime memory location name and create the in-memory TDB contextStore dataset
-		contextStoreRuntimeLocation = Loader.createRuntimeStoreLocation(engineConfiguration);
+		contextStoreRuntimeLocation = Loader.createRuntimeStoreLocation(configurationProperties);
 		Dataset contextDataset = TDBFactory.createDataset(contextStoreRuntimeLocation);
 		
 		// retrieve the runtime memory location name and create the in-memory TDB contextStore dataset
-		contextStorePersistentLocation = Loader.createPersistentStoreLocation(engineConfiguration);
+		contextStorePersistentLocation = Loader.createPersistentStoreLocation(configurationProperties);
 		
 		if (printDurations) {
 			System.out.println("Task: create the contextStore. Duration: " + 
@@ -147,8 +193,8 @@ public class Engine {
 		// ==================== prepare the Context Models ====================
 		// this has the side effect of also configuring the ontology document managers for
 		// CONSERT ontology, SPIN ontology set and Context Domain ontology
-		contextModelURIMap = Loader.getContextModelURIs(engineConfiguration);
-		baseContextModelMap = Loader.getContextModelModules(engineConfiguration, contextModelURIMap); 
+		contextModelURIMap = Loader.getContextModelURIs(configurationProperties);
+		baseContextModelMap = Loader.getContextModelModules(configurationProperties, resourceManager, contextModelURIMap); 
 		
 		if (printDurations) {
 			System.out.println("Task: load context model modules. Duration: " + 
@@ -225,9 +271,9 @@ public class Engine {
 		
 		
 		// ==================== Create CONSERT Engine execution services ==================== 
-		assertionInsertExecutor = createInsertionExecutor(engineConfiguration);
-		assertionInferenceExecutor = createInferenceExecutor(engineConfiguration);
-		assertionQueryExecutor = createQueryExecutor(engineConfiguration);
+		assertionInsertExecutor = createInsertionExecutor(configurationProperties);
+		assertionInferenceExecutor = createInferenceExecutor(configurationProperties);
+		assertionQueryExecutor = createQueryExecutor(configurationProperties);
 		
 		subscriptionMonitor = new SubscriptionMonitor();
 	}
