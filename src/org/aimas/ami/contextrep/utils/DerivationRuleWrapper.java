@@ -2,18 +2,19 @@ package org.aimas.ami.contextrep.utils;
 
 import java.util.Map;
 
+import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.topbraid.spin.util.CommandWrapper;
 
 import com.hp.hpl.jena.rdf.model.RDFNode;
 
-public class DerivedAssertionWrapper {
+public class DerivationRuleWrapper implements ContextDerivationRule {
 	
 	private CommandWrapper derivationCommand;
 	private ContextAssertion derivedAssertion;
 	private Map<String, RDFNode> commandBindings;
 	
-	public DerivedAssertionWrapper(ContextAssertion derivedAssertion, CommandWrapper derivationCommand, 
+	public DerivationRuleWrapper(ContextAssertion derivedAssertion, CommandWrapper derivationCommand, 
 			Map<String, RDFNode> commandBindings) {
 		this.derivedAssertion = derivedAssertion;
 		this.derivationCommand = derivationCommand;
@@ -23,7 +24,8 @@ public class DerivedAssertionWrapper {
 	public CommandWrapper getDerivationCommand() {
 		return derivationCommand;
 	}
-
+	
+	@Override
 	public ContextAssertion getDerivedAssertion() {
 		return derivedAssertion;
 	}
@@ -39,7 +41,7 @@ public class DerivedAssertionWrapper {
 	
 	@Override
 	public boolean equals(Object other) {
-		return (other != null && other instanceof DerivedAssertionWrapper && 
-			derivationCommand.equals(((DerivedAssertionWrapper)other).getDerivationCommand()));
+		return (other != null && other instanceof DerivationRuleWrapper && 
+			derivationCommand.equals(((DerivationRuleWrapper)other).getDerivationCommand()));
 	}
 }

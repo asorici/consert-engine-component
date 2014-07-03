@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.execution;
 
 import org.aimas.ami.contextrep.model.ContextAssertion;
 

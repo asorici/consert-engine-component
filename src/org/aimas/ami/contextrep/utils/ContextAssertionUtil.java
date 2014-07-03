@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
-import org.aimas.ami.contextrep.engine.ContextAssertionIndex;
-import org.aimas.ami.contextrep.engine.Engine;
+import org.aimas.ami.contextrep.engine.core.ContextAssertionIndex;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;

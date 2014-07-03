@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.core;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,11 +9,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.aimas.ami.contextrep.engine.api.ConfigException;
+import org.aimas.ami.contextrep.engine.execution.InferenceService;
+import org.aimas.ami.contextrep.engine.execution.InsertionService;
+import org.aimas.ami.contextrep.engine.execution.QueryService;
+import org.aimas.ami.contextrep.engine.execution.SubscriptionMonitor;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Dataset;
@@ -35,11 +36,11 @@ public class Engine {
 	// ========== CONSERT Engine configuration properties ==========
 	private static EngineResourceManager resourceManager;
 	
-	static void setResourceManager(EngineResourceManager manager) {
+	public static void setResourceManager(EngineResourceManager manager) {
 		resourceManager = manager;
 	}
 	
-	static EngineResourceManager getResourceManager() {
+	public static EngineResourceManager getResourceManager() {
 		return resourceManager;
 	}
 	
@@ -60,7 +61,7 @@ public class Engine {
 	 * 	core, annotations, constraints, functions, rules */
 	private static Map<String, OntModel> baseContextModelMap;
 	
-	/** Map of basic ontology models for each module of the context model: 
+	/** Map of rdfs ontology models for each module of the context model: 
 	 * 	core, annotations, constraints, functions, rules */
 	private static Map<String, OntModel> rdfsContextModelMap;
 	
@@ -83,9 +84,9 @@ public class Engine {
 	// ========== CONSERT Engine Internal Execution Elements ==========
 	
 	// Execution: ContextAssertion insertion, inference-hook and query execution
-	private static ThreadPoolExecutor assertionInsertExecutor;
-	private static ThreadPoolExecutor assertionInferenceExecutor;
-	private static ThreadPoolExecutor assertionQueryExecutor;
+	private static InsertionService insertionService;
+	private static InferenceService inferenceService;
+	private static QueryService queryService;
 	
 	// Subscription Monitor
 	private static SubscriptionMonitor subscriptionMonitor;
@@ -271,9 +272,9 @@ public class Engine {
 		
 		
 		// ==================== Create CONSERT Engine execution services ==================== 
-		assertionInsertExecutor = createInsertionExecutor(configurationProperties);
-		assertionInferenceExecutor = createInferenceExecutor(configurationProperties);
-		assertionQueryExecutor = createQueryExecutor(configurationProperties);
+		insertionService = initInsertionService(configurationProperties);
+		inferenceService = createInferenceService(configurationProperties);
+		queryService = createQueryService(configurationProperties);
 		
 		subscriptionMonitor = new SubscriptionMonitor();
 	}
@@ -284,22 +285,9 @@ public class Engine {
 	 */
 	public static void close(boolean persist) {
 		// shutdown the executors and await their task termination
-		assertionInsertExecutor.shutdown();
-		assertionInferenceExecutor.shutdown();
-		assertionQueryExecutor.shutdown();
-		
-		try {
-	        assertionInsertExecutor.awaitTermination(10, TimeUnit.SECONDS);
-	        assertionInferenceExecutor.awaitTermination(10, TimeUnit.SECONDS);
-	        assertionQueryExecutor.awaitTermination(10, TimeUnit.SECONDS);
-        }
-        catch (InterruptedException e) {
-	        e.printStackTrace();
-        }
-		
-		assertionInsertExecutor.shutdownNow();
-		assertionInferenceExecutor.shutdownNow();
-		assertionQueryExecutor.shutdownNow();
+		insertionService.close();
+		inferenceService.close();
+		queryService.close();
 		
 		closeContextModel();
 		
@@ -414,18 +402,18 @@ public class Engine {
 	
 	
 	// ############################## Access Internal Execution handlers ############################## 
-	public static ThreadPoolExecutor assertionInsertExecutor() {
-		return assertionInsertExecutor;
+	public static InsertionService getInsertionService() {
+		return insertionService;
 	}
 	
 	
-	public static ThreadPoolExecutor assertionInferenceExecutor() {
-		return assertionInferenceExecutor;
+	public static InferenceService getInferenceService() {
+		return inferenceService;
 	}
 	
 	
-	public static ThreadPoolExecutor assertionQueryExecutor() {
-		return assertionQueryExecutor;
+	public static QueryService getQueryService() {
+		return queryService;
 	}
 	
 	
@@ -434,44 +422,26 @@ public class Engine {
 	}
 	
 	
-	private static ThreadPoolExecutor createInsertionExecutor(Properties execConfiguration) {
-		int assertionInsertThreadPoolSize = 1;
+	private static InsertionService initInsertionService(Properties execConfiguration) {
+		InsertionService instance = InsertionService.getInstance();
+		instance.init(execConfiguration);
 		
-		try {
-	        assertionInsertThreadPoolSize = Loader.getInsertThreadPoolSize(execConfiguration);
-        }
-        catch (ConfigException e) {
-	        assertionInsertThreadPoolSize = 1;
-        }
-		
-		return (ThreadPoolExecutor)Executors.newFixedThreadPool(assertionInsertThreadPoolSize, new ContextInsertThreadFactory());
+		return instance;
 	}
 	
-	private static ThreadPoolExecutor createInferenceExecutor(Properties execConfiguration) {
-		int assertionInferenceThreadPoolSize = 1;
+	private static InferenceService createInferenceService(Properties execConfiguration) {
+		InferenceService instance = InferenceService.getInstance();
+		instance.init(execConfiguration);
 		
-		try {
-	        assertionInferenceThreadPoolSize = Loader.getInferenceThreadPoolSize(execConfiguration);
-        }
-        catch (ConfigException e) {
-        	assertionInferenceThreadPoolSize = 1;
-        }
-		
-		return (ThreadPoolExecutor)Executors.newFixedThreadPool(assertionInferenceThreadPoolSize, new ContextInferenceThreadFactory());
+		return instance;
 	}
 	
 	
-	private static ThreadPoolExecutor createQueryExecutor(Properties execConfiguration) {
-		int assertionQueryThreadPoolSize = 1;
+	private static QueryService createQueryService(Properties execConfiguration) {
+		QueryService instance = QueryService.getInstance();
+		instance.init(execConfiguration);
 		
-		try {
-	        assertionQueryThreadPoolSize = Loader.getQueryThreadPoolSize(execConfiguration);
-        }
-        catch (ConfigException e) {
-        	assertionQueryThreadPoolSize = 1;
-        }
-		
-		return (ThreadPoolExecutor)Executors.newFixedThreadPool(assertionQueryThreadPoolSize, new ContextQueryThreadFactory());
+		return instance;
     }
 	
 }

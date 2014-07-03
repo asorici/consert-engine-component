@@ -4,7 +4,11 @@ import java.util.List;
 
 import org.aimas.ami.contextrep.model.ContextConstraintViolation;
 
+import com.hp.hpl.jena.update.UpdateRequest;
+
 public class InsertResult {
+	protected UpdateRequest insertRequest;
+	
 	protected InsertException execError;
 	
 	protected List<ContextConstraintViolation> constraintViolations;
@@ -13,14 +17,19 @@ public class InsertResult {
 	protected boolean triggeredInheritance;
 	
 	
-    public InsertResult(InsertException execError, List<ContextConstraintViolation> constraintViolations, 
+    public InsertResult(UpdateRequest insertRequest, InsertException execError, List<ContextConstraintViolation> constraintViolations, 
     		boolean wasContinuous, boolean triggeredInheritance) {
-	    this.execError = execError;
+	    this.insertRequest = insertRequest;
+    	this.execError = execError;
 	    this.constraintViolations = constraintViolations;
 	    this.wasContinuous = wasContinuous;
 	    this.triggeredInheritance = triggeredInheritance;
     }
-
+    
+    public UpdateRequest getInsertRequest() {
+    	return insertRequest;
+    }
+    
 
 	public InsertException getExecError() {
 		return execError;

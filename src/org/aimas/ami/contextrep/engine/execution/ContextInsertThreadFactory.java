@@ -1,22 +1,23 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.execution;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ContextQueryThreadFactory implements ThreadFactory {
-	
+
+public class ContextInsertThreadFactory implements ThreadFactory {
+
 	private static final AtomicInteger poolNumber = new AtomicInteger(1);
     private final ThreadGroup group;
     private final AtomicInteger threadNumber = new AtomicInteger(1);
     private final String namePrefix;
 
-    public ContextQueryThreadFactory() {
+    public ContextInsertThreadFactory() {
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() :
                               Thread.currentThread().getThreadGroup();
         namePrefix = "pool-" +
                       poolNumber.getAndIncrement() +
-                     "-context-query-";
+                     "-context-insert-";
     }
 
     public Thread newThread(Runnable r) {

@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.core;
 
 public class ConfigKeys {
 	// ======== Storage configuration ========
@@ -51,6 +51,11 @@ public class ConfigKeys {
 	
 	// ======== CONSERT Engine execution configuration ========
 	public static final String CONSERT_ENGINE_NUM_INSERTION_THREADS = "consert.runtime.insertion.threadpool.size";
+	
 	public static final String CONSERT_ENGINE_NUM_INFERENCE_THREADS = "consert.runtime.inference.threadpool.size";
+	public static final String CONSERT_ENGINE_INFERENCE_SCHEDULER_SLEEP = "consert.runtime.inference.scheduler.sleep";
+	public static final String CONSERT_ENGINE_INFERENCE_SCHEDULER_TYPE = "consert.runtime.inference.scheduler.type";
+	public static final String CONSERT_ENGINE_INFERENCE_RUN_WINDOW = "consert.runtime.inference.stats.runwindow";
+	
 	public static final String CONSERT_ENGINE_NUM_QUERY_THREADS = "consert.runtime.query.threadpool.size";
 }

@@ -2,7 +2,7 @@ package org.aimas.ami.contextrep.update;
 
 import java.util.concurrent.Callable;
 
-import org.aimas.ami.contextrep.engine.Engine;
+import org.aimas.ami.contextrep.engine.core.Engine;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
@@ -29,6 +29,7 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 	public ContextInferenceTask(CheckInferenceHook inferenceHook) {
 		this.inferenceHook = inferenceHook;
 	}
+	
 	
 	@Override
 	public InferenceResult call() {

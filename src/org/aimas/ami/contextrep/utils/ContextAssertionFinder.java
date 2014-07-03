@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.aimas.ami.contextrep.engine.ContextAssertionIndex;
+import org.aimas.ami.contextrep.engine.core.ContextAssertionIndex;
 import org.topbraid.spin.model.Aggregation;
 import org.topbraid.spin.model.Bind;
 import org.topbraid.spin.model.Element;

@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;

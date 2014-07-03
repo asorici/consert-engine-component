@@ -2,18 +2,18 @@ package org.aimas.ami.contextrep.update;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
-import org.aimas.ami.contextrep.engine.DerivationRuleDictionary;
-import org.aimas.ami.contextrep.engine.Engine;
 import org.aimas.ami.contextrep.engine.api.InsertException;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
+import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
+import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.utils.ContextUpdateUtil;
+import org.aimas.ami.contextrep.utils.DerivationRuleWrapper;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Dataset;
@@ -28,19 +28,23 @@ import com.hp.hpl.jena.update.UpdateRequest;
 public class ContextUpdateTask implements Callable<InsertResult> {
 	private int assertionInsertID;
 	
-	private UpdateRequest request;
-	
-	public ContextUpdateTask(UpdateRequest request) {
-		this.request = request;
-	}
-	
-	
 	public void setAssertionInsertID(int id) {
 		assertionInsertID = id;
 	}
 	
 	public int getAssertionInsertID() {
 		return assertionInsertID;
+	}
+	
+	
+	private UpdateRequest request;
+	private InsertionResultNotifier resultNotifier;
+	private boolean inferenceProbable;
+	
+	public ContextUpdateTask(UpdateRequest request, InsertionResultNotifier notifier) {
+		this.request = request;
+		this.resultNotifier = notifier;
+		this.inferenceProbable = false;
 	}
 	
 	
@@ -65,7 +69,6 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		ConstraintResult constraintResult = null;
 		AssertionInheritanceResult inheritanceResult = null;
 		
-		CheckInferenceHook inferenceHook = null;
 		boolean cleanUpdate = false;
 		
 		try {
@@ -90,29 +93,37 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				// STEP 5A: first check continuity
 				continuityResult = new CheckContinuityHook(insertedAssertion, insertedAssertionUUID).exec(contextDataset);
 				if (continuityResult.hasError()) {
-					return new InsertResult(new InsertException(continuityResult.getError()), null, false, false);
+					InsertResult res = new InsertResult(request, new InsertException(continuityResult.getError()), null, false, false); 
+					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+					return res;
 				}
 				
 				// STEP 5B: check for constraints
 				constraintResult = new CheckConstraintHook(insertedAssertion).exec(contextDataset);
 				if (constraintResult.hasError()) {
-					return new InsertResult(new InsertException(constraintResult.getError()), null, false, false);
+					InsertResult res = new InsertResult(request, new InsertException(constraintResult.getError()), null, false, false); 
+					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+					return res;
 				}
 				else if (constraintResult.hasViolation()) {
-					return new InsertResult(null, constraintResult.getViolations(), continuityResult.hasContinuity(), false);
+					InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
+					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+					return res;
 				}
 				
 				// STEP 5C: if all is well up to here, check for inheritance
 				inheritanceResult = new CheckAssertionInheritanceHook(insertedAssertion, insertedAssertionUUID).exec(contextDataset);
 				if (inheritanceResult.hasError()) {
-					return new InsertResult(new InsertException(constraintResult.getError()), null, false, false);
+					InsertResult res = new InsertResult(request, new InsertException(constraintResult.getError()), null, false, false); 
+					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+					return res;
 				}
 			}
 			
-			// STEP 5D: if all good up to here, add inference checks for the new assertion
+			// STEP 5D: if all good up to here, add inference checks for the new assertion, if probable
 			DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
 			if (ruleDict.getDerivationsForAssertion(insertedAssertion) != null) {
-				inferenceHook = new CheckInferenceHook(insertedAssertion);
+				inferenceProbable = true;
 			}
 			
 			// STEP 6: commit transaction
@@ -132,19 +143,21 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		}
 		
 		// STEP 7: enqueue detected INFERENCE HOOK to assertionInferenceExecutor
-		if (inferenceHook != null) {
-			Future<InferenceResult> result = Engine.assertionInferenceExecutor().submit(new ContextInferenceTask(inferenceHook));
-			// TODO: performance collection
+		if (inferenceProbable) {
+			enqueueInferenceChecks(insertedAssertion);
 		}
 		
-		return new InsertResult(null, constraintResult.getViolations(), continuityResult.hasContinuity(), inheritanceResult.inherits());
+		InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), inheritanceResult.inherits()); 
+		if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+		return res; 
+		
 		// TODO: performance collection 
 		//long end = System.currentTimeMillis();
 		//return new AssertionInsertResult(assertionInsertID, start, (int)(end - start), insertedContextAssertions, continuityResults, constraintResults);
     }
 	
 	
-	protected Collection<Node> analyzeRequest(Dataset dataset, Map<String, RDFNode> templateBindings) {
+	private Collection<Node> analyzeRequest(Dataset dataset, Map<String, RDFNode> templateBindings) {
 		Collection<Node> updatedContextStores = null;
 		
 		for (Update up : request.getOperations()) {
@@ -160,49 +173,16 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 	}
 	
 	
-	protected List<ContinuityResult> execContinuityHooks(List<CheckContinuityHook> hooks, Dataset contextStoreDataset) {
-		List<ContinuityResult> hookResults = new LinkedList<>();
+	private void enqueueInferenceChecks(ContextAssertion insertedAssertion) {
+		DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
+		List<DerivationRuleWrapper> derivations = ruleDict.getDerivationsForAssertion(insertedAssertion);
 		
-		for (int i = 0; i < hooks.size(); i++) {
-			CheckContinuityHook hook = hooks.get(i);
+		for (DerivationRuleWrapper derivationCommand : derivations) {
+			CheckInferenceHook inferenceHook = new CheckInferenceHook(insertedAssertion, derivationCommand);
+			Engine.getInferenceService().executeRequest(inferenceHook);
 			
-			ContinuityResult result = hook.exec(contextStoreDataset);
-			if (result.hasError()) {
-				System.out.println("Action ERROR!");
-			}
-			
-			hookResults.add(result);
+			//Future<InferenceResult> result = Engine.getInferenceService().executeRequest(inferenceHook);
+			// TODO: performance collection
 		}
-		
-		return hookResults;
-	}
-	
-	
-	protected List<ConstraintResult> execConstraintHooks(List<CheckConstraintHook> hooks, Dataset contextStoreDataset) {
-		List<ConstraintResult> hookResults = new LinkedList<>();
-		
-		for (int i = 0; i < hooks.size(); i++) {
-			CheckConstraintHook hook = hooks.get(i);
-			
-			ConstraintResult result = hook.exec(contextStoreDataset);
-			if (result.hasError()) {
-				System.out.println("Action ERROR!");
-			}
-			
-			hookResults.add(result);
-		}
-		
-		return hookResults;
-	}
-	
-	
-	private void enqueueInferenceHooks(List<CheckInferenceHook> inferenceHooks) {
-	    for (CheckInferenceHook hook : inferenceHooks) {
-	    	Future<InferenceResult> result = Engine.assertionInferenceExecutor().submit(new ContextInferenceTask(hook));
-	    	
-	    	// TODO: figure out performance collection
-	    	//RunTest.inferenceTaskEnqueueTime.put(assertionInsertID, System.currentTimeMillis());
-	    	//RunTest.inferenceResults.put(assertionInsertID, result);
-	    }
     }
 }

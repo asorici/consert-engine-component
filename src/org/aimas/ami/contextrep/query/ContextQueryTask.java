@@ -1,9 +1,9 @@
 package org.aimas.ami.contextrep.query;
 
-import org.aimas.ami.contextrep.engine.Engine;
 import org.aimas.ami.contextrep.engine.api.QueryException;
 import org.aimas.ami.contextrep.engine.api.QueryResult;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
+import org.aimas.ami.contextrep.engine.core.Engine;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;

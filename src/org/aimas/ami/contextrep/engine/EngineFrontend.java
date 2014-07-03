@@ -1,24 +1,26 @@
 package org.aimas.ami.contextrep.engine;
 
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Calendar;
-import java.util.Enumeration;
+import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.aimas.ami.contextrep.engine.api.CommandException;
 import org.aimas.ami.contextrep.engine.api.CommandHandler;
 import org.aimas.ami.contextrep.engine.api.ConfigException;
+import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.api.InsertionHandler;
+import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.api.QueryHandler;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
+import org.aimas.ami.contextrep.engine.core.BundleResourceManager;
+import org.aimas.ami.contextrep.engine.core.ConfigKeys;
+import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.core.EngineResourceManager;
+import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.query.ContextQueryTask;
-import org.aimas.ami.contextrep.update.ContextBulkUpdateTask;
-import org.aimas.ami.contextrep.update.ContextUpdateTask;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.framework.Bundle;
@@ -30,8 +32,6 @@ import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.reasoner.ValidityReport;
-import com.hp.hpl.jena.update.Update;
-import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 
@@ -42,7 +42,18 @@ import com.hp.hpl.jena.update.UpdateRequest;
 @Service
 public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHandler, StatsHandler {
 	private Logger log = LoggerFactory.getLogger(getClass());
+	
+	/**
+	 * The Bundle that contains the configuration and context model ontology files 
+	 * that this CONSERT Engine component instance uses.
+	 */
 	private Bundle modelResourceBundle;
+	
+	/**
+	 * The comparator provider that is essential for the inference request scheduling
+	 * service of the CONSERT Engine.
+	 */
+	private InferencePriorityProvider inferenceComparatorProvider;
 	
 	public EngineFrontend() {}
 	
@@ -50,21 +61,22 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	@SuppressWarnings("unused")
     private void setModelResourceBundle(Bundle modelResourceBundle) {
 		this.modelResourceBundle = modelResourceBundle;
-		Enumeration<String> resources = modelResourceBundle.getEntryPaths("");
-		
-		System.out.println("Bundle resources");
-		for (;resources.hasMoreElements();) {
-			System.out.println(resources.nextElement());
-		}
-		
-		System.out.println("Bundle classpath");
-		URL[] urls = ((URLClassLoader)modelResourceBundle.getClass().getClassLoader()).getURLs();
-		 
-        for(URL url: urls){
-        	System.out.println(url.getFile());
-        }
     }
 	
+	@SuppressWarnings("unused")
+	private void addedInferenceRequestComparator(InferencePriorityProvider provider) {
+		inferenceComparatorProvider = provider;
+		// TODO: forward to Engine Inference Service
+	}
+	
+	@SuppressWarnings("unused")
+	private void removedInferenceRequestComparator(InferencePriorityProvider provider) {
+		if (provider == inferenceComparatorProvider) {
+			// if the comparator we were currently using was removed, revert to the default one
+			inferenceComparatorProvider = FCFSPriorityProvider.getInstance();
+			
+		}
+	}
 	
 	// We first wait for the context-domain specific configuration above and now try
 	// initialization. We try to read the CONSERT Engine specific configuration file and process it. 
@@ -87,8 +99,26 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 				e.printStackTrace();
 				throw new ConfigurationException(null, "Unknown engine initialization error.", e);
 			}
+			
+			// The Engine is initialized but its execution services are not yet started.
+			// More specifically, we first need to see if any configuration was placed on the type
+			// of service to use for the Inference Scheduling. If there is no specification, or none can 
+			// be found when invoking the search, the default FCFS service is used
+			Properties engineConfiguration = Engine.getConfiguration();
+			String schedulerType = engineConfiguration.getProperty(ConfigKeys.CONSERT_ENGINE_INFERENCE_SCHEDULER_TYPE);
+			if (schedulerType != null) {
+				component.add(
+					component.getDependencyManager().
+					createServiceDependency()
+						.setService(InferencePriorityProvider.class, "(type=" + schedulerType + ")")
+						.setDefaultImplementation(FCFSPriorityProvider.getInstance())
+						.setCallbacks("addedInferenceRequestComparator", "removedInferenceRequestComparator")
+				);
+			}
 		}
-		
+		else {
+			throw new ConfigurationException(null, "Model Resource Bundle is missing!");
+		}
 	}
 	
 	
@@ -102,37 +132,38 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		}
 	} 
 	
-	
+	// Call this when the CONSERT Engine component is started
 	void startEngine(org.apache.felix.dm.Component component) {
-		
+		// start all the execution services
+		Engine.getInsertionService().start();
+		Engine.getInferenceService().start();
+		Engine.getQueryService().start();
 	}
 	
+	// Call this when the CONSERT Engine component is stopped
 	void stopEngine(org.apache.felix.dm.Component component) {
-		
+		// stop all the execution services
+		Engine.getInsertionService().stop();
+		Engine.getInferenceService().stop();
+		Engine.getQueryService().stop();
 	}
 	
 	
 	// =============================== INSERT HANDLING =============================== //
 	
 	@Override
-	public Future<InsertResult> insert(UpdateRequest insertionRequest) {
-		return Engine.assertionInsertExecutor().submit(new ContextUpdateTask(insertionRequest));
+	public void insert(UpdateRequest insertionRequest, InsertionResultNotifier notifier) {
+		Engine.getInsertionService().executeRequest(insertionRequest, notifier);
 	}
 	
-	
 	@Override
-	public Future<InsertResult> insert(Update assertionIdentifier, Update assertionContents, Update assertionAnnotations) {
-		UpdateRequest insertionRequest = UpdateFactory.create() ;
-		insertionRequest.add(assertionIdentifier);
-		insertionRequest.add(assertionContents);
-		insertionRequest.add(assertionAnnotations);
-		
-		return Engine.assertionInsertExecutor().submit(new ContextUpdateTask(insertionRequest));
+	public Future<InsertResult> insert(UpdateRequest insertionRequest) {
+		return Engine.getInsertionService().executeRequest(insertionRequest, null);
 	}
 	
 	@Override
 	public Future<?> bulkInsert(UpdateRequest bulkInsertionRequest) {
-		return Engine.assertionInsertExecutor().submit(new ContextBulkUpdateTask(bulkInsertionRequest));
+		return Engine.getInsertionService().executeBulkRequest(bulkInsertionRequest);
 	}
 	
 	
@@ -140,12 +171,12 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
 	public void execQuery(Query query, QuerySolutionMap initialBindings, QueryResultNotifier notifier) {
-		Engine.assertionQueryExecutor().submit(new ContextQueryTask(query, initialBindings, notifier));
+		Engine.getQueryService().executeRequest(query, initialBindings, notifier);
 	}
 	
 	@Override
 	public void execAsk(Query askQuery, QuerySolutionMap initialBindings, QueryResultNotifier notifier) {
-		Engine.assertionQueryExecutor().submit(new ContextQueryTask(askQuery, initialBindings, notifier));
+		Engine.getQueryService().executeRequest(askQuery, initialBindings, notifier);
 	}
 	
 	@Override

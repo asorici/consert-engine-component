@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import org.aimas.ami.contextrep.engine.Engine;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.exceptions.ContextAssertionContentException;
 import org.aimas.ami.contextrep.model.exceptions.ContextAssertionModelException;
@@ -66,8 +66,8 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	            
 	            // enqueue them as individual insertion requests
 	            for (UpdateRequest req : ancestorAssertionInsertions) {
-	            	ContextUpdateTask ancestorInsertWrapper = new ContextUpdateTask(req);
-	            	Future<InsertResult> result = Engine.assertionInsertExecutor().submit(ancestorInsertWrapper);
+	            	//ContextUpdateTask ancestorInsertWrapper = new ContextUpdateTask(req);
+	            	Future<InsertResult> result = Engine.getInsertionService().executeRequest(req, null);
 					
 	            	// TODO see about performance collect
 					//RunTest.insertionTaskEnqueueTime.put(ancestorInsertWrapper.getAssertionInsertID(), System.currentTimeMillis());

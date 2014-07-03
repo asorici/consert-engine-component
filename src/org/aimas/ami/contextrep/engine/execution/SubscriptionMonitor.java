@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.execution;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.query.ContextQueryTask;
 import org.aimas.ami.contextrep.utils.ContextQueryUtil;
@@ -22,7 +23,7 @@ import com.hp.hpl.jena.util.IteratorCollection;
 public class SubscriptionMonitor implements ContextInsertListener {
 	private Map<ContextAssertion, Map<SubscriptionWrapper, List<QueryResultNotifier>>> subscriptionIndex;
 	
-	SubscriptionMonitor() {
+	public SubscriptionMonitor() {
 		subscriptionIndex = new HashMap<ContextAssertion, Map<SubscriptionWrapper,List<QueryResultNotifier>>>();
 	}
 	
@@ -36,7 +37,7 @@ public class SubscriptionMonitor implements ContextInsertListener {
 				
 				for (QueryResultNotifier notifier : resultNotifiers) {
 					// submit the ContextQueryTask
-					Engine.assertionQueryExecutor().submit(new ContextQueryTask(sw.getQuery(), sw.getInitialBinding(), notifier));
+					Engine.getQueryService().executeRequest(sw.getQuery(), sw.getInitialBinding(), notifier);
 				}
 			}
 		}

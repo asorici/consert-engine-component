@@ -3,10 +3,10 @@ package org.aimas.ami.contextrep.update;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.aimas.ami.contextrep.engine.ContextARQFactory;
-import org.aimas.ami.contextrep.engine.ContextConstraintIndex;
-import org.aimas.ami.contextrep.engine.Engine;
-import org.aimas.ami.contextrep.engine.Loader;
+import org.aimas.ami.contextrep.engine.core.ContextARQFactory;
+import org.aimas.ami.contextrep.engine.core.ContextConstraintIndex;
+import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.core.Loader;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextConstraintViolation;
 import org.aimas.ami.contextrep.utils.ConstraintsWrapper;

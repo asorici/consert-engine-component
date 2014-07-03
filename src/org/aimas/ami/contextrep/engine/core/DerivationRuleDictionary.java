@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.Set;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.utils.ContextAssertionFinder;
 import org.aimas.ami.contextrep.utils.ContextAssertionGraph;
-import org.aimas.ami.contextrep.utils.DerivedAssertionWrapper;
+import org.aimas.ami.contextrep.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.aimas.ami.contextrep.vocabulary.ConsertRules;
 import org.topbraid.spin.model.Construct;
@@ -28,9 +28,9 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public class DerivationRuleDictionary {
-	private Map<Resource, List<DerivedAssertionWrapper>> entity2RuleMap;
-	private Map<DerivedAssertionWrapper, Resource> rule2EntityMap;
-	private Map<ContextAssertion, List<DerivedAssertionWrapper>> assertion2RuleMap;
+	private Map<Resource, List<DerivationRuleWrapper>> entity2RuleMap;
+	private Map<DerivationRuleWrapper, Resource> rule2EntityMap;
+	private Map<ContextAssertion, List<DerivationRuleWrapper>> assertion2RuleMap;
 	
 	DerivationRuleDictionary() {
 		entity2RuleMap = new HashMap<>();
@@ -47,30 +47,30 @@ public class DerivationRuleDictionary {
 	 *    the Prioritization Policy for Context Derivation Rules
 	 */
 	
-	public Map<ContextAssertion, List<DerivedAssertionWrapper>> getAssertion2QueryMap() {
+	public Map<ContextAssertion, List<DerivationRuleWrapper>> getAssertion2QueryMap() {
 		return assertion2RuleMap;
 	}
 	
-	public Map<Resource, List<DerivedAssertionWrapper>> getEntity2QueryMap() {
+	public Map<Resource, List<DerivationRuleWrapper>> getEntity2QueryMap() {
 		return entity2RuleMap;
 	}
 	
-	public List<DerivedAssertionWrapper> getDerivationsForEntity(Resource entity) {
+	public List<DerivationRuleWrapper> getDerivationsForEntity(Resource entity) {
 		return entity2RuleMap.get(entity);
 	}
 	
-	public List<DerivedAssertionWrapper> getDerivationsForAssertion(ContextAssertion assertion) {
+	public List<DerivationRuleWrapper> getDerivationsForAssertion(ContextAssertion assertion) {
 		return assertion2RuleMap.get(assertion);
 	}
 	
-	public Resource getEntityForDerivation(DerivedAssertionWrapper derivationWrapper) {
+	public Resource getEntityForDerivation(DerivationRuleWrapper derivationWrapper) {
 		return rule2EntityMap.get(derivationWrapper);
 	}
 	
-	public void addCommandForEntity(Resource entityResource, DerivedAssertionWrapper derivationWrapper) {
-		List<DerivedAssertionWrapper> entityCommands = entity2RuleMap.get(entityResource);
+	public void addCommandForEntity(Resource entityResource, DerivationRuleWrapper derivationWrapper) {
+		List<DerivationRuleWrapper> entityCommands = entity2RuleMap.get(entityResource);
 		if (entityCommands == null) {
-			entityCommands = new ArrayList<DerivedAssertionWrapper>();
+			entityCommands = new ArrayList<DerivationRuleWrapper>();
 			entityCommands.add(derivationWrapper);
 			entity2RuleMap.put(entityResource, entityCommands);
 		}
@@ -79,14 +79,14 @@ public class DerivationRuleDictionary {
 		}
 	}
 	
-	public void setEntityForDerivation(DerivedAssertionWrapper derivationWrapper, Resource entityResource) {
+	public void setEntityForDerivation(DerivationRuleWrapper derivationWrapper, Resource entityResource) {
 		rule2EntityMap.put(derivationWrapper, entityResource);
 	}
 	
-	public void addDerivationForAssertion(ContextAssertion assertion, DerivedAssertionWrapper derivedWrapper) {
-		List<DerivedAssertionWrapper> assertionCommands = assertion2RuleMap.get(assertion);
+	public void addDerivationForAssertion(ContextAssertion assertion, DerivationRuleWrapper derivedWrapper) {
+		List<DerivationRuleWrapper> assertionCommands = assertion2RuleMap.get(assertion);
 		if (assertionCommands == null) {
-			assertionCommands = new ArrayList<DerivedAssertionWrapper>();
+			assertionCommands = new ArrayList<DerivationRuleWrapper>();
 			assertionCommands.add(derivedWrapper);
 			assertion2RuleMap.put(assertion, assertionCommands);
 		}
@@ -95,11 +95,11 @@ public class DerivationRuleDictionary {
 		}
 	}
 	
-	public void appendEntityQueryMap(Map<Resource, List<DerivedAssertionWrapper>> map) {
+	public void appendEntityQueryMap(Map<Resource, List<DerivationRuleWrapper>> map) {
 		entity2RuleMap.putAll(map);
 	}
 	
-	public void appendAssertionQueryMap(Map<ContextAssertion, List<DerivedAssertionWrapper>> map) {
+	public void appendAssertionQueryMap(Map<ContextAssertion, List<DerivationRuleWrapper>> map) {
 		assertion2RuleMap.putAll(map);
 	}
 	
@@ -195,7 +195,7 @@ public class DerivationRuleDictionary {
 				}
 				
 				// there is only one head ContextAssertion - the derived one
-				DerivedAssertionWrapper derivationWrapper = new DerivedAssertionWrapper(derivedAssertion, cmd, templateBindings);
+				DerivationRuleWrapper derivationWrapper = new DerivationRuleWrapper(derivedAssertion, cmd, templateBindings);
 				
 				for (ContextAssertionGraph assertionGraph : bodyContextAssertions) {
 					// System.out.println(assertion.getAssertionResource().getURI() + ": " + assertion.getAssertionType());
