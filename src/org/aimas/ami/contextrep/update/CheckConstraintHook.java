@@ -15,13 +15,17 @@ import org.aimas.ami.contextrep.utils.spin.ContextSPINConstraints;
 import org.topbraid.spin.arq.ARQFactory;
 import org.topbraid.spin.statistics.SPINStatistics;
 
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckConstraintHook extends ContextUpdateHook {
+	private UpdateRequest insertionRequest;
 	
-	public CheckConstraintHook(ContextAssertion contextAssertion) {
-		super(contextAssertion);
+	public CheckConstraintHook(ContextAssertion contextAssertion, Node contextAssertionUUID, UpdateRequest insertionRequest) {
+		super(contextAssertion, contextAssertionUUID);
+		this.insertionRequest = insertionRequest;
 	}
 	
 	@Override
@@ -52,7 +56,8 @@ public class CheckConstraintHook extends ContextUpdateHook {
 			List<SPINStatistics> stats = new LinkedList<>();
 			
 			List<ContextConstraintViolation> constraintViolations = 
-				ContextSPINConstraints.check(constraintContextModel, contextAssertion, constraints, stats);
+				ContextSPINConstraints.check(constraintContextModel, contextAssertion, contextAssertionUUID, 
+						insertionRequest, constraints, stats);
 			
 			if (!constraintViolations.isEmpty()) {
 				// TODO: do something useful with the detected violations

@@ -1,5 +1,7 @@
 package org.aimas.ami.contextrep.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
@@ -12,15 +14,26 @@ public class DerivationRuleWrapper implements ContextDerivationRule {
 	
 	private CommandWrapper derivationCommand;
 	private ContextAssertion derivedAssertion;
+	private List<ContextAssertion> bodyAssertions;
 	private Map<String, RDFNode> commandBindings;
 	
 	public DerivationRuleWrapper(ContextAssertion derivedAssertion, CommandWrapper derivationCommand, 
 			Map<String, RDFNode> commandBindings) {
 		this.derivedAssertion = derivedAssertion;
+		this.bodyAssertions = new ArrayList<ContextAssertion>();
+		
 		this.derivationCommand = derivationCommand;
 		this.commandBindings = commandBindings;
     }
-
+	
+	public void addBodyAssertion(ContextAssertion assertion) {
+		bodyAssertions.add(assertion);
+	}
+	
+	public List<ContextAssertion> getBodyAssertions() {
+		return bodyAssertions;
+	}
+	
 	public CommandWrapper getDerivationCommand() {
 		return derivationCommand;
 	}

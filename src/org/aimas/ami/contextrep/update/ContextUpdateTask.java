@@ -99,7 +99,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				}
 				
 				// STEP 5B: check for constraints
-				constraintResult = new CheckConstraintHook(insertedAssertion).exec(contextDataset);
+				constraintResult = new CheckConstraintHook(insertedAssertion, insertedAssertionUUID, request).exec(contextDataset);
 				if (constraintResult.hasError()) {
 					InsertResult res = new InsertResult(request, new InsertException(constraintResult.getError()), null, false, false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
@@ -122,7 +122,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 			
 			// STEP 5D: if all good up to here, add inference checks for the new assertion, if probable
 			DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
-			if (ruleDict.getDerivationsForAssertion(insertedAssertion) != null) {
+			if (ruleDict.getDerivationsForBodyAssertion(insertedAssertion) != null) {
 				inferenceProbable = true;
 			}
 			
@@ -144,7 +144,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		
 		// STEP 7: enqueue detected INFERENCE HOOK to assertionInferenceExecutor
 		if (inferenceProbable) {
-			enqueueInferenceChecks(insertedAssertion);
+			enqueueInferenceChecks(insertedAssertion, insertedAssertionUUID);
 		}
 		
 		InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), inheritanceResult.inherits()); 
@@ -173,13 +173,18 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 	}
 	
 	
-	private void enqueueInferenceChecks(ContextAssertion insertedAssertion) {
+	private void enqueueInferenceChecks(ContextAssertion insertedAssertion, Node insertedAssertionUUID) {
 		DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
-		List<DerivationRuleWrapper> derivations = ruleDict.getDerivationsForAssertion(insertedAssertion);
+		List<DerivationRuleWrapper> derivations = ruleDict.getDerivationsForBodyAssertion(insertedAssertion);
 		
 		for (DerivationRuleWrapper derivationCommand : derivations) {
-			CheckInferenceHook inferenceHook = new CheckInferenceHook(insertedAssertion, derivationCommand);
-			Engine.getInferenceService().executeRequest(inferenceHook);
+			ContextAssertion derivedAssertion = derivationCommand.getDerivedAssertion();
+			
+			// if the rules for this derivedAssertion are active, submit the inference request
+			if (Engine.getDerivationRuleDictionary().isDerivedAssertionActive(derivedAssertion)) {
+				CheckInferenceHook inferenceHook = new CheckInferenceHook(insertedAssertion, insertedAssertionUUID, derivationCommand);
+				Engine.getInferenceService().executeRequest(inferenceHook);
+			}
 			
 			//Future<InferenceResult> result = Engine.getInferenceService().executeRequest(inferenceHook);
 			// TODO: performance collection

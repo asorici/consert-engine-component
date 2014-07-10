@@ -30,11 +30,9 @@ import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckAssertionInheritanceHook extends ContextUpdateHook {
-	private Node contextAssertionUUID;
 	
 	public CheckAssertionInheritanceHook(ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(contextAssertion);
-		this.contextAssertionUUID = contextAssertionUUID;
+		super(contextAssertion, contextAssertionUUID);
 	}
 	
 	@Override

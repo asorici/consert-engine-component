@@ -98,7 +98,6 @@ public class ContextSPINInferences {
 	 * @param singlePass  true to just do a single pass (don't iterate)
 	 * @param rulePredicate  the predicate used (e.g. spin:rule)
 	 * @param comparator  optional comparator to determine the order of rule execution
-	 * @param monitor  an optional ProgressMonitor
 	 * @return a {@link ContextInferenceResult} wrapper with the result of the inference
 	 */
 	public static ContextInferenceResult runContextInference(

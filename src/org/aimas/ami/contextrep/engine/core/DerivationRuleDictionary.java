@@ -32,19 +32,30 @@ public class DerivationRuleDictionary {
 	private Map<DerivationRuleWrapper, Resource> rule2EntityMap;
 	private Map<ContextAssertion, List<DerivationRuleWrapper>> assertion2RuleMap;
 	
+	/**
+	 * The map that specifies if the rules that derive a ContextAssertion are active or not
+	 */
+	private Map<ContextAssertion, Boolean> derivedAssertionActivationMap;
+	
+	private boolean activeByDefault = true;
+	
+	/**
+	 * The mapping that binds a derived ContextAssertion with the list of derivation rules that derive it.
+	 */
+	private Map<ContextAssertion, List<DerivationRuleWrapper>> derivationRules;
+	
 	DerivationRuleDictionary() {
-		entity2RuleMap = new HashMap<>();
-		assertion2RuleMap = new HashMap<>();
-		rule2EntityMap = new HashMap<>();
+		entity2RuleMap = new HashMap<Resource, List<DerivationRuleWrapper>>();
+		assertion2RuleMap = new HashMap<ContextAssertion, List<DerivationRuleWrapper>>();
+		rule2EntityMap = new HashMap<DerivationRuleWrapper, Resource>();
+		
+		derivationRules = new HashMap<ContextAssertion, List<DerivationRuleWrapper>>();
+		derivedAssertionActivationMap = new HashMap<ContextAssertion, Boolean>();
 	}
 	
 	/* IMPORTANT TODO:
 	 * 	- Order the derivation commands by their specificity - that is from the most specific 
-	 * 	  derived context assertion to the most general one
-	 * 
-	 *  - include a mapping from Derived Assertion to list of body assertions - this list is to be
-	 *    used in computing the schedule for running the associated derivation rule when using
-	 *    the Prioritization Policy for Context Derivation Rules
+	 * 	  derived context assertion to the most general one 
 	 */
 	
 	public Map<ContextAssertion, List<DerivationRuleWrapper>> getAssertion2QueryMap() {
@@ -55,11 +66,15 @@ public class DerivationRuleDictionary {
 		return entity2RuleMap;
 	}
 	
+	public List<DerivationRuleWrapper> getDerivedAssertionRules(ContextAssertion derivedAssertion) {
+		return derivationRules.get(derivedAssertion);
+	}
+	
 	public List<DerivationRuleWrapper> getDerivationsForEntity(Resource entity) {
 		return entity2RuleMap.get(entity);
 	}
 	
-	public List<DerivationRuleWrapper> getDerivationsForAssertion(ContextAssertion assertion) {
+	public List<DerivationRuleWrapper> getDerivationsForBodyAssertion(ContextAssertion assertion) {
 		return assertion2RuleMap.get(assertion);
 	}
 	
@@ -67,7 +82,31 @@ public class DerivationRuleDictionary {
 		return rule2EntityMap.get(derivationWrapper);
 	}
 	
+	/**
+	 * Return whether the derivation rules for a given <code>derivedAssertion</code> are active or not.
+	 * @param derivedAssertion
+	 * @return The activation status for rules that infer <code>derivedAssertion</code>, or the value
+	 * 		of <code>activeByDefault</code>, if no specification is given for the <code>derivedAssertion</code>
+	 */
+	public boolean isDerivedAssertionActive(ContextAssertion derivedAssertion) {
+		synchronized(derivedAssertionActivationMap) {
+			Boolean active = derivedAssertionActivationMap.get(derivedAssertion);
+			return active == null ? activeByDefault : active;
+		}
+	}
+	
+	public void setActiveByDefault(boolean active) {
+		activeByDefault = active;
+	}
+	
+	public void setDerivedAssertionActive(ContextAssertion derivedAssertion, boolean active) {
+		synchronized(derivedAssertionActivationMap) {
+			derivedAssertionActivationMap.put(derivedAssertion, active);
+		}
+	}
+	
 	public void addCommandForEntity(Resource entityResource, DerivationRuleWrapper derivationWrapper) {
+		// add the derivation rule to the entity2Rule map
 		List<DerivationRuleWrapper> entityCommands = entity2RuleMap.get(entityResource);
 		if (entityCommands == null) {
 			entityCommands = new ArrayList<DerivationRuleWrapper>();
@@ -77,11 +116,24 @@ public class DerivationRuleDictionary {
 		else {
 			entityCommands.add(derivationWrapper);
 		}
+		
+		// add it to the list of derivation rules
+		ContextAssertion derivedAssertion = derivationWrapper.getDerivedAssertion();
+		List<DerivationRuleWrapper> rules = derivationRules.get(derivedAssertion);
+		if (rules == null) {
+			rules = new ArrayList<DerivationRuleWrapper>();
+			rules.add(derivationWrapper);
+			derivationRules.put(derivedAssertion, rules);
+		}
+		else {
+			rules.add(derivationWrapper);
+		}
 	}
 	
 	public void setEntityForDerivation(DerivationRuleWrapper derivationWrapper, Resource entityResource) {
 		rule2EntityMap.put(derivationWrapper, entityResource);
 	}
+	
 	
 	public void addDerivationForAssertion(ContextAssertion assertion, DerivationRuleWrapper derivedWrapper) {
 		List<DerivationRuleWrapper> assertionCommands = assertion2RuleMap.get(assertion);
@@ -198,7 +250,7 @@ public class DerivationRuleDictionary {
 				DerivationRuleWrapper derivationWrapper = new DerivationRuleWrapper(derivedAssertion, cmd, templateBindings);
 				
 				for (ContextAssertionGraph assertionGraph : bodyContextAssertions) {
-					// System.out.println(assertion.getAssertionResource().getURI() + ": " + assertion.getAssertionType());
+					derivationWrapper.addBodyAssertion(assertionGraph.getAssertion());
 					dict.addDerivationForAssertion(assertionGraph.getAssertion(), derivationWrapper);
 				}
 				

@@ -51,6 +51,13 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 			
 			if (inferenceHookResult.hasError()) {
 				System.out.println("Inference ERROR!");
+				
+				// notify the inference statistics collector
+				Engine.getInferenceService().markInferenceExecution(inferenceHook.getDerivationRule(), false);
+			}
+			else {
+				// notify the inference statistics collector
+				Engine.getInferenceService().markInferenceExecution(inferenceHook.getDerivationRule(), inferenceHookResult.hasInferred());
 			}
 		}
 		finally {

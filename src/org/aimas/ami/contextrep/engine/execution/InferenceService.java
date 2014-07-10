@@ -1,12 +1,12 @@
 package org.aimas.ami.contextrep.engine.execution;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,22 +14,24 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
-import org.aimas.ami.contextrep.engine.api.InferenceRequest;
 import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;
 import org.aimas.ami.contextrep.update.ContextInferenceTask;
 
-public class InferenceService implements ExecutionService, EngineInferenceStats {
+import com.hp.hpl.jena.rdf.model.Resource;
+
+public class InferenceService implements ExecutionService, EngineInferenceStats, InferenceStatsCollector {
 	private static InferenceService instance;
 	
 	private static final String INFERENCE_SCHEDULER_THREAD = "inference-scheduler-thread";
 	
 	private static final int DEFAULT_NUM_WORKERS = 1;
 	private static final int DEFAULT_SCHEDULER_SLEEP = 100;
-	private static final long DEFAULT_RUN_WINDOW = 5000;
+	private static final long DEFAULT_RUN_WINDOW = 10;
 	
 	
 	private ThreadPoolExecutor inferenceExecutor;
@@ -41,7 +43,9 @@ public class InferenceService implements ExecutionService, EngineInferenceStats 
 	
 	private ScheduledExecutorService schedulingTimer;
 	private int schedulingSleep = DEFAULT_SCHEDULER_SLEEP;
-	private long runWindowWidth = DEFAULT_RUN_WINDOW; 
+	
+	private long defaultRunWindow = DEFAULT_RUN_WINDOW;
+	private Map<Resource, Long> assertionSpecificRunWindow = new HashMap<Resource, Long>();	
 	
 	// ================= Initialization and Configurations =================
 	////////////////////////////////////////////////////////////////////////
@@ -56,8 +60,12 @@ public class InferenceService implements ExecutionService, EngineInferenceStats 
     	
     	// setup the request queue
     	configureRequestQueue();
+    	
+    	// setup stats collection
+    	configureStatisticsCollector();
 	}
     
+	
     private void configureRequestQueue() {
     	if (requestQueue == null) {
 	    	// first time initialization, we just have to create the queue
@@ -93,12 +101,13 @@ public class InferenceService implements ExecutionService, EngineInferenceStats 
     	
     	try {
 			String runWindowStr = execConfiguration.getProperty(ConfigKeys.CONSERT_ENGINE_INFERENCE_RUN_WINDOW, "" + DEFAULT_RUN_WINDOW);
-			runWindowWidth = Long.parseLong(runWindowStr);
+			defaultRunWindow = Long.parseLong(runWindowStr);
         }
 		catch(NumberFormatException e) {
-			runWindowWidth = DEFAULT_RUN_WINDOW;
+			defaultRunWindow = DEFAULT_RUN_WINDOW;
         }
     }
+    
     
     private ThreadPoolExecutor createInferenceExecutor(Properties execConfiguration) {
 		try {
@@ -144,13 +153,32 @@ public class InferenceService implements ExecutionService, EngineInferenceStats 
     }
 	
 	
-    public void setComparatorProvider(InferencePriorityProvider requestComparatorProvider, boolean reviseQueue) {
-    	this.requestPriorityProvider = requestComparatorProvider;
+    public void setPriorityProvider(InferencePriorityProvider requestPriorityProvider, boolean reviseQueue) {
+    	this.requestPriorityProvider = requestPriorityProvider;
     	
     	if (reviseQueue) {
     		configureRequestQueue();
     	}
     }
+    
+    
+    
+    public void setDefaultRunWindow(long runWindow) {
+    	this.defaultRunWindow = runWindow;
+    }
+    
+    public long getDefaultRunWindow() {
+    	return defaultRunWindow;
+    }
+    
+    public void setSpecificRunWindow(Resource contextAssertionRes, long runWindow) {
+    	assertionSpecificRunWindow.put(contextAssertionRes, runWindow);
+    }
+    
+    public Long getSpecificRunWindow(Resource contextAssertionRes) {
+    	return assertionSpecificRunWindow.get(contextAssertionRes);
+    }
+    
     
     
 	public void executeRequest(CheckInferenceHook inferenceRequest) {
@@ -228,33 +256,151 @@ public class InferenceService implements ExecutionService, EngineInferenceStats 
 	// ================ Inference Statistics Implementation ================
 	////////////////////////////////////////////////////////////////////////
 	
-	private ContextAssertion lastDerivedAssertion;
-	private ConcurrentMap<ContextAssertion, Integer> derivedAssertionPopularity = new ConcurrentHashMap<ContextAssertion, Integer>();
-	private ConcurrentMap<ContextAssertion, Double> derivedAssertionExecRatio = new ConcurrentHashMap<ContextAssertion, Double>();
+	private ContextDerivationRule lastDerivation;
+	private DerivationRuleTracker derivationRuleTracker;
+	
+	
+	private void configureStatisticsCollector() {
+		derivationRuleTracker = new DerivationRuleTracker();
+	}
+	
+	
 	
 	@Override
-    public long runWindowWidth() {
-	    return runWindowWidth;
+    public ContextDerivationRule lastDerivation() {
+	    return lastDerivation;
     }
 	
 	
 	@Override
-    public ContextAssertion lastDerivation() {
-	    return lastDerivedAssertion;
+    public Map<ContextDerivationRule, Integer> nrDerivations() {
+	    return derivationRuleTracker.nrDerivations();
     }
 
 
 	@Override
-    public Map<ContextAssertion, Integer> currentPopularity() {
-		return derivedAssertionPopularity;
-    }
-
-
-	@Override
-    public Map<ContextAssertion, Double> ratioSuccessfulExec() {
-	    return derivedAssertionExecRatio;
+    public Map<ContextDerivationRule, Integer> nrSuccessfulDerivations() {
+	    return derivationRuleTracker.nrSuccessfulDerivations();
     }
 	
+	
+	@Override
+    public void markInferenceExecution(ContextDerivationRule rule, boolean successful) {
+	    if (successful) {
+	    	lastDerivation = rule;
+	    }
+	    
+	    derivationRuleTracker.markInferenceExecution(rule, System.currentTimeMillis(), successful);
+    }
+	
+	
+	private class DerivationRuleTracker {
+		Map<ContextDerivationRule, Queue<RuleTrackParams>> ruleTracker;
+		
+		DerivationRuleTracker () {
+			this.ruleTracker = new HashMap<ContextDerivationRule, Queue<RuleTrackParams>>();
+		}
+		
+		
+		void markInferenceExecution(ContextDerivationRule rule, long timestamp, boolean successful) {
+			synchronized(ruleTracker) {
+				Queue<RuleTrackParams> runTimestamps = ruleTracker.get(rule);
+				if (runTimestamps == null) {
+					runTimestamps = new LinkedList<RuleTrackParams>();
+					runTimestamps.add(new RuleTrackParams(timestamp, successful));
+					
+					ruleTracker.put(rule, runTimestamps);
+				}
+				else {
+					runTimestamps.add(new RuleTrackParams(timestamp, successful));
+					siftTracker();
+				}
+			}
+		}
+		
+		
+		void siftTracker() {
+			long now = System.currentTimeMillis();
+			
+			for (ContextDerivationRule rule : ruleTracker.keySet()) {
+				ContextAssertion derivedAssertion = rule.getDerivedAssertion();
+				long runWindowWidth = defaultRunWindow;
+				if (assertionSpecificRunWindow.get(derivedAssertion.getOntologyResource()) != null) {
+					runWindowWidth = assertionSpecificRunWindow.get(derivedAssertion.getOntologyResource());
+				}
+				
+				long windowStart = now - runWindowWidth;
+				
+				Queue<RuleTrackParams> runTimestamps = ruleTracker.get(rule);
+				while(true) {
+					RuleTrackParams p = runTimestamps.peek();
+					if (p == null) break;
+					
+					if (p.getTimestamp() < windowStart) {
+						runTimestamps.remove();
+					}
+					else {
+						break;
+					}
+				}
+			}
+		}
+		
+		
+		Map<ContextDerivationRule, Integer> nrDerivations() {
+			synchronized(ruleTracker) {
+				siftTracker();
+				
+				Map<ContextDerivationRule, Integer> counter = new HashMap<ContextDerivationRule, Integer>();
+				for (ContextDerivationRule rule : ruleTracker.keySet()) {
+					counter.put(rule, ruleTracker.get(rule).size());
+				}
+				
+				return counter;
+			}
+		}
+		
+		
+		Map<ContextDerivationRule, Integer> nrSuccessfulDerivations() {
+			synchronized(ruleTracker) {
+				siftTracker();
+				
+				Map<ContextDerivationRule, Integer> counter = new HashMap<ContextDerivationRule, Integer>();
+				for (ContextDerivationRule rule : ruleTracker.keySet()) {
+					Queue<RuleTrackParams> runTimestamps = ruleTracker.get(rule);
+					
+					int ct = 0;
+					for (RuleTrackParams p : runTimestamps) {
+						if (p.successful()) {
+							ct++;
+						}
+					}
+					
+					counter.put(rule, ct);
+				}
+				
+				return counter;
+			}
+		}
+	}
+	
+	private static class RuleTrackParams {
+		long timestamp;
+		boolean successful;
+		
+		RuleTrackParams(long timestamp, boolean successful) {
+	        this.timestamp = timestamp;
+	        this.successful = successful;
+        }
+		
+		public long getTimestamp() {
+			return timestamp;
+		}
+		
+		public boolean successful() {
+			return successful;
+		}
+	}
 	
 	// ============================== Factory ==============================
 	////////////////////////////////////////////////////////////////////////
@@ -266,5 +412,4 @@ public class InferenceService implements ExecutionService, EngineInferenceStats 
 		
 		return instance;
 	}
-
 }

@@ -16,6 +16,7 @@ import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 public class ContextAssertionIndex {
@@ -25,7 +26,7 @@ public class ContextAssertionIndex {
 	private List<ContextAssertion> sensedContextAssertions;
 	private List<ContextAssertion> derivedContextAssertions;
 	
-	private Map<OntResource, ContextAssertion> assertionInfoMap;
+	private Map<Resource, ContextAssertion> assertionInfoMap;
 	private Map<String, ContextAssertion> graphURIBase2AssertionMap;
 	
 	ContextAssertionIndex() {
@@ -64,7 +65,7 @@ public class ContextAssertionIndex {
 		return allAssertions;
 	}
 	
-	public Map<OntResource, ContextAssertion> getAssertionInfoMap() {
+	public Map<Resource, ContextAssertion> getAssertionInfoMap() {
 		return assertionInfoMap;
 	}
 	
@@ -82,7 +83,7 @@ public class ContextAssertionIndex {
 	}
 	*/
 	
-	public ContextAssertion getAssertionFromResource(OntResource assertionResource) {
+	public ContextAssertion getAssertionFromResource(Resource assertionResource) {
 		return assertionInfoMap.get(assertionResource);
 	}
 	

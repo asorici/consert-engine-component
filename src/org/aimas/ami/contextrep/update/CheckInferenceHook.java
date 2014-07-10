@@ -50,8 +50,8 @@ import com.hp.hpl.jena.update.UpdateRequest;
 public class CheckInferenceHook extends ContextUpdateHook {
 	private DerivationRuleWrapper derivationRule;
 	
-	public CheckInferenceHook(ContextAssertion contextAssertion, DerivationRuleWrapper derivationRule) {
-		super(contextAssertion);
+	public CheckInferenceHook(ContextAssertion contextAssertion, Node contextAssertionUUID, DerivationRuleWrapper derivationRule) {
+		super(contextAssertion, contextAssertionUUID);
 		this.derivationRule = derivationRule;
 	}
 	

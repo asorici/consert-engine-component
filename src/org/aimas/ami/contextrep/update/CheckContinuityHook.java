@@ -47,12 +47,8 @@ import com.hp.hpl.jena.tdb.TDB;
 
 public class CheckContinuityHook extends ContextUpdateHook {
 	
-	private Node contextAssertionUUID;
-	
 	public CheckContinuityHook(ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(contextAssertion);
-		this.contextAssertionUUID = contextAssertionUUID;
-		
+		super(contextAssertion, contextAssertionUUID);
 	}
 	
 	@Override

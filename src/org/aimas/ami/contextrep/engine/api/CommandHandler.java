@@ -2,24 +2,91 @@ package org.aimas.ami.contextrep.engine.api;
 
 import java.util.Calendar;
 
-import org.aimas.ami.contextrep.model.ContextAssertion;
-
-import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 
 public interface CommandHandler {
 	
-	public ValidityReport triggerOntReasoning(ContextAssertion assertion) throws CommandException;
+	// Access to ContextStore 
+	////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Get access to a snapshot of the runtime ContextStore. This method should be used to get access
+	 * to the ContextStore in order to run the CommandRules which implement domain specific 
+	 * shift-of-attention policies.
+	 * @return The {@link Dataset} representing the snapshot of the runtime ContextStore
+	 */
+	public Dataset getRuntimeContextStore();
 	
-	public ValidityReport triggerOntReasoning(OntResource assertionResource) throws CommandException;
+	
+	// Configuration of CONSERT Engine dynamic parameters 
+	////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Set the default RUN_WINDOW width used for collecting query statistics.
+	 * @param runWindow
+	 */
+	public void setDefaultQueryRunWindow(long runWindow);
 	
 	/**
-	 * Clean (remove) all ContextAssertion instances of type <code>assertion</code> older than <code>timeThreshold</code>
-	 * from the runtime ContextStore. Synchronization with persistent ContextStore (if active) will occur. 
-	 * @param assertion
-	 * @param timeThreshold
+	 * Set the RUN_WINDOW width used for collecting query statistics for the ContextAssertion 
+	 * specified by <code>assertionResource</code>.
+	 * @param assertionResource
+	 * @param runWindow
 	 */
-	public void cleanRuntimeContextStore(ContextAssertion assertion, Calendar timeThreshold) throws CommandException;
+	public void setSpecificQueryRunWindow(Resource assertionResource, long runWindow);
+	
+	/**
+	 * Set the default RUN_WINDOW width used for collecting inference statistics.
+	 * @param runWindow
+	 */
+	public void setDefaultInferenceRunWindow(long runWindow);
+	
+	/**
+	 * Set the RUN_WINDOW width used for collecting inference statistics for the ContextAssertion 
+	 * specified by <code>assertionResource</code>.
+	 * @param assertionResource
+	 * @param runWindow
+	 */
+	public void setSpecificInferenceRunWindow(Resource assertionResource, long runWindow);
+	
+	/**
+	 * Set the InferenceRequest priority provider service type to be used by the 
+	 * CONSERT Engine inference service. The CONSERT Engine component will look up the new service
+	 * type (which should exist in the OSGi runtime) and set it accordingly.
+	 * @param priorityProvider
+	 */
+	public void setInferenceSchedulingType(String priorityProviderType);
+	
+	
+	
+	// Command (reasoning, cleanup, inference activate/deactivate) execution triggers
+	////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Activate <b>all</b> the known ContextDerivationRules which derive the ContextAssertion specified
+	 * by <code>derivedAssertionResource</code> 
+	 * @param derivedAssertionResource
+	 */
+	public void activateDerivationRule(Resource derivedAssertionResource);
+	
+	
+	/**
+	 * Deactivate <b>all</b> the known ContextDerivationRules which derive the ContextAssertion specified
+	 * by <code>derivedAssertionResource</code> 
+	 * @param derivedAssertionResource
+	 */
+	public void deactivateDerivationRule(Resource derivedAssertionResource);
+	
+	
+	/**
+	 * Trigger an ontology reasoning process for the ContextAssertion specified by 
+	 * <code>assertionResource</code>. 
+	 * @param assertionResource The ontology resource identifying the type of ContextAssertion for which
+	 * to perform ontology reasoning.
+	 * @return
+	 * @throws CommandException
+	 */
+	public ValidityReport triggerOntReasoning(Resource assertionResource) throws CommandException;
+	
 	
 	/**
 	 * Clean (remove) all ContextAssertion instances defined by the ontology resource <code>assertionResource</code> 
@@ -28,7 +95,7 @@ public interface CommandHandler {
 	 * @param assertion
 	 * @param timeThreshold
 	 */
-	public void cleanRuntimeContextStore(OntResource assertionResource, Calendar timeThreshold) throws CommandException;
+	public void cleanRuntimeContextStore(Resource assertionResource, Calendar timeThreshold) throws CommandException;
 	
 	
 	/**
