@@ -6,8 +6,8 @@ import org.aimas.ami.contextrep.engine.api.QueryException;
 import org.aimas.ami.contextrep.engine.api.QueryResult;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.utils.ContextQueryUtil;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;
@@ -30,7 +30,7 @@ public class ContextQueryTask implements Runnable {
 		this.resultNotifier = resultNotifier;
 		this.initialBindings = initialBindings;
 		
-		queriedAssertions = ContextQueryUtil.analyzeContextQuery(query, initialBindings, Engine.getCoreContextModel());
+		queriedAssertions = ContextQueryUtil.analyzeContextQuery(query, initialBindings, Engine.getModelLoader().getCoreContextModel());
 	}
 	
 	

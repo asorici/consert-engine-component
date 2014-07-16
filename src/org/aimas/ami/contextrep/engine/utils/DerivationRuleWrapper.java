@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.utils;
+package org.aimas.ami.contextrep.engine.utils;
 
 import java.util.ArrayList;
 import java.util.List;

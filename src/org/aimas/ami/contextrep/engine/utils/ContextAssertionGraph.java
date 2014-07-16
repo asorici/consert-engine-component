@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.utils;
+package org.aimas.ami.contextrep.engine.utils;
 
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.topbraid.spin.model.NamedGraph;

@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionFinder;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionGraph;
+import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.utils.ContextAssertionFinder;
-import org.aimas.ami.contextrep.utils.ContextAssertionGraph;
-import org.aimas.ami.contextrep.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.aimas.ami.contextrep.vocabulary.ConsertRules;
 import org.topbraid.spin.model.Construct;
@@ -172,7 +172,7 @@ public class DerivationRuleDictionary {
 		Map<CommandWrapper, Map<String,RDFNode>> initialTemplateBindings = new HashMap<CommandWrapper, Map<String,RDFNode>>();
 		
 		// build the extended Rules Module including the SPL, SP and SPIN namespaces
-		OntModel extendedRulesModel = Loader.ensureSPINImported(contextModelRules);
+		OntModel extendedRulesModel = Engine.getModelLoader().ensureSPINImported(contextModelRules);
 		
 		// make sure to register the templates as they will be searched for when collecting the constraints
 		SPINModuleRegistry.get().registerAll(extendedRulesModel, null);

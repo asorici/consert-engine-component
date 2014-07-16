@@ -11,15 +11,15 @@ import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.core.ContextARQFactory;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.utils.ContextAnnotationUtil;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionUtil;
+import org.aimas.ami.contextrep.engine.utils.ContextStoreUtil;
+import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
+import org.aimas.ami.contextrep.engine.utils.GraphUUIDGenerator;
+import org.aimas.ami.contextrep.engine.utils.spin.ContextSPINInferences;
+import org.aimas.ami.contextrep.engine.utils.spin.ContextSPINInferences.ContextInferenceResult;
 import org.aimas.ami.contextrep.model.ContextAnnotation;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.utils.ContextAnnotationUtil;
-import org.aimas.ami.contextrep.utils.ContextAssertionUtil;
-import org.aimas.ami.contextrep.utils.ContextStoreUtil;
-import org.aimas.ami.contextrep.utils.DerivationRuleWrapper;
-import org.aimas.ami.contextrep.utils.GraphUUIDGenerator;
-import org.aimas.ami.contextrep.utils.spin.ContextSPINInferences;
-import org.aimas.ami.contextrep.utils.spin.ContextSPINInferences.ContextInferenceResult;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.aimas.ami.contextrep.vocabulary.ConsertRules;
 import org.openjena.atlas.lib.Pair;
@@ -71,7 +71,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
 		
 		// get the context model
-		OntModel contextModelCore = Engine.getCoreContextModel();
+		OntModel contextModelCore = Engine.getModelLoader().getCoreContextModel();
 		
 		return attemptContextSPINInference(contextDataset, contextModelCore);
 	}

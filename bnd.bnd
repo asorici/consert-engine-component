@@ -2,10 +2,9 @@ Bundle-Vendor: org.aimas.ami
 
 -buildpath:  \
 	${plugin-dir}/org.apache.felix.scr/org.apache.felix.scr.bnd-1.1.0.jar;version=file,\
-	lib/spin-1.3.0.jar;version=file,\
-	jena-bundle-2.7.2;version=2.7,\
 	org.apache.felix.dependencymanager;version=3.1,\
-	consert-model;version=1.0
+	consert-model;version=1.0,\
+	jena-bundle-2.7.2;version=2.7
 	
 -plugin: org.apache.felix.scrplugin.bnd.SCRDescriptorBndPlugin
     

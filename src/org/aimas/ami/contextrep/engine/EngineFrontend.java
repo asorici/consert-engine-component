@@ -7,8 +7,8 @@ import java.util.concurrent.Future;
 
 import org.aimas.ami.contextrep.engine.api.CommandException;
 import org.aimas.ami.contextrep.engine.api.CommandHandler;
-import org.aimas.ami.contextrep.engine.api.ConfigException;
 import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
+import org.aimas.ami.contextrep.engine.api.EngineConfigException;
 import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
 import org.aimas.ami.contextrep.engine.api.EngineQueryStats;
 import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
@@ -18,12 +18,12 @@ import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.api.QueryHandler;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
-import org.aimas.ami.contextrep.engine.core.BundleResourceManager;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.engine.core.Engine;
-import org.aimas.ami.contextrep.engine.core.EngineResourceManager;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
 import org.aimas.ami.contextrep.model.ContextAssertion;
+import org.aimas.ami.contextrep.utils.BundleResourceManager;
+import org.aimas.ami.contextrep.utils.ResourceManager;
 import org.apache.felix.dm.Dependency;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
@@ -113,13 +113,13 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		if (modelResourceBundle != null) {
 			try {
 	            // initialize the EngineResourceManager
-				EngineResourceManager resourceManager = new BundleResourceManager(modelResourceBundle);
+				ResourceManager resourceManager = new BundleResourceManager(modelResourceBundle);
 				Engine.setResourceManager(resourceManager);
 	            
 	            // initialize the engine
 	            Engine.init(true);
             }
-            catch (ConfigException e) {
+            catch (EngineConfigException e) {
 				e.printStackTrace();
 				e.getCause().printStackTrace();
 				throw new ConfigurationException(null, "CONSERT Engine configuration invalid.", e);

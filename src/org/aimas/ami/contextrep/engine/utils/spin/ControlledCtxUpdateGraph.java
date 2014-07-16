@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.utils.spin;
+package org.aimas.ami.contextrep.engine.utils.spin;
 
 import java.util.HashSet;
 import java.util.Set;

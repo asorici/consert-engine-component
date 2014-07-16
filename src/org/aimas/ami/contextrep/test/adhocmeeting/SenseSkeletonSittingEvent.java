@@ -6,8 +6,8 @@ import java.util.TimeZone;
 
 import org.aimas.ami.contextrep.datatype.CalendarInterval;
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
-import org.aimas.ami.contextrep.model.ContextModelUtils;
 import org.aimas.ami.contextrep.test.ContextEvent;
+import org.aimas.ami.contextrep.utils.ContextModelUtils;
 import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 

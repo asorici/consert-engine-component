@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.utils.ConstraintsWrapper;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionFinder;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionGraph;
+import org.aimas.ami.contextrep.engine.utils.spin.ContextSPINQueryFinder;
 import org.aimas.ami.contextrep.model.BinaryContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.utils.ConstraintsWrapper;
-import org.aimas.ami.contextrep.utils.ContextAssertionFinder;
-import org.aimas.ami.contextrep.utils.ContextAssertionGraph;
-import org.aimas.ami.contextrep.utils.spin.ContextSPINQueryFinder;
 import org.aimas.ami.contextrep.vocabulary.ConsertConstraint;
 import org.topbraid.spin.model.Construct;
 import org.topbraid.spin.model.ElementList;
@@ -54,7 +54,7 @@ public class ContextConstraintIndex {
 		ContextConstraintIndex constraintIndex = new ContextConstraintIndex();
 		
 		// add the spl:, spin: and sp: namespaces to the constraints model to be able to detect them
-		OntModel extendedConstraintModel = Loader.ensureSPINImported(contextModelConstraints);
+		OntModel extendedConstraintModel = Engine.getModelLoader().ensureSPINImported(contextModelConstraints);
 		//System.out.println(extendedConstraintModel.listImportedOntologyURIs());
 		
 		// make sure to register the templates as they will be searched for when collecting the constraints

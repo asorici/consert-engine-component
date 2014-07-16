@@ -6,12 +6,12 @@ import java.util.List;
 import org.aimas.ami.contextrep.engine.core.ContextARQFactory;
 import org.aimas.ami.contextrep.engine.core.ContextConstraintIndex;
 import org.aimas.ami.contextrep.engine.core.Engine;
-import org.aimas.ami.contextrep.engine.core.Loader;
+import org.aimas.ami.contextrep.engine.utils.ConstraintsWrapper;
+import org.aimas.ami.contextrep.engine.utils.ContextStoreUtil;
+import org.aimas.ami.contextrep.engine.utils.spin.ContextSPINConstraints;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextConstraintViolation;
-import org.aimas.ami.contextrep.utils.ConstraintsWrapper;
-import org.aimas.ami.contextrep.utils.ContextStoreUtil;
-import org.aimas.ami.contextrep.utils.spin.ContextSPINConstraints;
+import org.aimas.ami.contextrep.utils.ContextModelLoader;
 import org.topbraid.spin.arq.ARQFactory;
 import org.topbraid.spin.statistics.SPINStatistics;
 
@@ -49,7 +49,7 @@ public class CheckConstraintHook extends ContextUpdateHook {
 			 * functions or reference SPIN templates in the constraints)
 			 */    
 			Model assertionModel = ContextStoreUtil.unionModelForAssertion(contextAssertion, contextStoreDataset);
-			Model constraintContextModel = Loader.ensureSPINImported(assertionModel);
+			Model constraintContextModel = ContextModelLoader.ensureSPINImported(assertionModel);
 			
 			ARQFactory.set(new ContextARQFactory(contextStoreDataset));
 			

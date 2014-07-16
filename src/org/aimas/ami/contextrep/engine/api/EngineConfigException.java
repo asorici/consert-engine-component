@@ -1,29 +1,29 @@
 package org.aimas.ami.contextrep.engine.api;
 
-public class ConfigException extends Exception {
+public class EngineConfigException extends Exception {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public ConfigException() {
+	public EngineConfigException() {
 		this("Configuration properties not initialized.");
 	}
 
-	public ConfigException(String message) {
+	public EngineConfigException(String message) {
 		super(message);
 	}
 
-	public ConfigException(Throwable cause) {
+	public EngineConfigException(Throwable cause) {
 		super(cause);
 	}
 
-	public ConfigException(String message, Throwable cause) {
+	public EngineConfigException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public ConfigException(String message, Throwable cause,
+	public EngineConfigException(String message, Throwable cause,
 			boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}

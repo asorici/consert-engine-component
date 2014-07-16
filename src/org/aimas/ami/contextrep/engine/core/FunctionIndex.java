@@ -110,7 +110,7 @@ public class FunctionIndex {
 		SPINModuleRegistry.get().init();
 		
 		// add the spin: and sp: namespaces to the functions module (they were not imported on initial load)
-		OntModel extendedFunctionsModel = Loader.ensureSPINImported(contextModelFunctions);
+		OntModel extendedFunctionsModel = Engine.getModelLoader().ensureSPINImported(contextModelFunctions);
 		
 		/*
 		Statement splMaxStmt = extendedFunctionsModel.getProperty(ResourceFactory.createResource(SPL.NS + "max"), SPIN.body);

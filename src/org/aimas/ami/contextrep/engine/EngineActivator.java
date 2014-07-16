@@ -27,7 +27,7 @@ public class EngineActivator extends DependencyActivatorBase {
 			.setCallbacks("initEngine", "startEngine", "stopEngine", "closeEngine")
 			//.setCallbacks("initEngine", null, null, "closeEngine")
 			.add(createBundleDependency()
-					.setFilter("(Bundle-Name=consert-model-resources)")
+					.setFilter("(Bundle-Name=cmm-resources)")
 					.setRequired(true)
 					.setCallbacks("setModelResourceBundle", null)
 					.setPropagate(true)

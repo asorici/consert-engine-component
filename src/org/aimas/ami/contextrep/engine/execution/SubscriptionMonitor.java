@@ -10,9 +10,9 @@ import java.util.Set;
 
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.query.ContextQueryTask;
-import org.aimas.ami.contextrep.utils.ContextQueryUtil;
 import org.openjena.atlas.lib.SetUtils;
 
 import com.hp.hpl.jena.ontology.OntModel;
@@ -74,7 +74,7 @@ public class SubscriptionMonitor implements ContextInsertListener {
 	
 	
 	private Set<ContextAssertion> analyzeSubscription(Query query, QuerySolutionMap initialBindings) {
-	    OntModel coreContextModel = Engine.getCoreContextModel();
+	    OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
 	    return ContextQueryUtil.analyzeContextQuery(query, initialBindings, coreContextModel);
     }
 

@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.aimas.ami.contextrep.engine.api.ConfigException;
+import org.aimas.ami.contextrep.engine.api.EngineConfigException;
 import org.aimas.ami.contextrep.engine.execution.InferenceService;
 import org.aimas.ami.contextrep.engine.execution.InsertionService;
 import org.aimas.ami.contextrep.engine.execution.QueryService;
 import org.aimas.ami.contextrep.engine.execution.SubscriptionMonitor;
+import org.aimas.ami.contextrep.model.exceptions.ContextModelConfigException;
+import org.aimas.ami.contextrep.utils.ContextModelLoader;
+import org.aimas.ami.contextrep.utils.ResourceManager;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Dataset;
@@ -26,7 +29,7 @@ import com.hp.hpl.jena.tdb.base.file.Location;
 
 public class Engine {
 	// ========== CONSERT Engine configuration properties ==========
-	public static final String CONFIG_FILENAME = "etc/config.properties";
+	public static final String CONFIG_FILENAME = "etc/cmm/engine.properties";
 	private static Properties configurationProperties;
 	
 	public static Properties getConfiguration() {
@@ -34,14 +37,14 @@ public class Engine {
 	}
 	
 	// ========== CONSERT Engine configuration properties ==========
-	private static EngineResourceManager resourceManager;
+	private static ResourceManager engineResourceManager;
 	
-	public static void setResourceManager(EngineResourceManager manager) {
-		resourceManager = manager;
+	public static void setResourceManager(ResourceManager manager) {
+		engineResourceManager = manager;
 	}
 	
-	public static EngineResourceManager getResourceManager() {
-		return resourceManager;
+	public static ResourceManager getResourceManager() {
+		return engineResourceManager;
 	}
 	
 	
@@ -54,19 +57,11 @@ public class Engine {
 	
 	
 	// ========== CONSERT Engine Domain Context Model ==========
-	/** Map of URIs for the modules of the context model: core, annotations, constraints, functions, rules */
-	private static Map<String, String> contextModelURIMap;
-	
-	/** Map of basic ontology models for each module of the context model: 
-	 * 	core, annotations, constraints, functions, rules */
-	private static Map<String, OntModel> baseContextModelMap;
+	private static ContextModelLoader contextModelLoader;
 	
 	/** Map of rdfs ontology models for each module of the context model: 
 	 * 	core, annotations, constraints, functions, rules */
 	private static Map<String, OntModel> rdfsContextModelMap;
-	
-	// ContextAssertion Derivation Rule Dictionary
-	private static DerivationRuleDictionary derivationRuleDictionary;
 	
 	
 	// ========== CONSERT Engine Internal Data Structures ==========
@@ -79,6 +74,9 @@ public class Engine {
 		
 	/** Index of Context Model ContextConstraints */
 	private static ContextConstraintIndex contextConstraintIndex;
+	
+	/** ContextAssertion Derivation Rule Dictionary */
+	private static DerivationRuleDictionary derivationRuleDictionary;
 	
 	
 	// ========== CONSERT Engine Internal Execution Elements ==========
@@ -93,7 +91,7 @@ public class Engine {
 	
 	
 	static Properties readConfiguration(String configurationFilename) 
-			throws ConfigException {
+			throws EngineConfigException {
 		if (configurationFilename == null) {
 			configurationFilename = CONFIG_FILENAME;
 		}
@@ -104,12 +102,12 @@ public class Engine {
 			return readConfiguration(configStream);
 			
 		} catch (FileNotFoundException e) {
-			throw new ConfigException("configuration.properties file not found", e);
+			throw new EngineConfigException("etc/cmm/engine.properties file not found", e);
 		} 
 	}
 	
 	
-	static Properties readConfiguration(InputStream configStream) throws ConfigException {
+	static Properties readConfiguration(InputStream configStream) throws EngineConfigException {
 		try {
 			// load the properties file
 			Properties engineConfiguration = new Properties();
@@ -119,34 +117,17 @@ public class Engine {
 			return engineConfiguration;
 		}
         catch (IOException e) {
-        	throw new ConfigException("configuration.properties could not be loaded", e);
+        	throw new EngineConfigException("etc/cmm/engine.properties could not be loaded", e);
         }
 	}
 	
 	
-	private static void validate(Properties engineConfiguration) throws ConfigException {
-	    // Step 1) Check for the required entries detailing the CONSERT Ontology modules
-		for (String moduleKey : ConfigKeys.CONSERT_ONT_MODULE_KEYS) {
-			if (engineConfiguration.getProperty(moduleKey) == null) {
-				throw new ConfigException("Configuration properties has no value for key: " + moduleKey);
-			}
-		}
-		
-		// Step 2) Check for existence of Context Model Core URI (this MUST exist)
-		if (engineConfiguration.get(ConfigKeys.DOMAIN_ONT_CORE_URI) == null) {
-				throw new ConfigException("No value for required" 
-					+ "Context Domain core module key: " + ConfigKeys.DOMAIN_ONT_CORE_URI);
-		}
-		
-		// Step 3) Check for existence of the Context Model document manager file key
-		if (engineConfiguration.get(ConfigKeys.DOMAIN_ONT_DOCMGR_FILE) == null) {
-			throw new ConfigException("Configuration properties has no value for "
-					+ "Context Domain ontology document manager key: " + ConfigKeys.DOMAIN_ONT_DOCMGR_FILE);
-		}
+	private static void validate(Properties engineConfiguration) throws EngineConfigException {
+	   
     }
 	
 	
-	public static void init(boolean printDurations) throws ConfigException {
+	public static void init(boolean printDurations) throws EngineConfigException {
 		init(CONFIG_FILENAME, printDurations);
 	}
 	
@@ -161,17 +142,17 @@ public class Engine {
 	 * </ul>
 	 */
 	//public static void init(Properties engineConfiguration, boolean printDurations) throws ConfigException {
-	public static void init(String configFile, boolean printDurations) throws ConfigException {
+	public static void init(String configFile, boolean printDurations) throws EngineConfigException {
 		long timestamp = System.currentTimeMillis();
 		
 		// ====================== read and store CONSERT Engine configuration ======================
-		if (resourceManager == null) {
-			throw new ConfigException("Engine resource manager not initialized.");
+		if (engineResourceManager == null) {
+			throw new EngineConfigException("Engine resource manager not initialized.");
 		}
 		
-		InputStream configurationStream = resourceManager.getResourceAsStream(configFile);
+		InputStream configurationStream = engineResourceManager.getResourceAsStream(configFile);
 		if (configurationStream == null) {
-			throw new ConfigException("Engine configuration file not found in resources.");
+			throw new EngineConfigException("Engine configuration file not found in resources.");
 		}
 		
 		configurationProperties = readConfiguration(configurationStream);
@@ -191,11 +172,17 @@ public class Engine {
 		timestamp = System.currentTimeMillis();
 		
 		
-		// ==================== prepare the Context Models ====================
+		// ==================== prepare the Context Model ====================
 		// this has the side effect of also configuring the ontology document managers for
 		// CONSERT ontology, SPIN ontology set and Context Domain ontology
-		contextModelURIMap = Loader.getContextModelURIs(configurationProperties);
-		baseContextModelMap = Loader.getContextModelModules(configurationProperties, resourceManager, contextModelURIMap); 
+		try {
+	        contextModelLoader = new ContextModelLoader(engineResourceManager);
+	        contextModelLoader.loadModel();
+		}
+        catch (ContextModelConfigException e) {
+        	throw new EngineConfigException("Failed to load Context Model.", e);
+        }
+		
 		
 		if (printDurations) {
 			System.out.println("Task: load context model modules. Duration: " + 
@@ -213,7 +200,7 @@ public class Engine {
 		timestamp = System.currentTimeMillis();
 		
 		// register custom functions (defined either by SPARQL queries or custom Java classes)
-		FunctionIndex.registerCustomFunctions(baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_FUNCTIONS_URI));
+		FunctionIndex.registerCustomFunctions(contextModelLoader.getFunctionContextModel());
 		
 		if (printDurations) {
 			System.out.println("Task: register custom SPARQL functions. Duration: " + 
@@ -227,8 +214,8 @@ public class Engine {
 		Loader.createEntityStoreGraph(contextDataset);
 		
 		// build the ContextAssertion index
-		OntModel baseCoreModule = baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_CORE_URI);
-		OntModel rdfsCoreModule = Loader.getRDFSInferenceModel(baseCoreModule);
+		OntModel baseCoreModule = contextModelLoader.getCoreContextModel();
+		OntModel rdfsCoreModule = contextModelLoader.getRDFSInferenceModel(baseCoreModule);
 		contextAssertionIndex = ContextAssertionIndex.create(rdfsCoreModule);
 		if (printDurations) {
 			System.out.println("Task: create the ContextAssertionIndex. Duration: " + 
@@ -237,8 +224,8 @@ public class Engine {
 		timestamp = System.currentTimeMillis();
 		
 		//build the ContextAnnotation index
-		OntModel baseAnnotationModule = baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_ANNOTATION_URI);
-		OntModel rdfsAnnotationModule = Loader.getRDFSInferenceModel(baseAnnotationModule);
+		OntModel baseAnnotationModule = contextModelLoader.getAnnotationContextModel();
+		OntModel rdfsAnnotationModule = contextModelLoader.getRDFSInferenceModel(baseAnnotationModule);
 		contextAnnotationIndex = ContextAnnotationIndex.create(rdfsAnnotationModule);
 		System.out.println(contextAnnotationIndex.getAllStructuredAnnotations());
 		
@@ -249,7 +236,7 @@ public class Engine {
 		timestamp = System.currentTimeMillis();
 		
 		// build the ContextConstraint index
-		contextConstraintIndex = ContextConstraintIndex.create(contextAssertionIndex, baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_CONSTRAINT_URI));
+		contextConstraintIndex = ContextConstraintIndex.create(contextAssertionIndex, contextModelLoader.getConstraintContextModel());
 		if (printDurations) {
 			System.out.println("Task: create the ContextConstraintIndex. Duration: " + 
 				(System.currentTimeMillis() - timestamp) + " ms");
@@ -257,7 +244,7 @@ public class Engine {
 		timestamp = System.currentTimeMillis();
 		
 		// build the Derivation Rule dictionary
-		derivationRuleDictionary = DerivationRuleDictionary.create(contextAssertionIndex, baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_RULES_URI));
+		derivationRuleDictionary = DerivationRuleDictionary.create(contextAssertionIndex, contextModelLoader.getRuleContextModel());
 		if (printDurations) {
 			System.out.println("Task: compute derivation rule dictionary. Duration: " + 
 				(System.currentTimeMillis() - timestamp) + " ms");
@@ -298,10 +285,7 @@ public class Engine {
 		
 	private static void closeContextModel() {
 		// close the basic context model modules
-		for (String moduleKey : baseContextModelMap.keySet()) {
-			OntModel m = baseContextModelMap.get(moduleKey);
-			m.close();
-		}
+		contextModelLoader.closeModel();
     }
 	
 	private static void syncToPersistent(Dataset contextDataset) {
@@ -364,24 +348,8 @@ public class Engine {
 	
 	
 	// ######################## Access CONSERT Engine Context Model and Indexes ########################
-	public static OntModel getCoreContextModel() {
-		return baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_CORE_URI);
-	}
-	
-	public static OntModel getAnnotationContextModel() {
-		return baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_ANNOTATION_URI);
-	}
-	
-	public static OntModel getConstraintContextModel() {
-		return baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_CONSTRAINT_URI);
-	}
-	
-	public static OntModel getFunctionContextModel() {
-		return baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_FUNCTIONS_URI);
-	}
-	
-	public static OntModel getRuleContextModel() {
-		return baseContextModelMap.get(ConfigKeys.DOMAIN_ONT_RULES_URI);
+	public static ContextModelLoader getModelLoader() {
+		return contextModelLoader;
 	}
 	
 	public static ContextAssertionIndex getContextAssertionIndex() {

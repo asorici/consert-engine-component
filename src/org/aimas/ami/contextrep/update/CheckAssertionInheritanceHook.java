@@ -8,12 +8,11 @@ import java.util.concurrent.Future;
 
 import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.utils.ContextAnnotationUtil;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionUtil;
+import org.aimas.ami.contextrep.engine.utils.GraphUUIDGenerator;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.model.exceptions.ContextAssertionContentException;
-import org.aimas.ami.contextrep.model.exceptions.ContextAssertionModelException;
-import org.aimas.ami.contextrep.utils.ContextAnnotationUtil;
-import org.aimas.ami.contextrep.utils.ContextAssertionUtil;
-import org.aimas.ami.contextrep.utils.GraphUUIDGenerator;
+import org.aimas.ami.contextrep.model.exceptions.ContextModelContentException;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -41,7 +40,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 		long start = System.currentTimeMillis();
 		
 		// get access to the datastore and the assertionIndex
-		OntModel contextModel = Engine.getCoreContextModel();
+		OntModel contextModel = Engine.getModelLoader().getCoreContextModel();
 		
 		// determine if this ContextAssertion has ancestors from which it inherits
 		List<ContextAssertion> assertionAncestorList = 
@@ -77,16 +76,10 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	            //long end = System.currentTimeMillis();
 	    		//return new AssertionInheritanceResult(start, (int)(end - start), false, assertionAncestorList);
             }
-            catch (ContextAssertionContentException e) {
+            catch (ContextModelContentException e) {
 	            return new AssertionInheritanceResult(contextAssertion, e, null);
 	            // TODO: performance collect
 	            //long end = System.currentTimeMillis();
-	            //return new AssertionInheritanceResult(start, (int)(end - start), true, null);
-            }
-            catch (ContextAssertionModelException e) {
-            	return new AssertionInheritanceResult(contextAssertion, e, null);
-            	// TODO: performance collect
-            	//long end = System.currentTimeMillis();
 	            //return new AssertionInheritanceResult(start, (int)(end - start), true, null);
             }
 		}
@@ -100,7 +93,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	
 	private List<UpdateRequest> createAncestorAssertionUpdateRequests(Resource assertionUUIDRes, OntModel contextModel,
         Dataset contextStoreDataset, List<ContextAssertion> assertionAncestorList, Map<Statement, Set<Statement>> assertionAnnotations) 
-        throws ContextAssertionContentException, ContextAssertionModelException {
+        throws ContextModelContentException {
 	    
 		// create update request list
 		List<UpdateRequest> ancestorAssertionInsertions = new ArrayList<UpdateRequest>();
@@ -131,7 +124,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	
 	private Update createAssertionContentUpdate(Resource assertionUUIDRes,
             Dataset contextStoreDataset, OntModel contextModel, ContextAssertion ancestorAssertion, Node ancestorUUIDNode) 
-            throws ContextAssertionContentException, ContextAssertionModelException {
+            throws ContextModelContentException {
 	    
 		List<Statement> ancestorContent = 
 			contextAssertion.copyToAncestor(assertionUUIDRes, contextStoreDataset, ancestorAssertion, contextModel);

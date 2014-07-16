@@ -1,6 +1,6 @@
 package org.aimas.ami.contextrep.functions;
 
-import org.aimas.ami.contextrep.utils.GraphUUIDGenerator;
+import org.aimas.ami.contextrep.engine.utils.GraphUUIDGenerator;
 
 import com.hp.hpl.jena.sparql.expr.ExprEvalException;
 import com.hp.hpl.jena.sparql.expr.NodeValue;

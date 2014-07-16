@@ -1,15 +1,15 @@
-package org.aimas.ami.contextrep.utils.spin;
+package org.aimas.ami.contextrep.engine.utils.spin;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.utils.ConstraintsWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextConstraintViolation;
 import org.aimas.ami.contextrep.model.ContextUniquenessConstraintViolation;
 import org.aimas.ami.contextrep.model.ContextValueConstraintViolation;
-import org.aimas.ami.contextrep.utils.ConstraintsWrapper;
 import org.aimas.ami.contextrep.vocabulary.ConsertConstraint;
 import org.topbraid.spin.arq.ARQFactory;
 import org.topbraid.spin.statistics.SPINStatistics;
