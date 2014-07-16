@@ -35,39 +35,65 @@
     <prefix    rdf:datatype="&xsd;string">rdfs</prefix>
 </OntologySpec>
 
+<!-- ###################### CMM Agent configuration ontologies local mappings  ###################### -->
+<OntologySpec>
+    <!-- URI specification for the OrgMgr application configuration vocabulary -->
+    <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf" />
+    <altURL    rdf:resource="file:etc/cmm/ontologies/orgconf.spin.rdf" />
+    <language  rdf:resource="http://www.w3.org/2002/07/owl" />
+    <prefix    rdf:datatype="&xsd;string">orgconf</prefix>
+</OntologySpec>
+
+<OntologySpec>
+    <!-- URI specification for the CtxCoord configuration vocabulary -->
+    <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/coordconf" />
+    <altURL    rdf:resource="file:etc/cmm/ontologies/coordconf.rdf" />
+    <language  rdf:resource="http://www.w3.org/2002/07/owl" />
+    <prefix    rdf:datatype="&xsd;string">coordconf</prefix>
+</OntologySpec>
+
+
+<OntologySpec>
+    <!-- URI specification for the CtxSensor initial assertion sending configuration vocabulary -->
+    <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/sensorconf" />
+    <altURL    rdf:resource="file:etc/cmm/ontologies/sensorconf.rdf" />
+    <language  rdf:resource="http://www.w3.org/2002/07/owl" />
+    <prefix    rdf:datatype="&xsd;string">sensorconf</prefix>
+</OntologySpec>
+
 
 <!-- ###################### SPIN ontologies local mappings  ###################### -->
 <OntologySpec>
     <publicURI rdf:resource="http://spinrdf.org/spl" />
-    <altURL    rdf:resource="file:etc/ontologies/SPIN/spl.spin.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SPIN/spl.spin.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">spl</prefix>
 </OntologySpec>
 
 <OntologySpec>
     <publicURI rdf:resource="http://spinrdf.org/spin" />
-    <altURL    rdf:resource="file:etc/ontologies/SPIN/spin.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SPIN/spin.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">spin</prefix>
 </OntologySpec>
 
 <OntologySpec>
     <publicURI rdf:resource="http://spinrdf.org/sp" />
-    <altURL    rdf:resource="file:etc/ontologies/SPIN/sp.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SPIN/sp.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">sp</prefix>
 </OntologySpec>
 
 <OntologySpec>
     <publicURI rdf:resource="http://topbraid.org/spin/spinowl" />
-    <altURL    rdf:resource="file:etc/ontologies/SPIN/spinowl.ttl" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SPIN/spinowl.ttl" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">spinowl</prefix>
 </OntologySpec>
 
 <OntologySpec>
     <publicURI rdf:resource="http://topbraid.org/spin/owlrl-all" />
-    <altURL    rdf:resource="file:etc/ontologies/SPIN/owlrl-all.ttl" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SPIN/owlrl-all.ttl" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">owlrl</prefix>
 </OntologySpec>

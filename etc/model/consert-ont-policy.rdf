@@ -52,7 +52,7 @@
 <OntologySpec>
     <!-- URI specification for the CONSERT Ontology core module -->
     <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core" />
-    <altURL    rdf:resource="file:etc/ontologies/ContextAssertion/core/consert-core.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/ContextAssertion/core/consert-core.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">contextassertion</prefix>
 </OntologySpec>
@@ -60,7 +60,7 @@
 <OntologySpec>
     <!-- URI specification for the CONSERT Ontology annotation module -->
     <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/annotation" />
-    <altURL    rdf:resource="file:etc/ontologies/ContextAssertion/core/consert-annotation.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/ContextAssertion/core/consert-annotation.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">contextannotation</prefix>
 </OntologySpec>
@@ -69,7 +69,7 @@
 <OntologySpec>
     <!-- URI specification for the CONSERT Ontology constraint module -->
     <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/constraint" />
-    <altURL    rdf:resource="file:etc/ontologies/ContextAssertion/core/consert-constraint.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/ContextAssertion/core/consert-constraint.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">contextconstraint</prefix>
 </OntologySpec>
@@ -77,7 +77,7 @@
 <OntologySpec>
     <!-- URI specification for the CONSERT Ontology functions module -->
     <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions" />
-    <altURL    rdf:resource="file:etc/ontologies/ContextAssertion/core/functions.spin.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/ContextAssertion/core/functions.spin.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">functions</prefix>
 </OntologySpec>
@@ -86,7 +86,7 @@
 <OntologySpec>
     <!-- URI specification for the CONSERT Ontology internal reasoning rules module -->
     <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/rules" />
-    <altURL    rdf:resource="file:etc/ontologies/ContextAssertion/core/rules.spin.rdf" />
+    <altURL    rdf:resource="file:etc/model/ontologies/ContextAssertion/core/rules.spin.rdf" />
     <language  rdf:resource="http://www.w3.org/2002/07/owl" />
     <prefix    rdf:datatype="&xsd;string">rules</prefix>
 </OntologySpec>

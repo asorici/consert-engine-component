@@ -1,0 +1,1087 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:afn="http://jena.hpl.hp.com/ARQ/function#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:sp="http://spinrdf.org/sp#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:j.0="http://spinrdf.org/arg#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/coordconf#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spl="http://spinrdf.org/spl#"
+  xml:base="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/coordconf">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://spinrdf.org/spin"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Created with TopBraid Composer</owl:versionInfo>
+  </owl:Ontology>
+  <owl:Class rdf:ID="AssertionSpecificStatistic">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:ID="isDerivedAssertion"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:ID="forContextAssertion"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificStatistic</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for ContextAssertion-specific CONSERT Engine runtime execution statistic instances.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="OperationalStatistic"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="SchedulingType">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SchedulingType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the set of possible values for scheduling types to be used with the inference and query execution services of the CONSERT Engine.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="OperationalParameterValue"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="OperationalParameter">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OperationalParameter</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class defining an operational parameter for the ExecutionServices (insertion, inference, query) of the CONSERT Engine at the charge of a CtxCoord agent.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  </owl:Class>
+  <owl:Class rdf:ID="StopAssertionCommand">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="AssertionSpecificCommand"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command sent to a CtxSensor agent that indicates to stop sending a ContextAssertion.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >StopAssertionCommand</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionSpecificInferenceStatistic">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificInferenceStatistic</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class for inference statistics collected from the CONSERT Engine instance at the charge of a CtxCoord agent.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificStatistic"/>
+  </owl:Class>
+  <owl:Class rdf:ID="QuerySchedulingCommand">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >QuerySchedulingCommand</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command sent to a CtxQueryHandler agent that indicates the type of query scheduling service to be used.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="OperationalCommand"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="StopRuleCommand">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command that indicates to the CONSERT Engine to stop executing a ContextDerivationRule.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#AssertionSpecificCommand"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >StopRuleCommand</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="UpdateModeCommand">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:ID="setsUpdateMode"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >UpdateModeCommand</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command sent to a CtxSensor agent that indicates switching to the specified (time-based, change-based) update mode for a specified ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#AssertionSpecificCommand"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionSpecificTTLSpec">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="AssertionSpecificParameter"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A holder class that defines the time-to-live interval (in seconds) for a specific ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="hasParameterValue"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificTTLSpec</rdfs:label>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:about="#hasParameterValue"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:about="#AssertionSpecificParameter">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:about="#forContextAssertion"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificParameter</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for an assertion-specific operational parameter instance.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#OperationalParameter"/>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionUpdateMode">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:oneOf rdf:parseType="Collection">
+          <AssertionUpdateMode rdf:ID="changeBased">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >changeBased</rdfs:label>
+            <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >Change-based (on content changed from last time) update mode.</rdfs:comment>
+          </AssertionUpdateMode>
+          <AssertionUpdateMode rdf:ID="timeBased">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >timeBased</rdfs:label>
+            <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >Time-based (once every number of time units) update mode.</rdfs:comment>
+          </AssertionUpdateMode>
+        </owl:oneOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionUpdateMode</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class defining the types of update modes for ContextAssertions sent by a CtxSensor or CtxUser agent: time-based (once every number of time units) or change-based (on value changed from last time). </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  </owl:Class>
+  <owl:Class rdf:ID="GeneralParameter">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >GeneralParameter</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for general operational parameter instances.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#OperationalParameter"/>
+  </owl:Class>
+  <owl:Class rdf:about="#OperationalParameterValue">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for CtxCoordinator operation parameter value types.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OperationalParameterValue</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#AssertionSpecificCommand">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:about="#forContextAssertion"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificCommand</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class defining tasking commands that address a change in operations related to a specific ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#OperationalCommand"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="InferenceSchedulingCommand">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >InferenceSchedulingCommand</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command sent to the CONSERT Engine that indicates the type of inference request scheduling service to be used.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#OperationalCommand"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="ControlPolicy">
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue>
+          <ConstraintResolutionType rdf:ID="PreferNewest">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >PreferNewest</rdfs:label>
+            <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >When resolving a conflict between two ContextAssertion instances (either of the same type or of different ones) prefer the one with the newer timestamp.</rdfs:comment>
+          </ConstraintResolutionType>
+        </spl:defaultValue>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="hasDefaultIntegrityResolution"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue>
+          <SchedulingType rdf:ID="FCFS">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >FCFS</rdfs:label>
+            <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >First Come First Served Scheduling Type.</rdfs:comment>
+          </SchedulingType>
+        </spl:defaultValue>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="hasInferenceSchedulingType"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class that defines the control specifications for the CtxCoord operational runtime.</rdfs:comment>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:resource="#PreferNewest"/>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="hasDefaultUniquenessResolution"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ControlPolicy</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</spl:defaultValue>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="enablesAssertionByDefault"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >5</spl:defaultValue>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="hasDefaultOntReasoningInterval"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >10</spl:defaultValue>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="hasDefaultRunWindow"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >600</spl:defaultValue>
+        <spl:predicate>
+          <owl:FunctionalProperty rdf:ID="hasDefaultTTLSpec"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionSpecificOntReasoningInterval">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:about="#hasParameterValue"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#hasParameterValue"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificOntReasoningInterval</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A holder class that defines the interval (in seconds) that passes between two successive calls for ontology reasoning for a specific ContextAssertion type.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificParameter"/>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionSpecificQueryStatistic">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificQueryStatistic</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class for query statistics collected from the CONSERT Engine instance at the charge of a CtxCoord agent.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificStatistic"/>
+  </owl:Class>
+  <owl:Class rdf:ID="StartAssertionCommand">
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificCommand"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command sent to a CtxSensor agent that indicates to start sending a ContextAssertion.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >StartAssertionCommand</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#OperationalCommand">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for the tasking commands that the CtxCoord agent can issue to the CONSERT Engine or CtxSensor agents.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OperationalCommand</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#OperationalStatistic">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OperationalStatistic</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class for operational runtime statistics collected from the CONSERT Engine instance at the charge of a CtxCoord agent.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionSpecificRunWindow">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#hasParameterValue"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificRunWindow</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class defining a ContextAssertion-specific RUN_WINDOW width, for the collection of CONSERT Engine runtime execution statistics.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificParameter"/>
+  </owl:Class>
+  <owl:Class rdf:ID="ConstraintResolutionType">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ConstraintResolutionType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class that defines the types of constraint resolution to apply when resolving detected constraint violations.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#OperationalParameterValue"/>
+  </owl:Class>
+  <owl:Class rdf:ID="StartRuleCommand">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the tasking command that indicates to the CONSERT Engine to start executing a ContextDerivationRule.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificCommand"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >StartRuleCommand</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="AssertionSpecificConstraintResolutionType">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#ConstraintResolutionType"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#hasParameterValue"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <j.0:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:maxCount>
+        <j.0:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</j.0:minCount>
+        <j.0:property>
+          <owl:FunctionalProperty rdf:about="#hasParameterValue"/>
+        </j.0:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A class defining a constraint violation resolution strategy specific to type of ContextAssertion.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AssertionSpecificConstraintResolutionType</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#AssertionSpecificParameter"/>
+  </owl:Class>
+  <owl:Class rdf:ID="GeneralStatistic">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >GeneralStatistic</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for general CONSERT Engine runtime execution statistic instances.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#OperationalStatistic"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="hasSpecificUniquenessResolution">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="#AssertionSpecificConstraintResolutionType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSpecificUniquenessResolution</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that denotes a specific uniqueness constraint resolution strategy for a specific ContextAssertion.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasCommandRule">
+    <rdfs:range>
+      <spin:ConstructTemplate rdf:ID="CommandRuleTemplate">
+        <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >CommandRuleTemplate</spin:labelTemplate>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Abstract base class for templating CtxCoord agent control rules. The output of the CONSTRUCT part of a defined rule must create an instance of an OperationalCommand.</rdfs:comment>
+        <spin:abstract rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</spin:abstract>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >CommandRuleTemplate</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://spinrdf.org/spin#ConstructTemplates"/>
+      </spin:ConstructTemplate>
+    </rdfs:range>
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/spin#rule"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasCommandRule</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base property for all the CommandRules attached to a ControlPolicy configuration of a CtxCoord agent.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasSpecificTTLSpec">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="#AssertionSpecificTTLSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSpecificTTLSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property defining a ContextAssertion-specific TTL threshold before ContextAssertion instances and their annotations are deleted from the runtime ContextStore.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasSpecificOntReasoningInterval">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that denotes the ContextAssertion-specific time interval (in seconds) between successive ontology reasoning triggers following the insertion of an instance of the specified ContextAssertion.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSpecificOntReasoningInterval</rdfs:label>
+    <rdfs:range rdf:resource="#AssertionSpecificOntReasoningInterval"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasSpecificIntegrityResolution">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="#AssertionSpecificConstraintResolutionType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSpecificIntegrityResolution</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that denotes a specific integrity constraint resolution strategy for a specific ContextAssertion.</rdfs:comment>
+  </owl:ObjectProperty>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#elapsedTimeThreshold">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#updateMode">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#intervalStart">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#transferRate">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#contextAssertion">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#intervalEnd">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <owl:FunctionalProperty rdf:ID="nrSuccessfulQueries">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property stating the number of successfully answered queries for the given ContextAssertion within the default or ContextAssertion-specific RUN_WINDOW.</rdfs:comment>
+    <rdfs:domain rdf:resource="#AssertionSpecificQueryStatistic"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >nrSuccessfulQueries</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#isDerivedAssertion">
+    <rdfs:domain rdf:resource="#AssertionSpecificStatistic"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >isDerivedAssertion</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A property which states whether the ContextAssertion for which the statistic is computed is a derived one or not.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="nrSuccessfulDerivations">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property stating the number of successful inference calls made for the given ContextAssertion within the default or ContextAssertion-specific RUN_WINDOW.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >nrSuccessfulDerivations</rdfs:label>
+    <rdfs:domain rdf:resource="#AssertionSpecificInferenceStatistic"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="timeSinceLastQuery">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:domain rdf:resource="#AssertionSpecificQueryStatistic"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >timeSinceLastQuery</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property stating the time (in milliseconds) elapsed since the last reception of a query for the given ContextAssertion.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="setsSchedulingType">
+    <rdfs:domain>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#InferenceSchedulingCommand"/>
+          <owl:Class rdf:about="#QuerySchedulingCommand"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:domain>
+    <rdfs:range rdf:resource="#SchedulingType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >setsSchedulingType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the desired scheduling service type</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="setsTransferRate">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >setsTransferRate</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the desired transfer rate (in seconds) for the receiption of ContextAssertion updates from a CtxSensor.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:domain rdf:resource="#UpdateModeCommand"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="lastDerivation">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#anyURI"/>
+    <rdfs:domain rdf:resource="#AssertionSpecificInferenceStatistic"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >lastDerivation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property stating the URI of the ContextAssertion that was lastly successfully derived by the CONSERT Engine inference service.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasDefaultTTLSpec">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDefaultTTLSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property defining the default TTL threshold before ContextAssertion instances and their annotations are deleted from the runtime ContextStore.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasDefaultRunWindow">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDefaultRunWindow</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies the default RUN_WINDOW width (in seconds) used to collect CONSERT Engine runtime execution statistics.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasDefaultIntegrityResolution">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDefaultIntegrityResolution</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the default (global) integrity constraint violation resolution strategy.</rdfs:comment>
+    <rdfs:range rdf:resource="#ConstraintResolutionType"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasDefaultUniquenessResolution">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDefaultUniquenessResolution</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the default (global) uniqueness constraint violation resolution strategy.</rdfs:comment>
+    <rdfs:range rdf:resource="#ConstraintResolutionType"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasInferenceSchedulingType">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property defining the parameter that indicates the initial scheduling type for ContextDerivationRule inference request within the CONSERT Engine.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasInferenceSchedulingType</rdfs:label>
+    <rdfs:range rdf:resource="#SchedulingType"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="nrQueries">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:domain rdf:resource="#AssertionSpecificQueryStatistic"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >nrQueries</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property stating the number of received queries for the given ContextAssertion within the default or ContextAssertion-specific RUN_WINDOW.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#enablesAssertionByDefault">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >enablesAssertionByDefault</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies whether CtxSensor agents are allowed by default to send the ContextAssertions they are in charge of, as soon as they connect with the CtxCoord agent.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasParameterValue">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasParameterValue</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding an OperationParameter instance to its value.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#forContextAssertion">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that binds an assertion specific operational strategy with the ContextAssertion URI for which it is defined.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >forContextAssertion</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#setsUpdateMode">
+    <rdfs:range rdf:resource="#AssertionUpdateMode"/>
+    <rdfs:domain rdf:resource="#UpdateModeCommand"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >setsUpdateMode</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the desired ContextAssertion update mode for a UpdateModeCommand instance.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="nrDerivations">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property stating the number of inference calls made for the given ContextAssertion within the default or ContextAssertion-specific RUN_WINDOW.</rdfs:comment>
+    <rdfs:domain rdf:resource="#AssertionSpecificInferenceStatistic"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >nrDerivations</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#hasDefaultOntReasoningInterval">
+    <rdfs:domain rdf:resource="#ControlPolicy"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDefaultOntReasoningInterval</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that denotes the default time interval (in seconds) between successive ontology reasoning triggers following the insertion of a ContextAssertion instance.</rdfs:comment>
+  </owl:FunctionalProperty>
+  <SchedulingType rdf:ID="UsagePriority">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >UsagePriority</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Scheduling based on the usage statistics of the ContextAssertion that is queried / derived as well as on the successfullness of the particular execution service itself (e.g. derivation success rate, query success rate).</rdfs:comment>
+  </SchedulingType>
+  <spin:ConstructTemplate rdf:ID="TimeIntervalUpdateModeSetup">
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The ContextAssertion resource for which this rule is applied.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#contextAssertion"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Start of the time interval.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#intervalStart"/>
+      </spl:Argument>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TimeIntervalUpdateModeSetup</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A command rule template constructing an UpdateModeCommand for a ContextAssertion resource given as argument, if the current time is between a specified interval.</rdfs:comment>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Optional argument that specifies the transfer rate (in seconds) at which a CtxSensor agent is supposed to send the ContextAssertion specified as argument.</rdfs:comment>
+        <spl:optional rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</spl:optional>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#transferRate"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="#AssertionUpdateMode"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The update mode (time-based, change-based) to be set.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#updateMode"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:body>
+      <sp:Construct>
+        <sp:templates rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="#UpdateModeCommand"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >contextAssertion</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#forContextAssertion"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >updateMode</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#setsUpdateMode"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >transferRate</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#setsTransferRate"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+        </sp:templates>
+        <sp:where rdf:parseType="Collection">
+          <sp:Bind>
+            <sp:expression>
+              <afn:now/>
+            </sp:expression>
+            <sp:variable rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >now</sp:varName>
+            </sp:variable>
+          </sp:Bind>
+          <sp:Filter>
+            <sp:expression>
+              <sp:and>
+                <sp:arg2>
+                  <sp:le>
+                    <sp:arg2 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >intervalEnd</sp:varName>
+                    </sp:arg2>
+                    <sp:arg1 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >now</sp:varName>
+                    </sp:arg1>
+                  </sp:le>
+                </sp:arg2>
+                <sp:arg1>
+                  <sp:ge>
+                    <sp:arg2 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >intervalStart</sp:varName>
+                    </sp:arg2>
+                    <sp:arg1 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >now</sp:varName>
+                    </sp:arg1>
+                  </sp:ge>
+                </sp:arg1>
+              </sp:and>
+            </sp:expression>
+          </sp:Filter>
+        </sp:where>
+      </sp:Construct>
+    </spin:body>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >End of the time interval.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#intervalEnd"/>
+      </spl:Argument>
+    </spin:constraint>
+    <rdfs:subClassOf rdf:resource="#CommandRuleTemplate"/>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TimeIntervalUpdateModeSetup</spin:labelTemplate>
+  </spin:ConstructTemplate>
+  <spin:ConstructTemplate rdf:ID="QueryAbsenceAssertionCancelation">
+    <spin:body>
+      <sp:Construct>
+        <sp:templates rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="#StopAssertionCommand"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:nodeID="A1"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >contextAssertion</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#forContextAssertion"/>
+            <sp:subject rdf:nodeID="A1"/>
+          </rdf:Description>
+        </sp:templates>
+        <sp:where rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="#AssertionSpecificQueryStatistic"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >contextAssertion</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#forContextAssertion"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</sp:object>
+            <sp:predicate rdf:resource="#isDerivedAssertion"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >timeSinceQuery</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#timeSinceLastQuery"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <sp:Filter>
+            <sp:expression>
+              <sp:gt>
+                <sp:arg2 rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >elapsedTimeThreshold</sp:varName>
+                </sp:arg2>
+                <sp:arg1 rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >timeSinceQuery</sp:varName>
+                </sp:arg1>
+              </sp:gt>
+            </sp:expression>
+          </sp:Filter>
+        </sp:where>
+      </sp:Construct>
+    </spin:body>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The ContextAssertion for which to search the time elapsed since the last time it was queried.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#contextAssertion"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The length of time (in seconds) that needs to pass in order for this cancelation rule to fire.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#elapsedTimeThreshold"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >QueryAbsenceAssertionCancelation</spin:labelTemplate>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A command rule template constructing a StopAssertionCommand if the time since the last query for the ContextAssertion given as parameter is greater than the specified threshold.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >QueryAbsenceAssertionCancelation</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#CommandRuleTemplate"/>
+  </spin:ConstructTemplate>
+  <ConstraintResolutionType rdf:ID="PreferAccurate">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >PreferAccurate</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >When resolving a conflict between two ContextAssertion instances (either of the same type or of different ones) prefer the one with the higher accuracy annotation.</rdfs:comment>
+  </ConstraintResolutionType>
+  <spin:ConstructTemplate rdf:ID="QueryAbsenceDerivationCancelation">
+    <spin:body>
+      <sp:Construct>
+        <sp:templates rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="#StopRuleCommand"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:nodeID="A2"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >contextAssertion</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#forContextAssertion"/>
+            <sp:subject rdf:nodeID="A2"/>
+          </rdf:Description>
+        </sp:templates>
+        <sp:where rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="#AssertionSpecificQueryStatistic"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >contextAssertion</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#forContextAssertion"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</sp:object>
+            <sp:predicate rdf:resource="#isDerivedAssertion"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >timeSinceQuery</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#timeSinceLastQuery"/>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >stat</sp:varName>
+            </sp:subject>
+          </rdf:Description>
+          <sp:Filter>
+            <sp:expression>
+              <sp:gt>
+                <sp:arg2 rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >elapsedTimeThreshold</sp:varName>
+                </sp:arg2>
+                <sp:arg1 rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >timeSinceQuery</sp:varName>
+                </sp:arg1>
+              </sp:gt>
+            </sp:expression>
+          </sp:Filter>
+        </sp:where>
+      </sp:Construct>
+    </spin:body>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The derived ContextAssertion for which to search the time elapsed since the last time it was queried.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#contextAssertion"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The length of time (in seconds) that needs to pass in order for this cancelation rule to fire.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#elapsedTimeThreshold"/>
+      </spl:Argument>
+    </spin:constraint>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A command rule template constructing a StopDerivationCommand if the time since the last query for the derived ContextAssertion given as parameter is greater than the specified threshold.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >QueryAbsenceDerivationCancelation</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#CommandRuleTemplate"/>
+  </spin:ConstructTemplate>
+  <spin:ConstructTemplate rdf:ID="TimeIntervalAssertionActivation">
+    <spin:body>
+      <sp:Construct>
+        <sp:templates rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="#StartAssertionCommand"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:nodeID="A3"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >contextAssertion</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="#forContextAssertion"/>
+            <sp:subject rdf:nodeID="A3"/>
+          </rdf:Description>
+        </sp:templates>
+        <sp:where rdf:parseType="Collection">
+          <sp:Bind>
+            <sp:expression>
+              <afn:now/>
+            </sp:expression>
+            <sp:variable rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >now</sp:varName>
+            </sp:variable>
+          </sp:Bind>
+          <sp:Filter>
+            <sp:expression>
+              <sp:and>
+                <sp:arg2>
+                  <sp:le>
+                    <sp:arg2 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >intervalEnd</sp:varName>
+                    </sp:arg2>
+                    <sp:arg1 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >now</sp:varName>
+                    </sp:arg1>
+                  </sp:le>
+                </sp:arg2>
+                <sp:arg1>
+                  <sp:ge>
+                    <sp:arg2 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >intervalStart</sp:varName>
+                    </sp:arg2>
+                    <sp:arg1 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >now</sp:varName>
+                    </sp:arg1>
+                  </sp:ge>
+                </sp:arg1>
+              </sp:and>
+            </sp:expression>
+          </sp:Filter>
+        </sp:where>
+      </sp:Construct>
+    </spin:body>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TimeIntervalAssertionActivation</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#CommandRuleTemplate"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A command rule template constructing a StartAssertionCommand for a ContextAssertion resource given as argument, if the current time is between a specified interval.</rdfs:comment>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The ContextAssertion resource for which this rule is applied.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#contextAssertion"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Start of the time interval.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#intervalStart"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:Argument>
+        <spl:valueType rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >End of the time interval.</rdfs:comment>
+        <spl:predicate rdf:resource="http://spinrdf.org/arg#intervalEnd"/>
+      </spl:Argument>
+    </spin:constraint>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TimeIntervalAssertionActivation</spin:labelTemplate>
+  </spin:ConstructTemplate>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->
