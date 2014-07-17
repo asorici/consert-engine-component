@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.utils.ConstraintsWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextConstraintViolation;
+import org.aimas.ami.contextrep.model.ContextIntegrityConstraintViolation;
 import org.aimas.ami.contextrep.model.ContextUniquenessConstraintViolation;
 import org.aimas.ami.contextrep.model.ContextValueConstraintViolation;
+import org.aimas.ami.contextrep.model.ViolationAssertionWrapper;
 import org.aimas.ami.contextrep.vocabulary.ConsertConstraint;
 import org.topbraid.spin.arq.ARQFactory;
 import org.topbraid.spin.statistics.SPINStatistics;
@@ -68,7 +71,6 @@ public class ContextSPINConstraints {
 					runQueryOnClass(results, arq, queryConstraintWrapper.getSPINQuery(), label, constraintContextModel, assertion, assertionUUID, triggeringRequest, subClass, initialBindings, arqConstraint.isThisUnbound(), arqConstraint.isThisDeep(), arqConstraint.getSource(), stats);
 				}
 			}
-			
 		}
 		
 		return results;
@@ -135,6 +137,7 @@ public class ContextSPINConstraints {
 		
 		// First we must determine the type of constraint violation that was triggered
 		StmtIterator uniquenessViolationIt = cm.listStatements(null, RDF.type, ConsertConstraint.UNIQUENESS_CONSTRAINT_VIOLATION);
+		StmtIterator integrityViolationIt = cm.listStatements(null, RDF.type, ConsertConstraint.INTEGRITY_CONSTRAINT_VIOLATION);
 		StmtIterator valueViolationIt = cm.listStatements(null, RDF.type, ConsertConstraint.VALUE_CONSTRAINT_VIOLATION);
 		
 		if (uniquenessViolationIt.hasNext()) {
@@ -149,21 +152,21 @@ public class ContextSPINConstraints {
 				// get the identifier URIs of the two conflicting ContextAssertions
 				List<Statement> conflictingAssertions = cm.listStatements(vio, ConsertConstraint.HAS_CONFLICTING_ASSERTION, (RDFNode)null).toList();
 				if (conflictingAssertions.size() == 2) {
-					String assertionUUID1 = conflictingAssertions.get(0).getResource().getURI();
-					String assertionUUID2 = conflictingAssertions.get(1).getResource().getURI();
+					String assertionUUID1 = conflictingAssertions.get(0).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
+					String assertionUUID2 = conflictingAssertions.get(1).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
 					
 					results.add(createUniquenessConstraintViolation(assertion, triggeringAssertionUUID, triggeringRequest, assertionUUID1, assertionUUID2, source));
 				}
 			}
 		}
-		else {
+		else if (valueViolationIt.hasNext()) {
 			while(valueViolationIt.hasNext()) {
 				Statement s = valueViolationIt.nextStatement();
 				Resource vio = s.getSubject();
 				
 				// get the identifier URI of the conflicting ContextAssertion
 				Statement conflictingAssertionStmt = cm.getProperty(vio, ConsertConstraint.HAS_CONFLICTING_ASSERTION);
-				String conflictingAssertionUUID = conflictingAssertionStmt.getResource().getURI();
+				String conflictingAssertionUUID = conflictingAssertionStmt.getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
 				
 				// check for assertion or annotation violation value indicators
 				Resource assertionConflictingVal = null;
@@ -179,12 +182,44 @@ public class ContextSPINConstraints {
 					annotationConflictingVal = annotationConflictValueStmt.getResource();
 				}
 				
-				results.add(createValueConstraintViolation(assertion, source, conflictingAssertionUUID, assertionConflictingVal, annotationConflictingVal));
+				results.add(createValueConstraintViolation(assertion, triggeringRequest, source, conflictingAssertionUUID, assertionConflictingVal, annotationConflictingVal));
+			}
+		}
+		else {
+			while(integrityViolationIt.hasNext()) {
+				Statement s = integrityViolationIt.nextStatement();
+				Resource vio = s.getSubject();
+				
+				// determine the URI of the ContextConstraintTemplate that triggered this conflict
+				//Statement constraintTemplateStmt = cm.getProperty(vio, ConsertConstraint.HAS_SOURCE_TEMPLATE);
+				//String constraintTemplateURI = constraintTemplateStmt.getResource().getURI();
+				
+				// get the identifier URIs of the two conflicting ContextAssertions
+				List<Statement> conflictingAssertions = cm.listStatements(vio, ConsertConstraint.HAS_CONFLICTING_ASSERTION, (RDFNode)null).toList();
+				if (conflictingAssertions.size() == 2) {
+					Resource assertionType1 = conflictingAssertions.get(0).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_TYPE).getResource();
+					Resource assertionType2 = conflictingAssertions.get(1).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_TYPE).getResource();
+					
+					String assertionUUID1 = conflictingAssertions.get(0).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
+					String assertionUUID2 = conflictingAssertions.get(1).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
+					
+					ViolationAssertionWrapper violatingAssertion1 = new ViolationAssertionWrapper(Engine.getContextAssertionIndex().getAssertionFromResource(assertionType1), assertionUUID1);
+					ViolationAssertionWrapper violatingAssertion2 = new ViolationAssertionWrapper(Engine.getContextAssertionIndex().getAssertionFromResource(assertionType2), assertionUUID2);
+					
+					results.add(createIntegrityConstraintViolation(new ViolationAssertionWrapper[] {violatingAssertion1, violatingAssertion2}, 
+							triggeringAssertionUUID, triggeringRequest, source));
+				}
 			}
 		}
 		
     }
 	
+	
+	private static ContextConstraintViolation createIntegrityConstraintViolation(ViolationAssertionWrapper[] violatingAssertions,  
+			Node triggeringAssertionUUID, UpdateRequest triggeringRequest, Resource source) {
+	    
+		return new ContextIntegrityConstraintViolation(violatingAssertions, triggeringAssertionUUID, triggeringRequest, source);
+    }
 	
 	private static ContextConstraintViolation createUniquenessConstraintViolation(
             ContextAssertion assertion, Node triggeringAssertionUUID, UpdateRequest triggeringRequest, String assertionUUID1, String assertionUUID2, Resource source) {
@@ -193,8 +228,8 @@ public class ContextSPINConstraints {
     }
 	
 	private static ContextConstraintViolation createValueConstraintViolation(ContextAssertion assertion, 
-			Resource source, String assertionUUID, Resource assertionConflictValue, Resource annotationConflictValue) {
+			UpdateRequest triggeringRequest, Resource source, String assertionUUID, Resource assertionConflictValue, Resource annotationConflictValue) {
 	    
-		return new ContextValueConstraintViolation(assertion, source, assertionUUID, assertionConflictValue, annotationConflictValue);
+		return new ContextValueConstraintViolation(assertion, triggeringRequest, source, assertionUUID, assertionConflictValue, annotationConflictValue);
     }
 }
