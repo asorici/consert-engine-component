@@ -21,7 +21,7 @@ import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 public class ContextAssertionIndex {
 	
-	private List<ContextAssertion> staticContextAssertions;
+	private List<ContextAssertion> dynamicContextAssertions;
 	private List<ContextAssertion> profiledContextAssertions;
 	private List<ContextAssertion> sensedContextAssertions;
 	private List<ContextAssertion> derivedContextAssertions;
@@ -30,7 +30,7 @@ public class ContextAssertionIndex {
 	private Map<String, ContextAssertion> graphURIBase2AssertionMap;
 	
 	ContextAssertionIndex() {
-		staticContextAssertions = new ArrayList<>();
+		dynamicContextAssertions = new ArrayList<>();
 		profiledContextAssertions = new ArrayList<>();
 		sensedContextAssertions = new ArrayList<>();
 		derivedContextAssertions = new ArrayList<>();
@@ -39,8 +39,8 @@ public class ContextAssertionIndex {
 		graphURIBase2AssertionMap = new HashMap<>();
 	}
 
-	public List<ContextAssertion> getStaticContextAssertions() {
-		return staticContextAssertions;
+	public List<ContextAssertion> getDynamicContextAssertions() {
+		return dynamicContextAssertions;
 	}
 
 	public List<ContextAssertion> getProfiledContextAssertions() {
@@ -57,7 +57,7 @@ public class ContextAssertionIndex {
 	
 	public List<ContextAssertion> getContextAssertions() {
 		List<ContextAssertion> allAssertions = new ArrayList<>();
-		allAssertions.addAll(staticContextAssertions);
+		allAssertions.addAll(dynamicContextAssertions);
 		allAssertions.addAll(sensedContextAssertions);
 		allAssertions.addAll(profiledContextAssertions);
 		allAssertions.addAll(derivedContextAssertions);
@@ -153,7 +153,7 @@ public class ContextAssertionIndex {
 	
 	
 	public boolean containsAssertion(ContextAssertion assertion) {
-		if (staticContextAssertions.contains(assertion)) {
+		if (dynamicContextAssertions.contains(assertion)) {
 			return true;
 		}
 		
@@ -173,9 +173,9 @@ public class ContextAssertionIndex {
 	}
 	
 	
-	public void addStaticContextAssertion(ContextAssertion staticAssertion) {
-		staticContextAssertions.add(staticAssertion);
-		assertionInfoMap.put(staticAssertion.getOntologyResource(), staticAssertion);
+	public void addDynamicContextAssertion(ContextAssertion dynamicAssertion) {
+		dynamicContextAssertions.add(dynamicAssertion);
+		assertionInfoMap.put(dynamicAssertion.getOntologyResource(), dynamicAssertion);
 	}
 	
 	public void addProfiledContextAssertion(ContextAssertion profiledAssertion) {
@@ -227,9 +227,6 @@ public class ContextAssertionIndex {
 				ContextAssertion assertion = ContextAssertionImpl.createBinary(assertionType, 2, prop);
 				
 				switch(assertionType) {
-				case Static:
-					assertionIndex.addStaticContextAssertion(assertion);
-					break;
 				case Profiled:
 					assertionIndex.addProfiledContextAssertion(assertion);
 					break;
@@ -239,7 +236,9 @@ public class ContextAssertionIndex {
 				case Derived:
 					assertionIndex.addDerivedContextAssertion(assertion);
 					break;
+				case Dynamic:
 				default:
+					assertionIndex.addDynamicContextAssertion(assertion);
 					break;
 				}
 				
@@ -258,9 +257,6 @@ public class ContextAssertionIndex {
 				ContextAssertion assertion = ContextAssertionImpl.createBinary(assertionType, 2, prop);
 				
 				switch(assertionType) {
-				case Static:
-					assertionIndex.addStaticContextAssertion(assertion);
-					break;
 				case Profiled:
 					assertionIndex.addProfiledContextAssertion(assertion);
 					break;
@@ -270,7 +266,9 @@ public class ContextAssertionIndex {
 				case Derived:
 					assertionIndex.addDerivedContextAssertion(assertion);
 					break;
+				case Dynamic:
 				default:
+					assertionIndex.addDynamicContextAssertion(assertion);
 					break;
 				}
 				
@@ -288,9 +286,6 @@ public class ContextAssertionIndex {
 				ContextAssertion assertion = ContextAssertionImpl.createUnary(assertionType, 1, cls, contextModelCore);
 				
 				switch(assertionType) {
-				case Static:
-					assertionIndex.addStaticContextAssertion(assertion);
-					break;
 				case Profiled:
 					assertionIndex.addProfiledContextAssertion(assertion);
 					break;
@@ -300,7 +295,9 @@ public class ContextAssertionIndex {
 				case Derived:
 					assertionIndex.addDerivedContextAssertion(assertion);
 					break;
+				case Dynamic:
 				default:
+					assertionIndex.addDynamicContextAssertion(assertion);
 					break;
 				}
 				
@@ -318,9 +315,6 @@ public class ContextAssertionIndex {
 				ContextAssertion assertion = ContextAssertionImpl.createNary(assertionType, 3, cls, contextModelCore);
 				
 				switch(assertionType) {
-				case Static:
-					assertionIndex.addStaticContextAssertion(assertion);
-					break;
 				case Profiled:
 					assertionIndex.addProfiledContextAssertion(assertion);
 					break;
@@ -330,7 +324,9 @@ public class ContextAssertionIndex {
 				case Derived:
 					assertionIndex.addDerivedContextAssertion(assertion);
 					break;
+				case Dynamic:
 				default:
+					assertionIndex.addDynamicContextAssertion(assertion);
 					break;
 				}
 				
