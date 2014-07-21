@@ -83,6 +83,8 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 					break;	// break since WE IMPOSE !!! that there be only one instance in the UpdateRequest
 				}
 			}
+			// !!! IMPORTANT TODO: check if an update is made to the EntityStore and if so, apply
+			// at least RDFS inferencing
 			
 			// STEP 4: execute updates
 			GraphStore graphStore = GraphStoreFactory.create(contextDataset);
@@ -118,12 +120,12 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
 					return res;
 				}
-			}
 			
-			// STEP 5D: if all good up to here, add inference checks for the new assertion, if probable
-			DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
-			if (ruleDict.getDerivationsForBodyAssertion(insertedAssertion) != null) {
-				inferenceProbable = true;
+				// STEP 5D: if all good up to here, add inference checks for the new assertion, if probable
+				DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
+				if (ruleDict.getDerivationsForBodyAssertion(insertedAssertion) != null) {
+					inferenceProbable = true;
+				}
 			}
 			
 			// STEP 6: commit transaction
@@ -136,8 +138,9 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		}
 		finally {
 			contextDataset.end();
-			if (cleanUpdate) {
-				// TODO: notify the ContextInsertListener (the SubscriptionMonitor) of the newly inserted ContextAssertion type
+			if (cleanUpdate && insertedAssertion != null) {
+				// Notify the ContextInsertListener (the SubscriptionMonitor) of the 
+				// newly inserted ContextAssertion type, if there was one
 				Engine.subscriptionMonitor().notifyAssertionInserted(insertedAssertion);
 			}
 		}
@@ -147,9 +150,18 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 			enqueueInferenceChecks(insertedAssertion, insertedAssertionUUID);
 		}
 		
-		InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), inheritanceResult.inherits()); 
-		if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
-		return res; 
+		if (insertedAssertion != null) {
+			// STEP 8a: if we had an assertion insertion, return appropriate HookResults
+			InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), inheritanceResult.inherits()); 
+			if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+			return res; 
+		}
+		else {
+			// STEP 8b: otherwise, it was just an EntityStore update and we return a plain answer
+			InsertResult res = new InsertResult(request, null, null, false, false); 
+			if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+			return res;
+		}
 		
 		// TODO: performance collection 
 		//long end = System.currentTimeMillis();
