@@ -9,8 +9,10 @@ import org.aimas.ami.contextrep.functions.certaintyPermitsContinuity;
 import org.aimas.ami.contextrep.functions.datetimeDelay;
 import org.aimas.ami.contextrep.functions.getCurrentAgent;
 import org.aimas.ami.contextrep.functions.makeValidityInterval;
+import org.aimas.ami.contextrep.functions.minusInfty;
 import org.aimas.ami.contextrep.functions.newGraphUUID;
 import org.aimas.ami.contextrep.functions.now;
+import org.aimas.ami.contextrep.functions.plusInfty;
 import org.aimas.ami.contextrep.functions.timestampPermitsContinuity;
 import org.aimas.ami.contextrep.functions.validityIntervalsCloseEnough;
 import org.aimas.ami.contextrep.functions.validityIntervalsInclude;
@@ -57,6 +59,12 @@ public class FunctionIndex {
 		
 		// register validityPermitsContinuity function
 		customFunctions.put(ConsertFunctions.NS + "validityPermitsContinuity", validityPermitsContinuity.class) ;
+		
+		// register plusInfty function
+		customFunctions.put(ConsertFunctions.NS + "plusInfty", plusInfty.class) ;
+		
+		// register minusInfty function
+		customFunctions.put(ConsertFunctions.NS + "minusInfty", minusInfty.class) ;
 				
 	}
 	
@@ -98,7 +106,8 @@ public class FunctionIndex {
 	}
 	
 	/**
-	 * Register all custom function definitions (filter functions and annotation operators) from the specified Context Model Function.
+	 * Register all custom function definitions (filter functions and annotation operators) from 
+	 * the specified Context Model function module.
 	 * These are defined as instances of spin:Function. Their implementation is given either as a SPARQL query, 
 	 * either as a custom Java class. The functions implemented as SPARQL queries are registered directly 
 	 * with the {@link SPINModuleRegistry}, while the ones having a Java implementation are registered with the 

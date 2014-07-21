@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aimas.ami.contextrep.datatype.CalendarIntervalListType;
+import org.aimas.ami.contextrep.datatype.InfinityMarkerType;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.TypeMapper;
@@ -14,6 +15,7 @@ public class DatatypeIndex {
 	private static Map<String, RDFDatatype> customDatatypes = new HashMap<String, RDFDatatype>();
 	static {
 		customDatatypes.put(CalendarIntervalListType.intervalListTypeURI, CalendarIntervalListType.intervalListType);
+		customDatatypes.put(InfinityMarkerType.infinityMarkerTypeURI, InfinityMarkerType.infinityMarkerType);
 	}
 	
 	public static RDFDatatype getDatatype(String datatypeURI) {
