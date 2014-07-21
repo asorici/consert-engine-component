@@ -18,11 +18,16 @@ import org.aimas.ami.contextrep.engine.execution.SubscriptionMonitor;
 import org.aimas.ami.contextrep.model.exceptions.ContextModelConfigException;
 import org.aimas.ami.contextrep.utils.ContextModelLoader;
 import org.aimas.ami.contextrep.utils.ResourceManager;
+import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.rdf.model.InfModel;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.reasoner.Reasoner;
+import com.hp.hpl.jena.reasoner.ReasonerRegistry;
 import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.tdb.base.file.Location;
@@ -55,6 +60,8 @@ public class Engine {
 	/** Path to in-memory TDB contextStore used at runtime */
 	private static Location contextStoreRuntimeLocation;
 	
+	/** Reference to the EntityStore */
+	private static InfModel entityStore;
 	
 	// ========== CONSERT Engine Domain Context Model ==========
 	private static ContextModelLoader contextModelLoader;
@@ -81,6 +88,9 @@ public class Engine {
 	
 	// ========== CONSERT Engine Internal Execution Elements ==========
 	
+	// Reasoners
+	static Reasoner entityStoreReasoner; 
+	
 	// Execution: ContextAssertion insertion, inference-hook and query execution
 	private static InsertionService insertionService;
 	private static InferenceService inferenceService;
@@ -90,6 +100,8 @@ public class Engine {
 	private static SubscriptionMonitor subscriptionMonitor;
 	
 	
+	// ========================= INTIALIZATION =========================
+	////////////////////////////////////////////////////////////////////
 	static Properties readConfiguration(String configurationFilename) 
 			throws EngineConfigException {
 		if (configurationFilename == null) {
@@ -123,7 +135,7 @@ public class Engine {
 	
 	
 	private static void validate(Properties engineConfiguration) throws EngineConfigException {
-	   
+	   // NOTHING TO DO YET
     }
 	
 	
@@ -131,17 +143,6 @@ public class Engine {
 		init(CONFIG_FILENAME, printDurations);
 	}
 	
-	/**
-	 * Do initialization setup:
-	 * <ul>
-	 * 	<li>parse configuration properties</li>
-	 * 	<li>create/open storage dataset</li>
-	 * 	<li>load basic context model</li>
-	 * 	<li>build transitive, rdfs and mini-owl inference model from basic context model</li>
-	 * 	<li>compute derivationRuleDictionary</li>
-	 * </ul>
-	 */
-	//public static void init(Properties engineConfiguration, boolean printDurations) throws ConfigException {
 	public static void init(String configFile, boolean printDurations) throws EngineConfigException {
 		long timestamp = System.currentTimeMillis();
 		
@@ -210,9 +211,6 @@ public class Engine {
 		
 		
 		// ==================== Build CONSERT Engine index data structures ==================== 
-		// create the named graph for ContextEntities and EntityDescriptions
-		Loader.createEntityStoreGraph(contextDataset);
-		
 		// build the ContextAssertion index
 		OntModel baseCoreModule = contextModelLoader.getCoreContextModel();
 		OntModel rdfsCoreModule = contextModelLoader.getRDFSInferenceModel(baseCoreModule);
@@ -257,8 +255,12 @@ public class Engine {
 		// register custom TDB UpdateEgine to listen for ContextAssertion insertions
 		//ContextAssertionUpdateEngine.register();
 		
-		
 		// ==================== Create CONSERT Engine execution services ==================== 
+		// create the named graph for ContextEntities and EntityDescriptions together with the
+		// corresponding EntityStore reasoner.
+		Engine.setupEntityStore(contextDataset, baseCoreModule);
+				
+		
 		insertionService = initInsertionService(configurationProperties);
 		inferenceService = createInferenceService(configurationProperties);
 		queryService = createQueryService(configurationProperties);
@@ -309,6 +311,27 @@ public class Engine {
     }
 	
 	
+	/**
+	 * Create the named graph that acts as the store for ContextEntity and EntityDescription instances.
+	 * Additionally, setup the REASONER that is used to perform OWL-MICRO realization of inserted 
+	 * ContextEntity and EntityDescription instances.
+	 * @param contextStoreDataset The TDB-backed dataset that holds the graphs
+	 */
+	static void setupEntityStore(Dataset contextStoreDataset, OntModel coreContextModel) {
+		// The EntityStore is a OWL-MICRO inference model, so we first need to setup
+		// our entityStoreReasoner.
+		entityStoreReasoner = ReasonerRegistry.getOWLMicroReasoner();
+		entityStoreReasoner = entityStoreReasoner.bindSchema(coreContextModel);
+		
+		// Now create an initially empty Model and then generate the resulting InfModel
+		Model initialData = ModelFactory.createDefaultModel();
+		entityStore = ModelFactory.createInfModel(entityStoreReasoner, initialData);
+		
+		// Lastly, add this entityStore model to the ContextStore dataset
+		contextStoreDataset.addNamedModel(ConsertCore.ENTITY_STORE_URI, entityStore);
+		TDB.sync(contextStoreDataset);
+	}
+	
 	
 	/**
 	 * Clean out all statements from the named graphs in the persistent ContextStore 
@@ -345,6 +368,7 @@ public class Engine {
 		return TDBFactory.createDataset(contextStoreRuntimeLocation);
 		//return contextDataset;
 	}
+	
 	
 	
 	// ######################## Access CONSERT Engine Context Model and Indexes ########################

@@ -107,13 +107,4 @@ public class Loader {
 		
 		throw new EngineConfigException();
 	}
-	
-	/**
-	 * Create the named graph that acts as the store for ContextEntity and EntityDescription instances
-	 * @param dataset The TDB-backed dataset that holds the graphs
-	 */
-	static void createEntityStoreGraph(Dataset dataset) {
-		Model graphStore = dataset.getNamedModel(ConsertCore.ENTITY_STORE_URI);
-		TDB.sync(graphStore);
-	}
 }
