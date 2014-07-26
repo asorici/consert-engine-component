@@ -14,14 +14,6 @@
 @prefix spl: <http://spinrdf.org/spl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-sensorconf:SensingPolicy
-  spin:constraint [
-      rdf:type spl:ObjectCountPropertyConstraint ;
-      <http://spinrdf.org/arg#maxCount> 1 ;
-      <http://spinrdf.org/arg#minCount> 1 ;
-      <http://spinrdf.org/arg#property> sensorconf:hasUpdateMode ;
-    ] ;
-.
 <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/sensorconfig>
   rdf:type owl:Ontology ;
   owl:imports <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/sensorconf> ;
@@ -30,40 +22,40 @@ sensorconf:SensingPolicy
 :luminositySensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesLuminosity ;
-  sensorconf:hasUpdateMode coordconf:timeBased ;
+  sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 60 ;
   rdfs:label "luminositySensingPolicy"^^xsd:string ;
 .
 :noiseSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:hasNoiseLevel ;
-  sensorconf:hasUpdateMode coordconf:timeBased ;
+  sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 10 ;
   rdfs:label "noiseSensingPolicy"^^xsd:string ;
 .
 :presenceSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesBluetoothAddress ;
-  sensorconf:hasUpdateMode coordconf:timeBased ;
+  sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 10 ;
   rdfs:label "presenceSensingPolicy"^^xsd:string ;
 .
 :skeletonSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesSkeletonInPosition ;
-  sensorconf:hasUpdateMode coordconf:timeBased ;
+  sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 10 ;
   rdfs:label "skeletonSensingPolicy"^^xsd:string ;
 .
 :teachingInformPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:takesPlaceIn ;
-  sensorconf:hasUpdateMode coordconf:changeBased ;
+  sensorconf:hasUpdateMode coordconf:change-based ;
   rdfs:label "teachingInformPolicy"^^xsd:string ;
 .
 :temperatureSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesTemperature ;
-  sensorconf:hasUpdateMode coordconf:changeBased ;
+  sensorconf:hasUpdateMode coordconf:change-based ;
   rdfs:label "temperatureSensingPolicy"^^xsd:string ;
 .
