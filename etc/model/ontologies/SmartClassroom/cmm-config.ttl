@@ -245,7 +245,7 @@
 .
 :applicationInterfacingAdaptor
   rdf:type orgconf:AgentResource ;
-  orgconf:hasQualifiedName "org.aimas.ami.cmm.resource.ApplicationAdaptor"^^xsd:string ;
+  orgconf:hasQualifiedName "org.aimas.ami.cmm.resource.ApplicationUserAdaptor"^^xsd:string ;
   rdfs:label "applicationInterfacingAdaptor"^^xsd:string ;
 .
 :luminositySensingPolicy

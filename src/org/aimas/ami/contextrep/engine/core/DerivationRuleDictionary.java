@@ -37,7 +37,7 @@ public class DerivationRuleDictionary {
 	 */
 	private Map<ContextAssertion, Boolean> derivedAssertionActivationMap;
 	
-	private boolean activeByDefault = true;
+	private boolean activeByDefault = false;
 	
 	/**
 	 * The mapping that binds a derived ContextAssertion with the list of derivation rules that derive it.

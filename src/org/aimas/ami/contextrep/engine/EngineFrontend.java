@@ -3,8 +3,10 @@ package org.aimas.ami.contextrep.engine;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Future;
 
+import org.aimas.ami.contextrep.engine.api.AssertionUpdateListener;
 import org.aimas.ami.contextrep.engine.api.CommandException;
 import org.aimas.ami.contextrep.engine.api.CommandHandler;
 import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
@@ -20,8 +22,11 @@ import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
+import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.model.ContextAssertion;
+import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
 import org.aimas.ami.contextrep.utils.ResourceManager;
 import org.apache.felix.dm.Dependency;
@@ -32,6 +37,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolutionMap;
@@ -215,6 +221,22 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		Engine.subscriptionMonitor().newSubscription(subscribeQuery, initialBindings, notifier);
 	}
 	
+	@Override
+	public Set<ContextAssertion> analyzeQuery(Query query, QuerySolutionMap initialBindings) {
+		OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
+		
+		return ContextQueryUtil.analyzeContextQuery(query, initialBindings, coreContextModel);
+	}
+	
+	@Override
+	public void registerAssertionUpdateListener(AssertionUpdateListener updateListener) {
+		ContextInsertNotifier.getInstance().addUpdateListener(updateListener);
+	}
+	
+	@Override
+	public void unregisterAssertionUpdateListener(AssertionUpdateListener updateListener) {
+		ContextInsertNotifier.getInstance().removeUpdateListener(updateListener);
+	}
 	
 	// =============================== COMMAND HANDLING =============================== //
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -261,17 +283,32 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	    engineComponent.remove(oldDependency);
 	}
 	
-
 	@Override
-    public void activateDerivationRule(Resource derivedAssertionResource) {
-		ContextAssertion derivedAssertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
-		Engine.getDerivationRuleDictionary().setDerivedAssertionActive(derivedAssertion, true);
-    }
-
+	public void setAssertionInsertActiveByDefault(boolean activeByDefault) {
+		Engine.getContextAssertionIndex().setActiveByDefault(activeByDefault);
+	}
+	
 	@Override
-    public void deactivateDerivationRule(Resource derivedAssertionResource) {
+	public void setAssertionInferenceActiveByDefault(boolean activeByDefault) {
+		Engine.getDerivationRuleDictionary().setActiveByDefault(activeByDefault);
+	}
+	
+	@Override
+	public void setAssertionActive(Resource assertionResource, boolean active) {
+		Engine.getContextAssertionIndex().setAssertionActive(assertionResource, active);
+		
+		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		if (assertion.getAssertionType() == ContextAssertionType.Derived) {
+			Engine.getDerivationRuleDictionary().setDerivedAssertionActive(assertion, active);
+		}
+	}
+	
+	@Override
+    public void setDerivationRuleActive(Resource derivedAssertionResource, boolean active) {
+		Engine.getContextAssertionIndex().setAssertionActive(derivedAssertionResource, active);
+		
 		ContextAssertion derivedAssertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
-		Engine.getDerivationRuleDictionary().setDerivedAssertionActive(derivedAssertion, true);
+		Engine.getDerivationRuleDictionary().setDerivedAssertionActive(derivedAssertion, active);
     }
 	
 	
@@ -387,4 +424,9 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	    Long time = Engine.getQueryService().timeSinceLastQuery().get(assertionResource);
 	    return time == null ? 0 : time;
 	}
+
+	@Override
+    public boolean assertionUpdatesEnabled(Resource assertionResource) {
+		return Engine.getContextAssertionIndex().isAssertionActive(assertionResource);
+    }
 }

@@ -59,22 +59,26 @@ public interface CommandHandler {
 	
 	
 	
-	// Command (reasoning, cleanup, inference activate/deactivate) execution triggers
-	////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Activate <b>all</b> the known ContextDerivationRules which derive the ContextAssertion specified
-	 * by <code>derivedAssertionResource</code> 
-	 * @param derivedAssertionResource
-	 */
-	public void activateDerivationRule(Resource derivedAssertionResource);
+	// Command (reasoning, cleanup, insertion and inference activate/deactivate) execution triggers
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	public void setAssertionInsertActiveByDefault(boolean activeByDefault);
 	
+	public void setAssertionInferenceActiveByDefault(boolean activeByDefault);
 	
 	/**
-	 * Deactivate <b>all</b> the known ContextDerivationRules which derive the ContextAssertion specified
-	 * by <code>derivedAssertionResource</code> 
+	 * Mark the state of update activity for the ContextAssertion given by <code>assertionResource</code>.
+	 * @param assertionResource
+	 * @param active Parameter set to <b>true</b> if updates for the ContextAssertion are enabled and <b>false</b>
+	 * otherwise.
+	 */
+	public void setAssertionActive(Resource assertionResource, boolean active);
+	
+	/**
+	 * Set the active/inactive state of <b>all</b> the known ContextDerivationRules which derive the 
+	 * ContextAssertion specified by <code>derivedAssertionResource</code> 
 	 * @param derivedAssertionResource
 	 */
-	public void deactivateDerivationRule(Resource derivedAssertionResource);
+	public void setDerivationRuleActive(Resource derivedAssertionResource, boolean active);
 	
 	
 	/**

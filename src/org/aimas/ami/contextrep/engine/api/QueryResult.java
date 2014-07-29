@@ -1,16 +1,19 @@
 package org.aimas.ami.contextrep.engine.api;
 
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.ResultSet;
+import java.io.Serializable;
 
-public class QueryResult {
+import com.hp.hpl.jena.query.Query;
+
+public class QueryResult implements Serializable {
+    private static final long serialVersionUID = 6450463508353276290L;
+    
 	private Query query;
 	private QueryException error;
 	
-	private ResultSet queryResult;
+	private ContextResultSet queryResult;
 	private boolean askResult;
 	
-	public QueryResult(Query query, QueryException error, ResultSet queryResult, boolean askResult) {
+	public QueryResult(Query query, QueryException error, ContextResultSet queryResult, boolean askResult) {
 		this.query = query;
 		this.error = error;
 		this.queryResult = queryResult;
@@ -29,11 +32,11 @@ public class QueryResult {
 		this(query, error, null, askResult);
 	}
 	
-	public QueryResult(Query query, QueryException error, ResultSet queryResult) {
+	public QueryResult(Query query, QueryException error, ContextResultSet queryResult) {
 		this(query, error, queryResult, false);
 	}
 	
-	public ResultSet getResultSet() {
+	public ContextResultSet getResultSet() {
 		return queryResult;
 	}
 	

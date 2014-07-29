@@ -29,6 +29,9 @@ public class ContextAssertionIndex {
 	private Map<Resource, ContextAssertion> assertionInfoMap;
 	private Map<String, ContextAssertion> graphURIBase2AssertionMap;
 	
+	private Map<Resource, Boolean> assertionActiveState;
+	private boolean activeByDefault = false;
+	
 	ContextAssertionIndex() {
 		dynamicContextAssertions = new ArrayList<>();
 		profiledContextAssertions = new ArrayList<>();
@@ -37,8 +40,30 @@ public class ContextAssertionIndex {
 		
 		assertionInfoMap = new HashMap<>();
 		graphURIBase2AssertionMap = new HashMap<>();
+		
+		assertionActiveState = new HashMap<Resource, Boolean>();
 	}
-
+	
+	
+	public void setActiveByDefault(boolean active) {
+		activeByDefault = active;
+	}
+	
+	public void setAssertionActive(Resource assertionResource, boolean active) {
+		synchronized(assertionActiveState) {
+			assertionActiveState.put(assertionResource, active);
+		}
+	}
+	
+	public boolean isAssertionActive(Resource assertionResource) {
+		synchronized(assertionActiveState) {
+			Boolean active = assertionActiveState.get(assertionResource);
+			return active == null ? activeByDefault : active;
+		}
+	}
+	
+	
+	
 	public List<ContextAssertion> getDynamicContextAssertions() {
 		return dynamicContextAssertions;
 	}
@@ -73,15 +98,6 @@ public class ContextAssertionIndex {
 		return graphURIBase2AssertionMap;
 	}
 	
-	/*
-	public String getStoreForAssertion(OntResource assertionResource) {
-		if (assertionResource != null) {
-			return assertionInfoMap.get(assertionResource);
-		}
-		
-		return null;
-	}
-	*/
 	
 	public ContextAssertion getAssertionFromResource(Resource assertionResource) {
 		return assertionInfoMap.get(assertionResource);

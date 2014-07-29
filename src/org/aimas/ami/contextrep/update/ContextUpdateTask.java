@@ -11,6 +11,7 @@ import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
 import org.aimas.ami.contextrep.engine.utils.ContextUpdateUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
@@ -139,9 +140,13 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		finally {
 			contextDataset.end();
 			if (cleanUpdate && insertedAssertion != null) {
-				// Notify the ContextInsertListener (the SubscriptionMonitor) of the 
-				// newly inserted ContextAssertion type, if there was one
-				Engine.subscriptionMonitor().notifyAssertionInserted(insertedAssertion);
+				// Engine.subscriptionMonitor().notifyAssertionInserted(insertedAssertion);
+				
+				// Notify the ContextInsertNotifier of the  newly inserted ContextAssertion type, 
+				// if there was one. This will in turn notify any of the connected CtxQueryHandler
+				// agents that have registered with this CONSERT Engine
+				ContextInsertNotifier.getInstance().notifyAssertionUpdated(insertedAssertion);
+				
 			}
 		}
 		

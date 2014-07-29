@@ -16,6 +16,7 @@ public interface StatsHandler {
 	
 	/* ================ Statistics for ContextAssertion insertions ================ */
 	// public EngineInsertionStats getInsertionStatistics();
+	public boolean assertionUpdatesEnabled(Resource assertionResource);
 	
 	
 	/* ================ Statistics for ContextAssertion inferences ================ */
