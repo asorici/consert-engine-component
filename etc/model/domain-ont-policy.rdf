@@ -195,5 +195,21 @@
     <prefix    rdf:datatype="&xsd;string">ctxmodels</prefix>
 </OntologySpec>
 
+<OntologySpec>
+    <!-- URI specification for the SmartClassroom domain ontology -->
+    <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/07/smartclassroom" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SmartClassroom/smartclassroom.rdf" />
+    <language  rdf:resource="http://www.w3.org/2002/07/owl" />
+    <prefix    rdf:datatype="&xsd;string">smartclassroom</prefix>
+</OntologySpec>
+
+<OntologySpec>
+    <!-- URI specification for the SmartClassroom bootstrap ontology -->
+    <publicURI rdf:resource="http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap" />
+    <altURL    rdf:resource="file:etc/model/ontologies/SmartClassroom/bootstrap.rdf" />
+    <language  rdf:resource="http://www.w3.org/2002/07/owl" />
+    <prefix    rdf:datatype="&xsd;string">bootstrap</prefix>
+</OntologySpec>
+
 
 </rdf:RDF>
