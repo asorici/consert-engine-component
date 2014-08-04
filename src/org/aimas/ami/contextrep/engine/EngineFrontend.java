@@ -1,6 +1,7 @@
 package org.aimas.ami.contextrep.engine;
 
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -25,6 +26,7 @@ import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
 import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
+import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
@@ -246,6 +248,24 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	    return Engine.getRuntimeContextStore();
     }
 	
+	@Override
+	public ContextAssertionType getAssertionType(Resource assertionResource) {
+		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		return assertion.getAssertionType();
+	}
+	
+	public Set<Resource> getReferencedAssertions(Resource derivedAssertionRes) {
+		Set<Resource> referencedAssertions = new HashSet<Resource>();
+		
+		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionRes);
+		for (DerivationRuleWrapper wrapper : Engine.getDerivationRuleDictionary().getDerivedAssertionRules(assertion)) {
+			for (ContextAssertion bodyAssertion : wrapper.getBodyAssertions()) {
+				referencedAssertions.add(bodyAssertion.getOntologyResource());
+			}
+		}
+		
+		return referencedAssertions;
+	}
 	
 	@Override
     public void setDefaultQueryRunWindow(long runWindow) {

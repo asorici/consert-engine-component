@@ -1,6 +1,9 @@
 package org.aimas.ami.contextrep.engine.api;
 
 import java.util.Calendar;
+import java.util.Set;
+
+import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -18,6 +21,15 @@ public interface CommandHandler {
 	 */
 	public Dataset getRuntimeContextStore();
 	
+	/**
+	 * Get the type (sensed, profiled, derived or dynamic) of the ContextAssertion 
+	 * identified by <code>assertionResource</code>
+	 * @param assertionResource
+	 * @return
+	 */
+	public ContextAssertionType getAssertionType(Resource assertionResource);
+	
+	public Set<Resource> getReferencedAssertions(Resource derivedAssertionRes);
 	
 	// Configuration of CONSERT Engine dynamic parameters 
 	////////////////////////////////////////////////////////////////////////////////////

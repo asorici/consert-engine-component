@@ -25,29 +25,34 @@ coordconf:ControlPolicy
       arg:contextAssertion smartclassroom:sensesLuminosity ;
       arg:intervalEnd "2014-01-01T12:00:00"^^xsd:dateTime ;
       arg:intervalStart "2014-01-01T10:00:00"^^xsd:dateTime ;
+      spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
   coordconf:hasStartAssertionCommand [
       rdf:type coordconf:TimeIntervalAssertionActivation ;
       arg:contextAssertion smartclassroom:sensesLuminosity ;
       arg:intervalEnd "2014-01-01T18:00:00"^^xsd:dateTime ;
       arg:intervalStart "2014-01-01T16:00:00"^^xsd:dateTime ;
+      spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
   coordconf:hasStartAssertionCommand [
       rdf:type coordconf:TimeIntervalAssertionActivation ;
       arg:contextAssertion smartclassroom:sensesTemperature ;
       arg:intervalEnd "2014-01-01T12:00:00"^^xsd:dateTime ;
       arg:intervalStart "2014-01-01T10:00:00"^^xsd:dateTime ;
+      spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
   coordconf:hasStartAssertionCommand [
       rdf:type coordconf:TimeIntervalAssertionActivation ;
       arg:contextAssertion smartclassroom:sensesTemperature ;
       arg:intervalEnd "2014-01-01T18:00:00"^^xsd:dateTime ;
       arg:intervalStart "2014-01-01T16:00:00"^^xsd:dateTime ;
+      spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
   coordconf:hasStopAssertionCommand [
       rdf:type coordconf:QueryAbsenceAssertionCancelation ;
       arg:contextAssertion smartclassroom:sensesLuminosity ;
       arg:elapsedTimeThreshold 180 ;
+      spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
   coordconf:hasStopAssertionCommand [
       rdf:type :NonePresentAssertionCancelation ;
@@ -291,15 +296,3 @@ coordconf:hasStopAssertionCommand
   coordconf:hasParameterValue "true"^^xsd:boolean ;
   rdfs:label "enablePresenceByDefault"^^xsd:string ;
 .
-[
-  spin:thisUnbound "true"^^xsd:boolean ;
-].
-[
-  spin:thisUnbound "true"^^xsd:boolean ;
-].
-[
-  spin:thisUnbound "true"^^xsd:boolean ;
-].
-[
-  spin:thisUnbound "true"^^xsd:boolean ;
-].
