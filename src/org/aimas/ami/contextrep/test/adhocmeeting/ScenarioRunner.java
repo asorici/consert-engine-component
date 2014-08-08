@@ -316,7 +316,7 @@ public class ScenarioRunner {
 		validity.add(interval);
 		
 		List<Statement> camera1Annotations = 
-			ContextModelUtils.createAnnotationStatements(camera1RoomSectionID.getURI(),
+			ContextModelUtils.createAnnotationStatements(camera1RoomSectionID.getURI(), deviceRoomSection.getURI(),
 			ContextAssertionType.Profiled, timestamp, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI); 
 		for (Statement s : camera1Annotations) {
@@ -324,7 +324,7 @@ public class ScenarioRunner {
 		}
 		
 		List<Statement> mic1Annotations = 
-			ContextModelUtils.createAnnotationStatements(mic1RoomSectionID.getURI(), 
+			ContextModelUtils.createAnnotationStatements(mic1RoomSectionID.getURI(), deviceRoomSection.getURI(),
 			ContextAssertionType.Profiled, timestamp, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		for (Statement s : mic1Annotations) {
@@ -332,7 +332,7 @@ public class ScenarioRunner {
 		}
 		
 		List<Statement> mic2Annotations = 
-			ContextModelUtils.createAnnotationStatements(mic2RoomSectionID.getURI(), 
+			ContextModelUtils.createAnnotationStatements(mic2RoomSectionID.getURI(), deviceRoomSection.getURI(),
 			ContextAssertionType.Profiled, timestamp, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		for (Statement s : mic2Annotations) {

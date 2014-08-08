@@ -77,7 +77,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	}
 	
 	private InferenceResult attemptContextSPINInference(Dataset contextDataset, OntModel contextModelCore) {
-		long start = System.currentTimeMillis();
+		long start = Engine.currentTimeMillis();
 		
 		
 		// get the query model as the union of the named graphs in our dataset

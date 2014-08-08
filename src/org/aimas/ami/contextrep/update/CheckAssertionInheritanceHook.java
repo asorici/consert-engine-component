@@ -37,7 +37,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	@Override
 	public AssertionInheritanceResult exec(Dataset contextStoreDataset) {
 		// for testing purposes - we need to see how to control this
-		long start = System.currentTimeMillis();
+		long start = Engine.currentTimeMillis();
 		
 		// get access to the datastore and the assertionIndex
 		OntModel contextModel = Engine.getModelLoader().getCoreContextModel();

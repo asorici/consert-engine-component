@@ -30,7 +30,7 @@ public class CheckConstraintHook extends ContextUpdateHook {
 	
 	@Override
 	public ConstraintResult exec(Dataset contextStoreDataset) {
-		long start = System.currentTimeMillis();
+		long start = Engine.currentTimeMillis();
 		
 		// see if this context assertion has any constraints attached
 		ContextConstraintIndex constraintIndex = Engine.getConstraintIndex();

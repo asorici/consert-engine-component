@@ -96,7 +96,7 @@ public class ContextSPINConstraints {
 				}
 			}
 			
-			long startTime = System.currentTimeMillis();
+			long startTime = Engine.currentTimeMillis();
 			Model cm = JenaUtil.createDefaultModel();
 			
 			if(thisDeep && !thisUnbound) {
@@ -115,7 +115,7 @@ public class ContextSPINConstraints {
 				qexec.close();
 			}
 			
-			long endTime = System.currentTimeMillis();
+			long endTime = Engine.currentTimeMillis();
 			if(stats != null) {
 				long duration = endTime - startTime;
 				String queryText = SPINLabels.get().getLabel(spinQuery);

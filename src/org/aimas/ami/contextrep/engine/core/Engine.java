@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.aimas.ami.contextrep.engine.execution.InsertionService;
 import org.aimas.ami.contextrep.engine.execution.QueryService;
 import org.aimas.ami.contextrep.engine.execution.SubscriptionMonitor;
 import org.aimas.ami.contextrep.model.exceptions.ContextModelConfigException;
+import org.aimas.ami.contextrep.resources.TimeService;
 import org.aimas.ami.contextrep.utils.ContextModelLoader;
 import org.aimas.ami.contextrep.utils.ResourceManager;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
@@ -52,6 +54,24 @@ public class Engine {
 		return engineResourceManager;
 	}
 	
+	// ========== CONSERT Engine time service ==========
+	private static TimeService engineTimeService;
+	
+	public static void setTimeService(TimeService timeService) {
+		Engine.engineTimeService = timeService;
+	}
+	
+	public static TimeService getTimeService() {
+		return engineTimeService;
+	}
+	
+	public static long currentTimeMillis() {
+		return engineTimeService.getCurrentTimeMillis();
+	}
+	
+	public static Calendar now() {
+		return engineTimeService.getCalendarInstance();
+	}
 	
 	// ========== CONSERT Engine storage ==========
 	/** Path to persistent TDB contextStore */
@@ -144,7 +164,7 @@ public class Engine {
 	}
 	
 	public static void init(String configFile, boolean printDurations) throws EngineConfigException {
-		long timestamp = System.currentTimeMillis();
+		long timestamp = Engine.currentTimeMillis();
 		
 		// ====================== read and store CONSERT Engine configuration ======================
 		if (engineResourceManager == null) {
@@ -168,9 +188,9 @@ public class Engine {
 		
 		if (printDurations) {
 			System.out.println("Task: create the contextStore. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		
 		// ==================== prepare the Context Model ====================
@@ -187,27 +207,27 @@ public class Engine {
 		
 		if (printDurations) {
 			System.out.println("Task: load context model modules. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 
 		
 		// ==================== register custom elements (datatypes, functions) ====================
 		DatatypeIndex.registerCustomDatatypes();
 		if (printDurations) {
 			System.out.println("Task: register custom RDF datatypes. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		// register custom functions (defined either by SPARQL queries or custom Java classes)
 		FunctionIndex.registerCustomFunctions(contextModelLoader.getFunctionContextModel());
 		
 		if (printDurations) {
 			System.out.println("Task: register custom SPARQL functions. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		
 		// ==================== Build CONSERT Engine index data structures ==================== 
@@ -217,9 +237,9 @@ public class Engine {
 		contextAssertionIndex = ContextAssertionIndex.create(rdfsCoreModule);
 		if (printDurations) {
 			System.out.println("Task: create the ContextAssertionIndex. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		//build the ContextAnnotation index
 		OntModel baseAnnotationModule = contextModelLoader.getAnnotationContextModel();
@@ -229,28 +249,28 @@ public class Engine {
 		
 		if (printDurations) {
 			System.out.println("Task: create the ContextAnnotationIndex. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		// build the ContextConstraint index
 		contextConstraintIndex = ContextConstraintIndex.create(contextAssertionIndex, contextModelLoader.getConstraintContextModel());
 		if (printDurations) {
 			System.out.println("Task: create the ContextConstraintIndex. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		// build the Derivation Rule dictionary
 		derivationRuleDictionary = DerivationRuleDictionary.create(contextAssertionIndex, contextModelLoader.getRuleContextModel());
 		if (printDurations) {
 			System.out.println("Task: compute derivation rule dictionary. Duration: " + 
-				(System.currentTimeMillis() - timestamp) + " ms");
+				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
 		
 		System.out.println("#### Derivation Rule Map : ");
 		System.out.println(derivationRuleDictionary.getAssertion2QueryMap());
-		timestamp = System.currentTimeMillis();
+		timestamp = Engine.currentTimeMillis();
 		
 		// register custom TDB UpdateEgine to listen for ContextAssertion insertions
 		//ContextAssertionUpdateEngine.register();

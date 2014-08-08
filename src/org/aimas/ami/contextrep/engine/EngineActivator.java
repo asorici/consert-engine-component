@@ -8,6 +8,8 @@ import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.api.QueryHandler;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
+import org.aimas.ami.contextrep.resources.SystemTimeService;
+import org.aimas.ami.contextrep.resources.TimeService;
 import org.apache.felix.dm.DependencyActivatorBase;
 import org.apache.felix.dm.DependencyManager;
 import org.osgi.framework.BundleContext;
@@ -31,6 +33,11 @@ public class EngineActivator extends DependencyActivatorBase {
 					.setRequired(true)
 					.setCallbacks("setModelResourceBundle", null)
 					.setPropagate(true)
+			).add(createServiceDependency()
+					.setService(TimeService.class)
+					.setDefaultImplementation(SystemTimeService.class)
+					.setRequired(true)
+					.setAutoConfig("timeService")
 			)
 		);
 		

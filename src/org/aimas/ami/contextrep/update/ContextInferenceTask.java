@@ -33,7 +33,7 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 	
 	@Override
 	public InferenceResult call() {
-		long start = System.currentTimeMillis();
+		long start = Engine.currentTimeMillis();
 		
 		InferenceResult inferenceHookResult = null;
 		

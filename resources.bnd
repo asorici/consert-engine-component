@@ -7,3 +7,5 @@ Bundle-ClassPath: .
 Include-Resource: \
     etc=etc/
 -exportcontents: etc, etc.*
+Export-Package:  \
+	org.aimas.ami.contextrep.resources

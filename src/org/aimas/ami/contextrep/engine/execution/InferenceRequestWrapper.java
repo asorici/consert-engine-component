@@ -2,6 +2,7 @@ package org.aimas.ami.contextrep.engine.execution;
 
 import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.engine.api.InferenceRequest;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;
 
 public class InferenceRequestWrapper implements InferenceRequest, Comparable<InferenceRequest> {
@@ -12,7 +13,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
 	
 	
 	public InferenceRequestWrapper(CheckInferenceHook inferenceRequest) {
-		this.enqueueTimestamp = System.currentTimeMillis();
+		this.enqueueTimestamp = Engine.currentTimeMillis();
 		this.inferenceRequest = inferenceRequest;
 		
 		// by default, priority of an inference request is its enqueue timestamp

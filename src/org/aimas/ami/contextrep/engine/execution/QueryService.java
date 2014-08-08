@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.aimas.ami.contextrep.engine.api.EngineQueryStats;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.query.ContextQueryTask;
 
@@ -137,7 +138,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 	
 	@Override
 	public void markQueryExecution(Set<ContextAssertion> assertions, boolean successful) {
-		queryTracker.markInferenceExecution(assertions, System.currentTimeMillis(), successful);
+		queryTracker.markInferenceExecution(assertions, Engine.currentTimeMillis(), successful);
 	}
 	
 	
@@ -180,7 +181,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 		
 		
 		void siftTracker() {
-			long now = System.currentTimeMillis();
+			long now = Engine.currentTimeMillis();
 			
 			for (Resource assertionRes : queryTracker.keySet()) {
 				long runWindowWidth = defaultRunWindow;
@@ -244,7 +245,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 		
 		Map<Resource, Long> timeSinceLastQuery() {
 			synchronized(queryTracker) {
-				long now = System.currentTimeMillis(); 
+				long now = Engine.currentTimeMillis(); 
 				Map<Resource, Long> m = new HashMap<Resource, Long>();
 				
 				for (Resource assertionRes : mostRecentTracker.keySet()) {

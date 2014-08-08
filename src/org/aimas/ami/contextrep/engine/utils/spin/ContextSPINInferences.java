@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.topbraid.spin.arq.ARQFactory;
 import org.topbraid.spin.inference.SPINConstructors;
 import org.topbraid.spin.inference.SPINInferencesOptimizer;
@@ -194,7 +195,7 @@ public class ContextSPINInferences {
 				}
 			}
 			
-			long startTime = System.currentTimeMillis();
+			long startTime = Engine.currentTimeMillis();
 			final Map<Resource,Resource> newInstances = new HashMap<Resource,Resource>();
 			if(commandWrapper instanceof QueryWrapper) {
 				Query arq = ((QueryWrapper)commandWrapper).getQuery();
@@ -267,7 +268,7 @@ public class ContextSPINInferences {
 			}
 			
 			if(statistics != null) {
-				long endTime = System.currentTimeMillis();
+				long endTime = Engine.currentTimeMillis();
 				long duration = (endTime - startTime);
 				String queryText = SPINLabels.get().getLabel(commandWrapper.getSPINCommand());
 				if(queryLabel == null) {

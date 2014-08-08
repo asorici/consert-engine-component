@@ -215,17 +215,17 @@ public class ScenarioInit {
 		validity.add(interval);
 		
 		List<Statement> camera1Annotations = 
-			ContextModelUtils.createAnnotationStatements(camera1RoomSectionID,  
+			ContextModelUtils.createAnnotationStatements(camera1RoomSectionID, deviceRoomSection.getURI(), 
 			ContextAssertionType.Profiled, timestamp, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI); 
 		
 		List<Statement> mic1Annotations = 
-			ContextModelUtils.createAnnotationStatements(mic1RoomSectionID,  
+			ContextModelUtils.createAnnotationStatements(mic1RoomSectionID,  deviceRoomSection.getURI(),
 			ContextAssertionType.Profiled, timestamp, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		
 		List<Statement> mic2Annotations = 
-			ContextModelUtils.createAnnotationStatements(mic2RoomSectionID,  
+			ContextModelUtils.createAnnotationStatements(mic2RoomSectionID, deviceRoomSection.getURI(), 
 			ContextAssertionType.Profiled, timestamp, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		
@@ -309,16 +309,16 @@ public class ScenarioInit {
 		CalendarIntervalList validity = new CalendarIntervalList();
 		validity.add(interval);
 		
-		List<Statement> skeleton1Annotations = ContextModelUtils.createAnnotationStatements(skeletonAssertionID1, 
-			ContextAssertionType.Sensed, validFrom, validity, 
+		List<Statement> skeleton1Annotations = ContextModelUtils.createAnnotationStatements(skeletonAssertionID1,
+			assertionClass.getURI(), ContextAssertionType.Sensed, validFrom, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		
-		List<Statement> skeleton2Annotations = ContextModelUtils.createAnnotationStatements(skeletonAssertionID2, 
-			ContextAssertionType.Sensed, validFrom, validity, 
+		List<Statement> skeleton2Annotations = ContextModelUtils.createAnnotationStatements(skeletonAssertionID2,
+			assertionClass.getURI(), ContextAssertionType.Sensed, validFrom, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		
 		List<Statement> skeleton3Annotations = ContextModelUtils.createAnnotationStatements(skeletonAssertionID3, 
-			ContextAssertionType.Sensed, validFrom, validity, 
+			assertionClass.getURI(), ContextAssertionType.Sensed, validFrom, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 	
 		sensesSkeletonGraph.add(skeleton1Annotations);
@@ -362,11 +362,11 @@ public class ScenarioInit {
 		validity.add(interval);
 
 		List<Statement> mic1Annotations = ContextModelUtils.createAnnotationStatements(hasNoiseLevelID1, 
-			ContextAssertionType.Sensed, validFrom, validity, 
+			assertionProperty.getURI(), ContextAssertionType.Sensed, validFrom, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		
-		List<Statement> mic2Annotations = ContextModelUtils.createAnnotationStatements(hasNoiseLevelID2, 
-			ContextAssertionType.Sensed, validFrom, validity, 
+		List<Statement> mic2Annotations = ContextModelUtils.createAnnotationStatements(hasNoiseLevelID2,
+			assertionProperty.getURI(), ContextAssertionType.Sensed, validFrom, validity, 
 			ContextEvent.DEFAULT_ACCURACY, ContextEvent.DEFAULT_SOURCE_URI);
 		
 		hasNoiseLevelGraph.add(mic1Annotations);

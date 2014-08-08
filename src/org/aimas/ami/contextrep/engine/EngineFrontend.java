@@ -29,6 +29,7 @@ import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
+import org.aimas.ami.contextrep.resources.TimeService;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
 import org.aimas.ami.contextrep.utils.ResourceManager;
 import org.apache.felix.dm.Dependency;
@@ -66,6 +67,12 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	 * that this CONSERT Engine component instance uses.
 	 */
 	private Bundle modelResourceBundle;
+	
+	/**
+	 * The service used by the CONSERT Engine to access current time and date settings.
+	 * This wrapper allows us to abstract away real or simulated time.
+	 */
+	private TimeService timeService;
 	
 	/**
 	 * The priority provider that is essential for the inference request scheduling
@@ -118,12 +125,15 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		// keep reference to our component view
 		this.engineComponent = component;
 		
-		if (modelResourceBundle != null) {
+		if (modelResourceBundle != null && timeService != null) {
 			try {
 	            // initialize the EngineResourceManager
 				ResourceManager resourceManager = new BundleResourceManager(modelResourceBundle);
 				Engine.setResourceManager(resourceManager);
 	            
+				// set CONSERT Engine time service
+				Engine.setTimeService(timeService);
+				
 	            // initialize the engine
 	            Engine.init(true);
             }
@@ -156,7 +166,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 			}
 		}
 		else {
-			throw new ConfigurationException(null, "Model Resource Bundle is missing!");
+			throw new ConfigurationException(null, "Model Resource Bundle or Time Service is missing!");
 		}
 	}
 	

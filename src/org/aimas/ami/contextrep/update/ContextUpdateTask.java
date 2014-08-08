@@ -51,7 +51,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 	
 	@Override
     public InsertResult call() {
-		long start = System.currentTimeMillis();
+		long start = Engine.currentTimeMillis();
 		
 		// for testing increment the atomic counter
 		// TODO performance collection: RunTest.executedInsertionsTracker.getAndIncrement();

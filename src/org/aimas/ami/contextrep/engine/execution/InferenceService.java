@@ -18,6 +18,7 @@ import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
 import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;
 import org.aimas.ami.contextrep.update.ContextInferenceTask;
@@ -290,7 +291,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	    	lastDerivation = rule;
 	    }
 	    
-	    derivationRuleTracker.markInferenceExecution(rule, System.currentTimeMillis(), successful);
+	    derivationRuleTracker.markInferenceExecution(rule, Engine.currentTimeMillis(), successful);
     }
 	
 	
@@ -320,7 +321,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 		
 		
 		void siftTracker() {
-			long now = System.currentTimeMillis();
+			long now = Engine.currentTimeMillis();
 			
 			for (ContextDerivationRule rule : ruleTracker.keySet()) {
 				ContextAssertion derivedAssertion = rule.getDerivedAssertion();

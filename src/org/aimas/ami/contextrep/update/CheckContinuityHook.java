@@ -53,7 +53,7 @@ public class CheckContinuityHook extends ContextUpdateHook {
 	
 	@Override
 	public ContinuityResult exec(Dataset contextStoreDataset) {
-		long start = System.currentTimeMillis();
+		long start = Engine.currentTimeMillis();
 		
 		System.out.println("======== CHECKING CONTINUITY AVAILABALE FOR assertion <" + contextAssertion.getOntologyResource().getLocalName() + ">. "
 		        + "with new AssertionUUID: " + contextAssertionUUID);
