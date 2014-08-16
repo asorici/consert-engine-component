@@ -77,17 +77,25 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 	
 	
 	public void setDefaultRunWindow(long runWindow) {
-    	this.defaultRunWindow = runWindow;
+    	this.defaultRunWindow = runWindow * 1000; 	// conversion to milliseconds
     }
     
+	/**
+	 * @return the default RUN_WINDOW width in milliseconds
+	 */
 	public long getDefaultRunWindow() {
     	return defaultRunWindow;
     }
     
     public void setSpecificRunWindow(Resource contextAssertionRes, long runWindow) {
-    	assertionSpecificRunWindow.put(contextAssertionRes, runWindow);
+    	assertionSpecificRunWindow.put(contextAssertionRes, runWindow * 1000);	// converstion to milliseconds
     }
 	
+    /**
+     * @param contextAssertionRes
+     * @return the specific RUN_WINDOW width in milliseconds for the ContextAssertion identified by 
+     * <code>contextAssertionRes</code>
+     */
     public Long getSpecificRunWindow(Resource contextAssertionRes) {
     	return assertionSpecificRunWindow.get(contextAssertionRes);
     }
