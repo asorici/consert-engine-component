@@ -22,6 +22,26 @@
 :luminositySensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesLuminosity ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Lum_EF210_PresenterArea> ;
+      sensorconf:instanceType smartclassroom:LuminositySensor ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Lum_EF210_Section1_Right> ;
+      sensorconf:instanceType smartclassroom:LuminositySensor ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Lum_EF210_Section2_Right> ;
+      sensorconf:instanceType smartclassroom:LuminositySensor ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Lum_EF210_Section3_Right> ;
+      sensorconf:instanceType smartclassroom:LuminositySensor ;
+    ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 60 ;
   rdfs:label "luminositySensingPolicy"^^xsd:string ;
@@ -29,6 +49,41 @@
 :noiseSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:hasNoiseLevel ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_PresenterSection> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_Section1_Left> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_Section1_Right> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_Section2_Left> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_Section2_Right> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_Section3_Left> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_Section3_Right> ;
+      sensorconf:instanceType smartclassroom:Microphone ;
+    ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 10 ;
   rdfs:label "noiseSensingPolicy"^^xsd:string ;
@@ -36,6 +91,11 @@
 :presenceSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesBluetoothAddress ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#PresenceSensor_EF210> ;
+      sensorconf:instanceType smartclassroom:PresenceSensor ;
+    ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 10 ;
   rdfs:label "presenceSensingPolicy"^^xsd:string ;
@@ -43,6 +103,41 @@
 :skeletonSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesSkeletonInPosition ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_PresenterArea> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_Section1_Left> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_Section1_Right> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_Section2_Left> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_Section2_Right> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_Section3_Left> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Kinect_EF210_Section3_Right> ;
+      sensorconf:instanceType smartclassroom:KinectCamera ;
+    ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
   sensorconf:hasUpdateRate 10 ;
   rdfs:label "skeletonSensingPolicy"^^xsd:string ;
@@ -50,12 +145,37 @@
 :teachingInformPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:takesPlaceIn ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#TeachingActivitySensor> ;
+      sensorconf:instanceType <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAgent> ;
+    ] ;
   sensorconf:hasUpdateMode coordconf:change-based ;
   rdfs:label "teachingInformPolicy"^^xsd:string ;
 .
 :temperatureSensingPolicy
   rdf:type sensorconf:SensingPolicy ;
   coordconf:forContextAssertion smartclassroom:sensesTemperature ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Temp_EF210_Section1_Left> ;
+      sensorconf:instanceType smartclassroom:TemperatureSensor ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Temp_EF210_Section1_Right> ;
+      sensorconf:instanceType smartclassroom:TemperatureSensor ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Temp_EF210_Section3_Left> ;
+      sensorconf:instanceType smartclassroom:TemperatureSensor ;
+    ] ;
+  sensorconf:appliesTo [
+      rdf:type sensorconf:SensorInstance ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Temp_EF210_Section3_Right> ;
+      sensorconf:instanceType smartclassroom:TemperatureSensor ;
+    ] ;
   sensorconf:hasUpdateMode coordconf:change-based ;
   rdfs:label "temperatureSensingPolicy"^^xsd:string ;
 .
