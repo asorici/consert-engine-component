@@ -9,3 +9,4 @@ Include-Resource: \
 -exportcontents: etc, etc.*
 Export-Package:  \
 	org.aimas.ami.contextrep.resources
+Bundle-Activator: org.aimas.ami.contextrep.resources.CMMResourceActivator
