@@ -33,7 +33,7 @@
       rdf:type orgconf:AgentPolicy ;
       orgconf:hasPolicyDocument [
           rdf:type orgconf:ContentDocument ;
-          orgconf:documentPath "etc/cmm/coordconfig-test.ttl"^^xsd:string ;
+          orgconf:documentPath "etc/cmm/coordconfig.ttl"^^xsd:string ;
         ] ;
     ] ;
   orgconf:hasEngineAdaptor [

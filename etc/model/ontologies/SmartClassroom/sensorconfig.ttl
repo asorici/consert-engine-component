@@ -43,7 +43,7 @@
       sensorconf:instanceType smartclassroom:LuminositySensor ;
     ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
-  sensorconf:hasUpdateRate 1 ;
+  sensorconf:hasUpdateRate 20 ;
   rdfs:label "luminositySensingPolicy"^^xsd:string ;
 .
 :noiseSensingPolicy
@@ -85,7 +85,7 @@
       sensorconf:instanceType smartclassroom:Microphone ;
     ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
-  sensorconf:hasUpdateRate 1 ;
+  sensorconf:hasUpdateRate 10 ;
   rdfs:label "noiseSensingPolicy"^^xsd:string ;
 .
 :presenceSensingPolicy
@@ -97,7 +97,7 @@
       sensorconf:instanceType smartclassroom:PresenceSensor ;
     ] ;
   sensorconf:hasUpdateMode coordconf:time-based ;
-  sensorconf:hasUpdateRate 1 ;
+  sensorconf:hasUpdateRate 5 ;
   rdfs:label "presenceSensingPolicy"^^xsd:string ;
 .
 :skeletonSensingPolicy
@@ -176,7 +176,7 @@
       sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Temp_EF210_Section3_Right> ;
       sensorconf:instanceType smartclassroom:TemperatureSensor ;
     ] ;
-  sensorconf:hasUpdateMode coordconf:time-based ;
-  sensorconf:hasUpdateRate 1 ;
+  sensorconf:hasUpdateMode coordconf:change-based ;
+  sensorconf:hasUpdateRate 60 ;
   rdfs:label "temperatureSensingPolicy"^^xsd:string ;
 .
