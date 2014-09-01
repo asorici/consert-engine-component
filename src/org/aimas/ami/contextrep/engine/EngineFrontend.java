@@ -24,12 +24,14 @@ import org.aimas.ami.contextrep.engine.api.StatsHandler;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
+import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
 import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 import org.aimas.ami.contextrep.resources.TimeService;
+import org.aimas.ami.contextrep.test.performance.PerformanceResult;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
 import org.aimas.ami.contextrep.utils.ResourceManager;
 import org.apache.felix.dm.Dependency;
@@ -73,6 +75,13 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	 * This wrapper allows us to abstract away real or simulated time.
 	 */
 	private TimeService timeService;
+	
+	/**
+	 * The default OSGi logging service (used also for logging information 
+	 * relevant to execution performance monitoring)
+	 */
+	//private LogService logService;
+	//private LogReaderService logReaderService;
 	
 	/**
 	 * The priority provider that is essential for the inference request scheduling
@@ -133,6 +142,10 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	            
 				// set CONSERT Engine time service
 				Engine.setTimeService(timeService);
+				
+				// set CONSERT Engine logging service
+				//Engine.setLogService(logService);
+				//logReaderService.addLogListener(ExecutionMonitor.getInstance());
 				
 	            // initialize the engine
 	            Engine.init(true);
@@ -202,6 +215,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void insert(UpdateRequest insertionRequest, InsertionResultNotifier notifier) {
+		ExecutionMonitor.getInstance().logInsertEnqueue(insertionRequest.hashCode());
 		Engine.getInsertionService().executeRequest(insertionRequest, notifier);
 	}
 	
@@ -212,7 +226,11 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
 	public Future<?> bulkInsert(UpdateRequest bulkInsertionRequest) {
-		return Engine.getInsertionService().executeBulkRequest(bulkInsertionRequest);
+		//System.out.println("[" + EngineFrontend.class.getName() + "]: Performing BULK INSERT");
+		//System.out.println(bulkInsertionRequest.toString());
+		
+		Future<?> result = Engine.getInsertionService().executeBulkRequest(bulkInsertionRequest);
+		return result;
 	}
 	
 	
@@ -459,4 +477,9 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
     public boolean assertionUpdatesEnabled(Resource assertionResource) {
 		return Engine.getContextAssertionIndex().isAssertionActive(assertionResource);
     }
+	
+	@Override
+	public PerformanceResult measurePerformance() {
+		return ExecutionMonitor.getInstance().exportPerformanceResult();
+	}
 }

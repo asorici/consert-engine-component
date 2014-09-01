@@ -3,6 +3,7 @@ package org.aimas.ami.contextrep.update;
 import java.util.concurrent.Callable;
 
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
@@ -11,21 +12,6 @@ import com.hp.hpl.jena.query.ReadWrite;
 public class ContextInferenceTask implements Callable<InferenceResult> {
 	private CheckInferenceHook inferenceHook;
 	
-	/** 
-	 * The ID corresponding to the assertion insert that triggered this inference hook. 
-	 * Used only during performance tests.
-	 */
-	private int referenceID;
-	
-	public void setReferenceID(int id) {
-		referenceID = id;
-	}
-	
-	public int getReferenceID() {
-		return referenceID;
-	}
-	
-	
 	public ContextInferenceTask(CheckInferenceHook inferenceHook) {
 		this.inferenceHook = inferenceHook;
 	}
@@ -33,12 +19,16 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 	
 	@Override
 	public InferenceResult call() {
-		long start = Engine.currentTimeMillis();
+		ExecutionMonitor.getInstance().logInferenceExecStart(inferenceHook.getTriggeringRequest().hashCode());
+		InferenceResult result = doInference();
+		ExecutionMonitor.getInstance().logInferenceExecEnd(inferenceHook.getTriggeringRequest().hashCode(), result);
 		
+		return result;
+	}
+	
+	
+	private InferenceResult doInference() {
 		InferenceResult inferenceHookResult = null;
-		
-		// for test purposes increment atomic counter
-		// TODO: performance collector RunTest.enqueuedInferenceTracker.getAndIncrement();
 		
 		// STEP 1: start a new READ transaction on the contextStoreDataset
 		Dataset contextDataset = Engine.getRuntimeContextStore();
@@ -47,7 +37,7 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 		
 		try {
 			// STEP 2: execute inference hook
-			inferenceHookResult = inferenceHook.exec(contextDataset);
+			inferenceHookResult = (InferenceResult) inferenceHook.exec(contextDataset);
 			
 			if (inferenceHookResult.hasError()) {
 				System.out.println("Inference ERROR!");
@@ -66,8 +56,5 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 		}
 		
 		return inferenceHookResult;
-		// TODO: performance collection
-		//long end = System.currentTimeMillis();
-		//return new AssertionInferenceResult(referenceID, start, (int)(end - start), inferenceHook.getContextAssertion(), inferenceHookResult);
 	}
 }

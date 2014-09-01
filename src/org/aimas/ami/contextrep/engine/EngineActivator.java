@@ -27,7 +27,6 @@ public class EngineActivator extends DependencyActivatorBase {
 					StatsHandler.class.getName(), CommandHandler.class.getName()}, null)
 			.setImplementation(EngineFrontend.class)
 			.setCallbacks("initEngine", "startEngine", "stopEngine", "closeEngine")
-			//.setCallbacks("initEngine", null, null, "closeEngine")
 			.add(createBundleDependency()
 					.setFilter("(Bundle-Name=cmm-resources)")
 					.setRequired(true)
@@ -39,6 +38,17 @@ public class EngineActivator extends DependencyActivatorBase {
 					.setRequired(true)
 					.setAutoConfig("timeService")
 			)
+			/*
+			.add(createServiceDependency()
+					.setService(LogService.class)
+					.setRequired(true)
+					.setAutoConfig("logService")
+			).add(createServiceDependency()
+					.setService(LogReaderService.class)
+					.setRequired(true)
+					.setAutoConfig("logReaderService")
+			)
+			*/
 		);
 		
 		// register the Default FCFS InferenceRequestComparatorProvider that the CONSERT Engine

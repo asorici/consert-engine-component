@@ -12,13 +12,19 @@ import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
+import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
+import org.aimas.ami.contextrep.engine.utils.ContextStoreUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextUpdateUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
+import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.rdf.model.InfModel;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.update.GraphStore;
 import com.hp.hpl.jena.update.GraphStoreFactory;
@@ -51,17 +57,20 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 	
 	@Override
     public InsertResult call() {
-		long start = Engine.currentTimeMillis();
+		ExecutionMonitor.getInstance().logInsertExecStart(request.hashCode());
+		InsertResult result = doInsert();
+		ExecutionMonitor.getInstance().logInsertExecEnd(request.hashCode(), result);
 		
-		// for testing increment the atomic counter
-		// TODO performance collection: RunTest.executedInsertionsTracker.getAndIncrement();
-		
+		return result;
+    }
+	
+	private InsertResult doInsert() {
 		// STEP 1: start a new WRITE transaction on the contextStoreDataset
 		Dataset contextDataset = Engine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.WRITE);
 		
 		// STEP 2: analyze request
-		List<Node> updatedContextStores = new ArrayList<>(analyzeRequest(contextDataset, null));
+		List<Node> updatedContextStores = new ArrayList<Node>(analyzeRequest(contextDataset, null));
 		
 		ContextAssertion insertedAssertion = null;
 		Node insertedAssertionUUID = null;
@@ -84,17 +93,35 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 					break;	// break since WE IMPOSE !!! that there be only one instance in the UpdateRequest
 				}
 			}
-			// !!! IMPORTANT TODO: check if an update is made to the EntityStore and if so, apply
-			// at least RDFS inferencing
 			
 			// STEP 4: execute updates
 			GraphStore graphStore = GraphStoreFactory.create(contextDataset);
 			UpdateAction.execute(request, graphStore);
 			
+			// STEP 4bis: check if an update was made to the EntityStore and if so, apply OWL-Micro Reasoning
+			boolean entityStoreUpdate = false;
+			for (Node graphNode : updatedContextStores) {
+				if (ContextStoreUtil.isEntityStore(graphNode)) {
+					entityStoreUpdate = true;
+					break;
+				}
+			}
+			
+			if (entityStoreUpdate) {
+				// TODO: see if there's a better / more elegant way to do this
+				Model entityStore = contextDataset.getNamedModel(ConsertCore.ENTITY_STORE_URI);
+				InfModel entityStoreInfModel = ModelFactory.createInfModel(Engine.getEntityStoreReasoner(), entityStore);
+				
+				Model newData = entityStoreInfModel.difference(entityStore);
+				entityStore.add(newData);
+			}
+			
 			// STEP 5: if there was an assertion instance update check the hooks in order
 			if (insertedAssertion != null) {
 				// STEP 5A: first check continuity
-				continuityResult = new CheckContinuityHook(insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				continuityResult = (ContinuityResult) new CheckContinuityHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				ExecutionMonitor.getInstance().logContinuityCheckDuration(request.hashCode(), continuityResult.getDuration());
+				
 				if (continuityResult.hasError()) {
 					InsertResult res = new InsertResult(request, new InsertException(continuityResult.getError()), null, false, false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
@@ -102,7 +129,9 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				}
 				
 				// STEP 5B: check for constraints
-				constraintResult = new CheckConstraintHook(insertedAssertion, insertedAssertionUUID, request).exec(contextDataset);
+				constraintResult = (ConstraintResult) new CheckConstraintHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				ExecutionMonitor.getInstance().logConstraintCheckDuration(request.hashCode(), constraintResult.getDuration());
+				
 				if (constraintResult.hasError()) {
 					InsertResult res = new InsertResult(request, new InsertException(constraintResult.getError()), null, false, false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
@@ -115,7 +144,9 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				}
 				
 				// STEP 5C: if all is well up to here, check for inheritance
-				inheritanceResult = new CheckAssertionInheritanceHook(insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				inheritanceResult = (AssertionInheritanceResult) new CheckAssertionInheritanceHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				ExecutionMonitor.getInstance().logInheritanceCheckDuration(request.hashCode(), inheritanceResult.getDuration());
+				
 				if (inheritanceResult.hasError()) {
 					InsertResult res = new InsertResult(request, new InsertException(constraintResult.getError()), null, false, false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
@@ -167,11 +198,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 			if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
 			return res;
 		}
-		
-		// TODO: performance collection 
-		//long end = System.currentTimeMillis();
-		//return new AssertionInsertResult(assertionInsertID, start, (int)(end - start), insertedContextAssertions, continuityResults, constraintResults);
-    }
+	}
 	
 	
 	private Collection<Node> analyzeRequest(Dataset dataset, Map<String, RDFNode> templateBindings) {
@@ -199,12 +226,11 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 			
 			// if the rules for this derivedAssertion are active, submit the inference request
 			if (Engine.getDerivationRuleDictionary().isDerivedAssertionActive(derivedAssertion)) {
-				CheckInferenceHook inferenceHook = new CheckInferenceHook(insertedAssertion, insertedAssertionUUID, derivationCommand);
+				CheckInferenceHook inferenceHook = new CheckInferenceHook(request, insertedAssertion, insertedAssertionUUID, derivationCommand);
+				
+				ExecutionMonitor.getInstance().logInferenceEnqueue(request.hashCode());
 				Engine.getInferenceService().executeRequest(inferenceHook);
 			}
-			
-			//Future<InferenceResult> result = Engine.getInferenceService().executeRequest(inferenceHook);
-			// TODO: performance collection
 		}
     }
 }

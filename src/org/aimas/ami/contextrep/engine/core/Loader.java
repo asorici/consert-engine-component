@@ -3,16 +3,15 @@ package org.aimas.ami.contextrep.engine.core;
 import java.util.Properties;
 
 import org.aimas.ami.contextrep.engine.api.EngineConfigException;
-import org.aimas.ami.contextrep.vocabulary.ConsertCore;
+import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.base.file.Location;
 
 public class Loader {
 	public static final String CONSERT_PERSISTENT_STORAGE_ASSEMBLER_FILE_DEFAULT = "etc/context-tdb-assembler.ttl";
 	public static final String CONSERT_PERSISTENT_STORAGE_DIRECTORY_DEFAULT = "store";
+	public static final String CONSERT_RUNTIME_MONITORING_ENABLED_DEFAULT = "false";
 	public static final String CONSERT_MEMORY_STORE_NAME_DEFAULT= "consert-store";
 	public static final String CONSERT_ONT_DOCMGR_FILE_DEFAULT = "etc/consert-ont-policy.rdf";
 	public static final String SPIN_ONT_DOCMGR_FILE_DEFAULT = "etc/spin-ont-policy.rdf";
@@ -106,5 +105,20 @@ public class Loader {
 		}
 		
 		throw new EngineConfigException();
+	}
+	
+	
+	static void configureExecutionMonitoring(Properties execMonitorConfig) throws EngineConfigException {
+		if (execMonitorConfig != null) {
+			String executionMonitorState = execMonitorConfig.getProperty(
+					ConfigKeys.CONSERT_ENGINE_EXECUTION_MONITORING, 
+						CONSERT_RUNTIME_MONITORING_ENABLED_DEFAULT);
+			
+			boolean enabled = Boolean.parseBoolean(executionMonitorState);
+			ExecutionMonitor.getInstance().setEnabled(enabled);
+		}
+		else {
+			throw new EngineConfigException();
+		}
 	}
 }

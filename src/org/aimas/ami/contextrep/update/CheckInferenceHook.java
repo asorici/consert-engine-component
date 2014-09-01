@@ -5,12 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
 
-import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.core.ContextARQFactory;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 import org.aimas.ami.contextrep.engine.utils.ContextAnnotationUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextAssertionUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextStoreUtil;
@@ -50,25 +49,26 @@ import com.hp.hpl.jena.update.UpdateRequest;
 public class CheckInferenceHook extends ContextUpdateHook {
 	private DerivationRuleWrapper derivationRule;
 	
-	public CheckInferenceHook(ContextAssertion contextAssertion, Node contextAssertionUUID, DerivationRuleWrapper derivationRule) {
-		super(contextAssertion, contextAssertionUUID);
+	public CheckInferenceHook(UpdateRequest triggeringRequest, ContextAssertion contextAssertion, Node contextAssertionUUID, DerivationRuleWrapper derivationRule) {
+		super(triggeringRequest, contextAssertion, contextAssertionUUID);
 		this.derivationRule = derivationRule;
 	}
-	
 	
 	public DerivationRuleWrapper getDerivationRule() {
 		return derivationRule;
 	}
 	
-	
 	public ContextAssertion getDerivedAssertion() {
 		return derivationRule.getDerivedAssertion();
 	}
 	
+	public UpdateRequest getTriggeringRequest() {
+	    return insertionRequest;
+    }
 	
 	@Override
-	public InferenceResult exec(Dataset contextDataset) {
-		System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
+	public InferenceResult doHook(Dataset contextDataset) {
+		//System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
 		
 		// get the context model
 		OntModel contextModelCore = Engine.getModelLoader().getCoreContextModel();
@@ -77,9 +77,6 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	}
 	
 	private InferenceResult attemptContextSPINInference(Dataset contextDataset, OntModel contextModelCore) {
-		long start = Engine.currentTimeMillis();
-		
-		
 		// get the query model as the union of the named graphs in our dataset
 		//Model queryModel = contextDataset.getNamedModel(JenaVocabulary.UNION_GRAPH_URN);
 		Model queryModel = ContextStoreUtil.getUnionModel(contextDataset);
@@ -89,23 +86,15 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		
 		// report the results depending on inference outcome
 		if (!inferredContext.isEmpty()) {
-			for (UpdateRequest inferredAssertion : inferredContext) {
-				Future<InsertResult> result = Engine.getInsertionService().executeRequest(inferredAssertion, null);
-				// TODO: performance collection
-				//RunTest.insertionTaskEnqueueTime.put(inferredAssertion.getAssertionInsertID(), System.currentTimeMillis());
-				//RunTest.insertionResults.put(inferredAssertion.getAssertionInsertID(), result);
+			for (UpdateRequest inferredAssertionReq : inferredContext) {
+				ExecutionMonitor.getInstance().logDerivedInsertEnqueue(insertionRequest.hashCode(), inferredAssertionReq.hashCode());
+				Engine.getInsertionService().executeRequest(inferredAssertionReq, null);
 			}
 			
 			return new InferenceResult(contextAssertion, null, derivationRule.getDerivedAssertion());
-			// TODO: performance collect
-			//long end = System.currentTimeMillis();
-			//return new InferenceResult(start, (int)(end - start), false, inferredContextAssertions, true, true);
 		}
 		else {
 			return new InferenceResult(contextAssertion, null, null);
-			// TODO: performance collect
-			//long end = System.currentTimeMillis();
-			//return new InferenceResult(start, (int)(end - start), false, null, true, false);
 		}
 	}
 	
@@ -145,7 +134,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		//	cls2Query, cls2Constructor, null, ConsertRules.DERIVE_ASSERTION, comparator);
 		
 		if (inferenceResult != null && inferenceResult.isInferred()) {
-			System.out.println("[INFO] WE HAVE DEDUCED A NEW CONTEXT-ASSERTION following insertion of " + contextAssertion );
+			//System.out.println("[INFO] WE HAVE DEDUCED A NEW CONTEXT-ASSERTION following insertion of " + contextAssertion );
 			
 			//ScenarioInit.printStatements(newTriples);
 			
@@ -309,5 +298,4 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	        return null;
         }
 	}
-	
 }

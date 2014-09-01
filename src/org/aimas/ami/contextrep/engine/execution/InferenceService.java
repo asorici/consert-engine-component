@@ -28,11 +28,9 @@ import com.hp.hpl.jena.rdf.model.Resource;
 public class InferenceService implements ExecutionService, EngineInferenceStats, InferenceStatsCollector {
 	private static InferenceService instance;
 	
-	private static final String INFERENCE_SCHEDULER_THREAD = "inference-scheduler-thread";
-	
 	private static final int DEFAULT_NUM_WORKERS = 1;
-	private static final int DEFAULT_SCHEDULER_SLEEP = 100;
-	private static final long DEFAULT_RUN_WINDOW = 10;
+	private static final int DEFAULT_SCHEDULER_SLEEP = 50;
+	private static final long DEFAULT_RUN_WINDOW = 60000;
 	
 	
 	private ThreadPoolExecutor inferenceExecutor;
@@ -189,7 +187,6 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     }
     
     
-    
 	public void executeRequest(CheckInferenceHook inferenceRequest) {
 		// Only insert the incoming request if it is not already 
 		// in the requestQueue (i.e. we already have a pending request for this type of derived assertion)
@@ -202,7 +199,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 			newRequests.set(true);
 		}
 		else {
-			System.out.println("We already have a inferenceRequest for: " + wrappedRequest.getDerivationRule().getDerivedAssertion());
+			//System.out.println("We already have a inferenceRequest for: " + wrappedRequest.getDerivationRule().getDerivedAssertion());
 		}
 	}
 	

@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
 
-import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 import org.aimas.ami.contextrep.engine.utils.ContextAnnotationUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextAssertionUtil;
 import org.aimas.ami.contextrep.engine.utils.GraphUUIDGenerator;
@@ -30,22 +29,18 @@ import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	
-	public CheckAssertionInheritanceHook(ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(contextAssertion, contextAssertionUUID);
+	public CheckAssertionInheritanceHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
+		super(updateRequest, contextAssertion, contextAssertionUUID);
 	}
 	
 	@Override
-	public AssertionInheritanceResult exec(Dataset contextStoreDataset) {
-		// for testing purposes - we need to see how to control this
-		long start = Engine.currentTimeMillis();
-		
+	public AssertionInheritanceResult doHook(Dataset contextStoreDataset) {
 		// get access to the datastore and the assertionIndex
 		OntModel contextModel = Engine.getModelLoader().getCoreContextModel();
 		
 		// determine if this ContextAssertion has ancestors from which it inherits
 		List<ContextAssertion> assertionAncestorList = 
 			ContextAssertionUtil.getContextAssertionAncestors(contextAssertion, contextModel);
-		
 		
 		if (!assertionAncestorList.isEmpty()) {
 			// get the context assertion named graph UUID as a resource
@@ -63,31 +58,18 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	            
 	            // enqueue them as individual insertion requests
 	            for (UpdateRequest req : ancestorAssertionInsertions) {
-	            	//ContextUpdateTask ancestorInsertWrapper = new ContextUpdateTask(req);
-	            	Future<InsertResult> result = Engine.getInsertionService().executeRequest(req, null);
-					
-	            	// TODO see about performance collect
-					//RunTest.insertionTaskEnqueueTime.put(ancestorInsertWrapper.getAssertionInsertID(), System.currentTimeMillis());
-					//RunTest.insertionResults.put(ancestorInsertWrapper.getAssertionInsertID(), result);
+	            	ExecutionMonitor.getInstance().logInsertEnqueue(req.hashCode());
+	            	Engine.getInsertionService().executeRequest(req, null);
 	            }
 	            
 	            return new AssertionInheritanceResult(contextAssertion, null, assertionAncestorList);
-	            // TODO: performance collect
-	            //long end = System.currentTimeMillis();
-	    		//return new AssertionInheritanceResult(start, (int)(end - start), false, assertionAncestorList);
             }
             catch (ContextModelContentException e) {
 	            return new AssertionInheritanceResult(contextAssertion, e, null);
-	            // TODO: performance collect
-	            //long end = System.currentTimeMillis();
-	            //return new AssertionInheritanceResult(start, (int)(end - start), true, null);
             }
 		}
 		
 		return new AssertionInheritanceResult(contextAssertion, null, null);
-		// TODO: performance collect
-		//long end = System.currentTimeMillis();
-		//return new AssertionInheritanceResult(start, (int)(end - start), false, null);
 	}
 	
 	

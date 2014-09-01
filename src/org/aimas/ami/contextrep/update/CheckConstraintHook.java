@@ -21,17 +21,12 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckConstraintHook extends ContextUpdateHook {
-	private UpdateRequest insertionRequest;
-	
-	public CheckConstraintHook(ContextAssertion contextAssertion, Node contextAssertionUUID, UpdateRequest insertionRequest) {
-		super(contextAssertion, contextAssertionUUID);
-		this.insertionRequest = insertionRequest;
+	public CheckConstraintHook(UpdateRequest insertionRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
+		super(insertionRequest, contextAssertion, contextAssertionUUID);
 	}
 	
 	@Override
-	public ConstraintResult exec(Dataset contextStoreDataset) {
-		long start = Engine.currentTimeMillis();
-		
+	public ConstraintResult doHook(Dataset contextStoreDataset) {
 		// see if this context assertion has any constraints attached
 		ContextConstraintIndex constraintIndex = Engine.getConstraintIndex();
 		ConstraintsWrapper constraints = constraintIndex.getConstraints(contextAssertion);  
@@ -64,15 +59,9 @@ public class CheckConstraintHook extends ContextUpdateHook {
 				//System.out.println("[INFO] Constraint violations detected for assertion: " + contextAssertion);
 				
 				return new ConstraintResult(contextAssertion, null, constraintViolations);
-				// TODO: performance collect
-				//long end = System.currentTimeMillis();
-				//return new ConstraintResult(start, (int)(end - start), false, true, true);
 			}
 		}
 		
 		return new ConstraintResult(contextAssertion, null, null);
-		// TODO: performance collect
-		//long end = System.currentTimeMillis();
-		//return new ConstraintResult(start, (int)(end - start), false, false, false);
 	}
 }

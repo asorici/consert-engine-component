@@ -9,6 +9,7 @@ import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.compose.MultiUnion;
 import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.query.Dataset;
@@ -24,6 +25,10 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 
 public class ContextStoreUtil {
 	public static final String UNION_GRAPH_URN = "urn:x-arq:UnionGraph";
+	
+	public static boolean isEntityStore(Node graphNode) {
+		return graphNode.getURI().equals(ConsertCore.ENTITY_STORE_URI);
+	}
 	
 	/**
 	 * Get the union model of all named graphs contained within a TDB-transaction snapshot 

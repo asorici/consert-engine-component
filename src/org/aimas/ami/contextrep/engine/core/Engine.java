@@ -20,14 +20,13 @@ import org.aimas.ami.contextrep.model.exceptions.ContextModelConfigException;
 import org.aimas.ami.contextrep.resources.TimeService;
 import org.aimas.ami.contextrep.utils.ContextModelLoader;
 import org.aimas.ami.contextrep.utils.ResourceManager;
-import org.aimas.ami.contextrep.vocabulary.ConsertCore;
+import org.osgi.service.log.LogService;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.rdf.model.InfModel;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.ReasonerRegistry;
 import com.hp.hpl.jena.tdb.TDB;
@@ -73,6 +72,17 @@ public class Engine {
 		return engineTimeService.getCalendarInstance();
 	}
 	
+	// ========== CONSERT Engine log service ==========
+	private static LogService logService;
+	
+	public static void setLogService(LogService logService) {
+	    Engine.logService = logService;
+    }
+	
+	public static LogService getLogger() {
+		return logService;
+	}
+	
 	// ========== CONSERT Engine storage ==========
 	/** Path to persistent TDB contextStore */
 	private static Location contextStorePersistentLocation;
@@ -109,7 +119,11 @@ public class Engine {
 	// ========== CONSERT Engine Internal Execution Elements ==========
 	
 	// Reasoners
-	static Reasoner entityStoreReasoner; 
+	static Reasoner entityStoreReasoner;
+	
+	public static Reasoner getEntityStoreReasoner() {
+		return entityStoreReasoner;
+	}
 	
 	// Execution: ContextAssertion insertion, inference-hook and query execution
 	private static InsertionService insertionService;
@@ -192,6 +206,8 @@ public class Engine {
 		}
 		timestamp = Engine.currentTimeMillis();
 		
+		// ==================== setup CONSERT Engine execution monitoring ====================
+		Loader.configureExecutionMonitoring(configurationProperties);
 		
 		// ==================== prepare the Context Model ====================
 		// this has the side effect of also configuring the ontology document managers for
@@ -340,16 +356,19 @@ public class Engine {
 	static void setupEntityStore(Dataset contextStoreDataset, OntModel coreContextModel) {
 		// The EntityStore is a OWL-MICRO inference model, so we first need to setup
 		// our entityStoreReasoner.
-		entityStoreReasoner = ReasonerRegistry.getOWLMicroReasoner();
+		//entityStoreReasoner = ReasonerRegistry.getOWLMicroReasoner();
+		entityStoreReasoner = ReasonerRegistry.getRDFSSimpleReasoner();
 		entityStoreReasoner = entityStoreReasoner.bindSchema(coreContextModel);
 		
+		/*
 		// Now create an initially empty Model and then generate the resulting InfModel
-		Model initialData = ModelFactory.createDefaultModel();
-		entityStore = ModelFactory.createInfModel(entityStoreReasoner, initialData);
+		//Model initialData = ModelFactory.createDefaultModel();
+		//entityStore = ModelFactory.createInfModel(entityStoreReasoner, initialData);
 		
 		// Lastly, add this entityStore model to the ContextStore dataset
-		contextStoreDataset.addNamedModel(ConsertCore.ENTITY_STORE_URI, entityStore);
-		TDB.sync(contextStoreDataset);
+		//contextStoreDataset.addNamedModel(ConsertCore.ENTITY_STORE_URI, entityStore);
+		//TDB.sync(contextStoreDataset);
+		 */
 	}
 	
 	
@@ -455,5 +474,4 @@ public class Engine {
 		
 		return instance;
     }
-	
 }

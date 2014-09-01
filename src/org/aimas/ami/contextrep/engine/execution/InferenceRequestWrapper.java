@@ -76,7 +76,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
 	
 	@Override
     public int hashCode() {
-        return inferenceRequest.getDerivedAssertion().hashCode();
+        return inferenceRequest.getDerivationRule().hashCode();
     }
 	
 	
@@ -93,7 +93,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
         }
         
         InferenceRequestWrapper other = (InferenceRequestWrapper) obj;
-        if (!inferenceRequest.getDerivationRule().equals(other.inferenceRequest.getDerivationRule())) {
+        if (!inferenceRequest.getDerivationRule().equals(other.getInferenceRequest().getDerivationRule())) {
 	        return false;
         }
         

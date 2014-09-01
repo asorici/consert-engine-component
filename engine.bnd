@@ -21,7 +21,6 @@ Private-Package:  \
 	org.aimas.ami.contextrep.query,\
 	org.aimas.ami.contextrep.update,\
 	org.aimas.ami.contextrep.update.exceptions,\
-	org.aimas.ami.contextrep.update.performance,\
 	org.aimas.ami.contextrep.engine.utils,\
 	org.aimas.ami.contextrep.engine.utils.spin,\
 	org.aimas.ami.contextrep.engine.core,\

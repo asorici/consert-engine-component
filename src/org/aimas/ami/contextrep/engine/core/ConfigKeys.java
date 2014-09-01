@@ -16,4 +16,6 @@ public class ConfigKeys {
 	
 	public static final String CONSERT_ENGINE_NUM_QUERY_THREADS = "consert.runtime.query.threadpool.size";
 	public static final String CONSERT_ENGINE_QUERY_RUN_WINDOW = "consert.runtime.query.stats.runwindow";
+	
+	public static final String CONSERT_ENGINE_EXECUTION_MONITORING = "consert.runtime.monitoring.enabled";
 }

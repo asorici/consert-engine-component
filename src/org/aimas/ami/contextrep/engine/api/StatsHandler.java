@@ -1,5 +1,7 @@
 package org.aimas.ami.contextrep.engine.api;
 
+import org.aimas.ami.contextrep.test.performance.PerformanceResult;
+
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public interface StatsHandler {
@@ -37,4 +39,7 @@ public interface StatsHandler {
 	public int nrSuccessfulQueries(Resource assertionResource);
 	
 	public long timeSinceLastQuery(Resource assertionResource);
+	
+	/* ================ Statistics for CONSERT Engine Performance Testing ================ */
+	public PerformanceResult measurePerformance();
 }
