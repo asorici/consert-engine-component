@@ -288,6 +288,21 @@ coordconf:hasStopAssertionCommand
   coordconf:hasDefaultUniquenessResolution coordconf:PreferNewest ;
   coordconf:hasInferenceSchedulingType coordconf:FCFS ;
   coordconf:hasSpecificAssertionEnabling :enablePresenceByDefault ;
+  coordconf:hasSpecificAssertionEnabling [
+      rdf:type coordconf:AssertionSpecificEnableSpec ;
+      coordconf:forContextAssertion smartclassroom:hasNoiseLevel ;
+      coordconf:hasParameterValue "true"^^xsd:boolean ;
+    ] ;
+  coordconf:hasSpecificAssertionEnabling [
+      rdf:type coordconf:AssertionSpecificEnableSpec ;
+      coordconf:forContextAssertion smartclassroom:sensesLuminosity ;
+      coordconf:hasParameterValue "true"^^xsd:boolean ;
+    ] ;
+  coordconf:hasSpecificAssertionEnabling [
+      rdf:type coordconf:AssertionSpecificEnableSpec ;
+      coordconf:forContextAssertion smartclassroom:sensesTemperature ;
+      coordconf:hasParameterValue "true"^^xsd:boolean ;
+    ] ;
   rdfs:label "ProvisionPolicy_EF210"^^xsd:string ;
 .
 :enablePresenceByDefault

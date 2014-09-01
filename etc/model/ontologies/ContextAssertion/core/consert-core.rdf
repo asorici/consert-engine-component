@@ -16,12 +16,15 @@
     >Created with TopBraid Composer</owl:versionInfo>
   </owl:Ontology>
   <rdfs:Datatype rdf:ID="intervalListType">
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The IntervalList datatype used to specify temporal validity intervals</rdfs:comment>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >intervalListType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The IntervalList datatype used to specify temporal validity intervals</rdfs:comment>
   </rdfs:Datatype>
   <owl:Class rdf:ID="ContextAssertionType">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Type of ContextFact</rdfs:label>
     <owl:oneOf rdf:parseType="Collection">
       <ContextAssertionType rdf:ID="Profiled">
         <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
@@ -36,79 +39,73 @@
         >Derived ContextFact</rdfs:label>
       </ContextAssertionType>
       <ContextAssertionType rdf:ID="Dynamic">
-        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-        >Dynamic</rdfs:label>
         <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
         >A type of ContextAssertion that specifies that runtime instances of this ContextAssertion can be one of all other types.</rdfs:comment>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Dynamic</rdfs:label>
       </ContextAssertionType>
     </owl:oneOf>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >Type of ContextFact</rdfs:label>
-    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   </owl:Class>
   <owl:Class rdf:ID="ContextAnnotation">
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The ContextAnnotation class is used during inferencing to mark the statements in the result of a SPIN inference CONSTRUCT that are annotations of the newly deduced assertion.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >ContextAnnotation</rdfs:label>
-    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-  </owl:Class>
-  <owl:Class rdf:ID="ContextAgent">
-    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >ContextAgent</rdfs:label>
-    <owl:equivalentClass>
-      <owl:Restriction>
-        <owl:onProperty>
-          <owl:FunctionalProperty rdf:ID="agentType"/>
-        </owl:onProperty>
-        <owl:someValuesFrom>
-          <owl:Class rdf:ID="ContextAgentType"/>
-        </owl:someValuesFrom>
-      </owl:Restriction>
-    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The ContextAnnotation class is used during inferencing to mark the statements in the result of a SPIN inference CONSTRUCT that are annotations of the newly deduced assertion.</rdfs:comment>
   </owl:Class>
   <owl:Class rdf:ID="UnaryContextAssertion">
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:onProperty>
-          <owl:ObjectProperty rdf:ID="assertionRole"/>
-        </owl:onProperty>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >UnaryContextAssertion</rdfs:label>
     <owl:disjointWith>
       <owl:Class rdf:ID="NaryContextAssertion"/>
     </owl:disjointWith>
-  </owl:Class>
-  <owl:Class rdf:ID="ContextEntity">
-    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >the Entity that plays a role in a ContextFact</rdfs:label>
-  </owl:Class>
-  <owl:Class rdf:about="#NaryContextAssertion">
-    <owl:disjointWith rdf:resource="#UnaryContextAssertion"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >ContextFact</rdfs:label>
+    >UnaryContextAssertion</rdfs:label>
     <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     <rdfs:subClassOf>
       <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
         <owl:onProperty>
-          <owl:ObjectProperty rdf:about="#assertionRole"/>
+          <owl:ObjectProperty rdf:ID="assertionRole"/>
         </owl:onProperty>
-        <owl:minCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >3</owl:minCardinality>
       </owl:Restriction>
     </rdfs:subClassOf>
   </owl:Class>
-  <owl:Class rdf:about="#ContextAgentType">
-    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <owl:Class rdf:ID="ContextAgent">
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="ContextAgentType"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="agentType"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >ContextAgentType</rdfs:label>
+    >ContextAgent</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  </owl:Class>
+  <owl:Class rdf:ID="ContextEntity">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextEntity</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  </owl:Class>
+  <owl:Class rdf:about="#NaryContextAssertion">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >NaryContextAssertion</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:minCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >3</owl:minCardinality>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#assertionRole"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#UnaryContextAssertion"/>
+  </owl:Class>
+  <owl:Class rdf:about="#ContextAgentType">
     <owl:oneOf rdf:parseType="Collection">
       <ContextAgentType rdf:ID="OrgMgr">
         <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
@@ -139,91 +136,100 @@
         >CtxHistorian</rdfs:label>
       </ContextAgentType>
     </owl:oneOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextAgentType</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   </owl:Class>
   <owl:ObjectProperty rdf:ID="assertionType">
-    <rdfs:range rdf:resource="#ContextAssertionType"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >assertionType</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >Type of ContextAssertion	</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >assertionType</rdfs:label>
+    <rdfs:range rdf:resource="#ContextAssertionType"/>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:ID="assertionContent">
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >assertionContent</rdfs:label>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >A property used internally by the CONSERT Engine during inferencing to indicate the rdfs:Resource(s) that represent(s) reification(s) of the derived ContextAssertion content. In this way, the inference rule CONSTRUCT contains a blank node that references both annotation and assertion content for the derived ContextAssertion.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >assertionContent</rdfs:label>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:ID="entityRelationDescription">
-    <rdfs:domain rdf:resource="#ContextEntity"/>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >An object property of a ContextEntity that is meant only as an additional description and will not be the subject of a ContextFact.</rdfs:comment>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >entityDescriptionRelation</rdfs:label>
+    <rdfs:range rdf:resource="#ContextEntity"/>
     <owl:propertyDisjointWith>
       <owl:ObjectProperty rdf:ID="entityRelationAssertion"/>
     </owl:propertyDisjointWith>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >entityDescriptionRelation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >An object property of a ContextEntity that is meant only as an additional description and will not be the subject of a ContextFact.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:ID="sensedRelationAssertion">
-    <owl:propertyDisjointWith>
-      <owl:ObjectProperty rdf:ID="derivedRelationAssertion"/>
-    </owl:propertyDisjointWith>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The value of the ContextFact transformed from this object property comes from a sensor reading.</rdfs:comment>
-    <rdfs:subPropertyOf>
-      <owl:ObjectProperty rdf:about="#entityRelationAssertion"/>
-    </rdfs:subPropertyOf>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >sensedFactRelation</rdfs:label>
-    <rdfs:range rdf:resource="#ContextEntity"/>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
     <owl:propertyDisjointWith>
       <owl:ObjectProperty rdf:ID="profiledRelationAssertion"/>
     </owl:propertyDisjointWith>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
-  </owl:ObjectProperty>
-  <owl:ObjectProperty rdf:about="#derivedRelationAssertion">
     <rdfs:range rdf:resource="#ContextEntity"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >derivedFactRelation</rdfs:label>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The value of the ContextFact transformed from this object property will be derived based on rules relating the values of other ContextFacts.</rdfs:comment>
-    <owl:propertyDisjointWith rdf:resource="#sensedRelationAssertion"/>
+    >sensedFactRelation</rdfs:label>
     <rdfs:subPropertyOf>
       <owl:ObjectProperty rdf:about="#entityRelationAssertion"/>
     </rdfs:subPropertyOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The value of the ContextFact transformed from this object property comes from a sensor reading.</rdfs:comment>
+    <owl:propertyDisjointWith>
+      <owl:ObjectProperty rdf:ID="derivedRelationAssertion"/>
+    </owl:propertyDisjointWith>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#derivedRelationAssertion">
     <owl:propertyDisjointWith>
       <owl:ObjectProperty rdf:about="#profiledRelationAssertion"/>
     </owl:propertyDisjointWith>
-  </owl:ObjectProperty>
-  <owl:ObjectProperty rdf:about="#profiledRelationAssertion">
-    <owl:propertyDisjointWith rdf:resource="#derivedRelationAssertion"/>
     <rdfs:subPropertyOf>
       <owl:ObjectProperty rdf:about="#entityRelationAssertion"/>
     </rdfs:subPropertyOf>
+    <owl:propertyDisjointWith rdf:resource="#sensedRelationAssertion"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The value of the ContextFact transformed from this object property comes from a direct user or system setting.</rdfs:comment>
+    >The value of the ContextFact transformed from this object property will be derived based on rules relating the values of other ContextFacts.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >derivedFactRelation</rdfs:label>
+    <rdfs:range rdf:resource="#ContextEntity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#profiledRelationAssertion">
+    <owl:propertyDisjointWith rdf:resource="#sensedRelationAssertion"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >profiledFactRelation</rdfs:label>
-    <owl:propertyDisjointWith rdf:resource="#sensedRelationAssertion"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The value of the ContextFact transformed from this object property comes from a direct user or system setting.</rdfs:comment>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#entityRelationAssertion"/>
+    </rdfs:subPropertyOf>
+    <owl:propertyDisjointWith rdf:resource="#derivedRelationAssertion"/>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:ID="assertionResource">
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >A property used during inferencing to indicate the OWL class or property defined in the context domain ontology which designates the newly inferred ContextAssertion.</rdfs:comment>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >assertionResource</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A property used during inferencing to indicate the OWL class or property defined in the context domain ontology which designates the newly inferred ContextAssertion.</rdfs:comment>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:about="#entityRelationAssertion">
-    <owl:propertyDisjointWith rdf:resource="#entityRelationDescription"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >entityRelationAssertion</rdfs:label>
-    <rdfs:range rdf:resource="#ContextEntity"/>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >An object property that holds between two ContextEntities that can transformed into a ContextFact class.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:range rdf:resource="#ContextEntity"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >entityRelationAssertion</rdfs:label>
+    <owl:propertyDisjointWith rdf:resource="#entityRelationDescription"/>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:about="#assertionRole">
+    <rdfs:range rdf:resource="#ContextEntity"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >assertionRole</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A role played by a ContextEntity in a Unary or NaryContextAssertion </rdfs:comment>
     <rdfs:domain>
       <owl:Class>
         <owl:unionOf rdf:parseType="Collection">
@@ -232,80 +238,75 @@
         </owl:unionOf>
       </owl:Class>
     </rdfs:domain>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >A role played by a ContextEntity in a Unary or NaryContextAssertion </rdfs:comment>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >assertionRole</rdfs:label>
-    <rdfs:range rdf:resource="#ContextEntity"/>
   </owl:ObjectProperty>
   <owl:DatatypeProperty rdf:ID="sensedDataAssertion">
     <owl:propertyDisjointWith>
-      <owl:DatatypeProperty rdf:ID="profiledDataAssertion"/>
+      <owl:DatatypeProperty rdf:ID="derivedDataAssertion"/>
     </owl:propertyDisjointWith>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The value of the ContextFact transformed from this data property comes from a sensor reading.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >sensedFactData</rdfs:label>
     <rdfs:subPropertyOf>
       <owl:DatatypeProperty rdf:ID="entityDataAssertion"/>
     </rdfs:subPropertyOf>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >sensedFactData</rdfs:label>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The value of the ContextFact transformed from this data property comes from a sensor reading.</rdfs:comment>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
     <owl:propertyDisjointWith>
-      <owl:DatatypeProperty rdf:ID="derivedDataAssertion"/>
+      <owl:DatatypeProperty rdf:ID="profiledDataAssertion"/>
     </owl:propertyDisjointWith>
   </owl:DatatypeProperty>
   <owl:DatatypeProperty rdf:about="#profiledDataAssertion">
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The value of the ContextFact transformed from this data property comes from a direct user or system setting.</rdfs:comment>
-    <owl:propertyDisjointWith>
-      <owl:DatatypeProperty rdf:about="#derivedDataAssertion"/>
-    </owl:propertyDisjointWith>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <owl:propertyDisjointWith rdf:resource="#sensedDataAssertion"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >profiledFactData</rdfs:label>
     <rdfs:subPropertyOf>
       <owl:DatatypeProperty rdf:about="#entityDataAssertion"/>
     </rdfs:subPropertyOf>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >profiledFactData</rdfs:label>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
-    <owl:propertyDisjointWith rdf:resource="#sensedDataAssertion"/>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <owl:propertyDisjointWith>
+      <owl:DatatypeProperty rdf:about="#derivedDataAssertion"/>
+    </owl:propertyDisjointWith>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The value of the ContextFact transformed from this data property comes from a direct user or system setting.</rdfs:comment>
   </owl:DatatypeProperty>
   <owl:DatatypeProperty rdf:about="#entityDataAssertion">
-    <owl:propertyDisjointWith rdf:resource="#entityDataAssertion"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >entityFactData</rdfs:label>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >A data property of a ContextEntity that can be transformed to a ContextFact relating a ContextEntity and a Literal.</rdfs:comment>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >entityFactData</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
+    <owl:propertyDisjointWith rdf:resource="#entityDataAssertion"/>
   </owl:DatatypeProperty>
   <owl:DatatypeProperty rdf:about="#derivedDataAssertion">
-    <owl:propertyDisjointWith rdf:resource="#profiledDataAssertion"/>
-    <owl:propertyDisjointWith rdf:resource="#sensedDataAssertion"/>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The value of the ContextFact transformed from this data property is derived based on rules relating the values of other ContextFacts.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
+    <rdfs:subPropertyOf rdf:resource="#entityDataAssertion"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >derivedFactData</rdfs:label>
-    <rdfs:subPropertyOf rdf:resource="#entityDataAssertion"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The value of the ContextFact transformed from this data property is derived based on rules relating the values of other ContextFacts.</rdfs:comment>
+    <owl:propertyDisjointWith rdf:resource="#sensedDataAssertion"/>
+    <owl:propertyDisjointWith rdf:resource="#profiledDataAssertion"/>
   </owl:DatatypeProperty>
   <owl:DatatypeProperty rdf:ID="entityDataDescription">
-    <owl:propertyDisjointWith rdf:resource="#entityDataAssertion"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >entityDescriptionData</rdfs:label>
-    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
+    <rdfs:domain rdf:resource="#ContextEntity"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >A data property that further describes a ContextEntity. It will not be the subject of transformation into a ContextFact.</rdfs:comment>
-    <rdfs:domain rdf:resource="#ContextEntity"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Datatype"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >entityDescriptionData</rdfs:label>
+    <owl:propertyDisjointWith rdf:resource="#entityDataAssertion"/>
   </owl:DatatypeProperty>
   <owl:FunctionalProperty rdf:about="#agentType">
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >Context Agent Type</rdfs:comment>
-    <rdfs:range rdf:resource="#ContextAgentType"/>
+    <rdfs:domain rdf:resource="#ContextAgent"/>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >agentType</rdfs:label>
-    <rdfs:domain rdf:resource="#ContextAgent"/>
+    <rdfs:range rdf:resource="#ContextAgentType"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Context Agent Type</rdfs:comment>
   </owl:FunctionalProperty>
 </rdf:RDF>
 

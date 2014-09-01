@@ -14,14 +14,13 @@
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time"/>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
-    <spin:imports rdf:resource="http://topbraid.org/spin/rdfsplus"/>
     <rdfs:comment></rdfs:comment>
     <owl:versionIRI rdf:resource=""/>
     <rdfs:label>SOUPA Event Ontology</rdfs:label>
     <owl:versionInfo>$Revision: 1.4 $, $Date: 2004/03/07 17:58:36 $</owl:versionInfo>
   </owl:Ontology>
   <owl:Class rdf:ID="SpatialTemporalEvent">
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:label>SpatialTemporalEvent</rdfs:label>
     <owl:equivalentClass>
       <owl:Class>
         <owl:intersectionOf rdf:parseType="Collection">
@@ -30,11 +29,11 @@
         </owl:intersectionOf>
       </owl:Class>
     </owl:equivalentClass>
-    <rdfs:label>SpatialTemporalEvent</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
   </owl:Class>
   <owl:Class rdf:about="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
   <owl:Class rdf:about="#SpatialTemporalThing">
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:label>SpatialTemporalThing</rdfs:label>
     <owl:equivalentClass>
       <owl:Class>
         <owl:intersectionOf rdf:parseType="Collection">
@@ -43,7 +42,7 @@
         </owl:intersectionOf>
       </owl:Class>
     </owl:equivalentClass>
-    <rdfs:label>SpatialTemporalThing</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
   </owl:Class>
 </rdf:RDF>
 
