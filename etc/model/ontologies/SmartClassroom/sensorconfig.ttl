@@ -51,7 +51,7 @@
   coordconf:forContextAssertion smartclassroom:hasNoiseLevel ;
   sensorconf:appliesTo [
       rdf:type sensorconf:SensorInstance ;
-      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_PresenterSection> ;
+      sensorconf:instanceID <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#Mic_EF210_PresenterArea> ;
       sensorconf:instanceType smartclassroom:Microphone ;
     ] ;
   sensorconf:appliesTo [

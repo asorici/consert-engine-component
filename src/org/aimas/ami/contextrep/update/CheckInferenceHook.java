@@ -69,7 +69,6 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	@Override
 	public InferenceResult doHook(Dataset contextDataset) {
 		//System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
-		
 		// get the context model
 		OntModel contextModelCore = Engine.getModelLoader().getCoreContextModel();
 		
@@ -101,7 +100,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	
 	private List<UpdateRequest> attemptDerivationRule(DerivationRuleWrapper derivationWrapper, 
 			Model queryModel, OntModel contextModelCore, Dataset contextDataset) {
-		List<UpdateRequest> inferred = new ArrayList<>();
+		List<UpdateRequest> inferred = new ArrayList<UpdateRequest>();
 		
 		DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
 		
@@ -109,8 +108,8 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		//Model newTriples = ModelFactory.createDefaultModel(ReificationStyle.Minimal);
 		Model newTriples = ModelFactory.createDefaultModel();
 		
-		Map<Resource, List<CommandWrapper>> cls2Query = new HashMap<>();
-		Map<Resource, List<CommandWrapper>> cls2Constructor = new HashMap<>();
+		Map<Resource, List<CommandWrapper>> cls2Query = new HashMap<Resource, List<CommandWrapper>>();
+		Map<Resource, List<CommandWrapper>> cls2Constructor = new HashMap<Resource, List<CommandWrapper>>();
 		SPINRuleComparator comparator = new DefaultSPINRuleComparator(queryModel);
 		
 		Resource entityRes = ruleDict.getEntityForDerivation(derivationWrapper);
@@ -120,7 +119,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		initialTemplateBindings.put(cmd, derivationWrapper.getCommandBindings());
 		
 		// create entityCommandWrappers required for SPIN inference API call
-		List<CommandWrapper> entityCommandWrappers = new ArrayList<>();
+		List<CommandWrapper> entityCommandWrappers = new ArrayList<CommandWrapper>();
 		entityCommandWrappers.add(cmd);
 		cls2Query.put(entityRes, entityCommandWrappers);
 		
@@ -134,8 +133,10 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		//	cls2Query, cls2Constructor, null, ConsertRules.DERIVE_ASSERTION, comparator);
 		
 		if (inferenceResult != null && inferenceResult.isInferred()) {
-			//System.out.println("[INFO] WE HAVE DEDUCED A NEW CONTEXT-ASSERTION following insertion of " + contextAssertion );
-			
+			//if (derivationWrapper.getDerivedAssertion().getOntologyResource().getURI().contains("HostsAdHoc")) {
+			//	System.out.println("[INFO] WE HAVE DEDUCED THE CONTEXT-ASSERTION " + derivationWrapper.getDerivedAssertion() 
+			//		+ " following insertion of " + contextAssertion );
+			//}
 			//ScenarioInit.printStatements(newTriples);
 			
 			// for testing purpose only count number of inferred assertions

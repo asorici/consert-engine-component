@@ -38,7 +38,7 @@
     ] ;
   orgconf:hasEngineAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.EngineAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.contextrep.engine.api.CommandHandler"^^xsd:string ;
     ] ;
   rdfs:label "CtxCoord_EF210"^^xsd:string ;
 .
@@ -62,7 +62,7 @@
     ] ;
   orgconf:hasQueryAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.EngineAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.contextrep.engine.api.QueryHandler"^^xsd:string ;
     ] ;
   orgconf:isPrimaryQueryHandler "true"^^xsd:boolean ;
   rdfs:label "CtxQueryHandler_EF210"^^xsd:string ;
@@ -245,7 +245,7 @@
 .
 :applicationInterfacingAdaptor
   rdf:type orgconf:AgentResource ;
-  orgconf:hasQualifiedName "org.aimas.ami.cmm.resource.ApplicationUserAdaptor"^^xsd:string ;
+  orgconf:hasQualifiedName "org.aimas.ami.cmm.api.ApplicationUserAdaptor"^^xsd:string ;
   rdfs:label "applicationInterfacingAdaptor"^^xsd:string ;
 .
 :luminositySensingPolicy
@@ -257,7 +257,7 @@
     ] ;
   orgconf:usesAssertionAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.sensing.SenseLuminosityAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.cmm.simulation.sensors.SenseLuminosityAdaptor"^^xsd:string ;
     ] ;
   rdfs:label "luminositySensingPolicy"^^xsd:string ;
 .
@@ -270,7 +270,7 @@
     ] ;
   orgconf:usesAssertionAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.sensing.NoiseLevelAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.cmm.simulation.sensors.NoiseLevelAdaptor"^^xsd:string ;
     ] ;
   rdfs:label "noiseSensingPolicy"^^xsd:string ;
 .
@@ -283,7 +283,7 @@
     ] ;
   orgconf:usesAssertionAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.sensing.SenseBluetoothAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.cmm.simulation.sensors.SenseBluetoothAdaptor"^^xsd:string ;
     ] ;
   rdfs:label "presenceSensingPolicy"^^xsd:string ;
 .
@@ -296,7 +296,7 @@
     ] ;
   orgconf:usesAssertionAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.sensing.InformTeachingAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.cmm.simulation.sensors.InformTeachingAdaptor"^^xsd:string ;
     ] ;
   rdfs:label "profiledTeachingPolicy"^^xsd:string ;
 .
@@ -309,7 +309,7 @@
     ] ;
   orgconf:usesAssertionAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.sensing.KinectSkeletonAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.cmm.simulation.sensors.KinectSkeletonAdaptor"^^xsd:string ;
     ] ;
   rdfs:label "skeletonSensingPolicy"^^xsd:string ;
 .
@@ -322,7 +322,7 @@
     ] ;
   orgconf:usesAssertionAdaptor [
       rdf:type orgconf:AgentResource ;
-      orgconf:hasQualifiedName "org.aimas.ami.cmm.resources.sensing.SenseTemperatureAdaptor"^^xsd:string ;
+      orgconf:hasQualifiedName "org.aimas.ami.cmm.simulation.sensors.SenseTemperatureAdaptor"^^xsd:string ;
     ] ;
   rdfs:label "temperatureSensingPolicy"^^xsd:string ;
 .

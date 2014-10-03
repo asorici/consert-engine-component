@@ -84,11 +84,12 @@ public class ContextQueryTask implements Runnable {
 				    Engine.getQueryService().markQueryExecution(queriedAssertions, askResult);
 				    
 				    // notify result handler
-				    resultNotifier.notifyQueryResult(new QueryResult(query, null, askResult));
+				    resultNotifier.notifyAskResult(new QueryResult(query, null, askResult));
 				}
 				catch (Exception ex) {
+					ex.printStackTrace();
 					Engine.getQueryService().markQueryExecution(queriedAssertions, false);
-					resultNotifier.notifyQueryResult(new QueryResult(query, new QueryException("Query execution error.", ex)));
+					resultNotifier.notifyAskResult(new QueryResult(query, new QueryException("Query execution error.", ex)));
 				}
 				finally { qexec.close() ; }
 			}

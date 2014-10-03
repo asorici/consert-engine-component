@@ -220,7 +220,7 @@ public class DerivationRuleDictionary {
 				ContextAssertion derivedAssertion = null; 
 				
 				ContextAssertionFinder ruleBodyFinder = 
-					new ContextAssertionFinder(whereElements, contextAssertionIndex, extendedRulesModel, templateBindings);
+					new ContextAssertionFinder(whereElements, contextAssertionIndex, templateBindings);
 				
 				// run context assertion rule body finder and collect results
 				ruleBodyFinder.run();

@@ -20,38 +20,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 coordconf:ControlPolicy
-  coordconf:hasStartAssertionCommand [
-      rdf:type coordconf:TimeIntervalAssertionActivation ;
-      arg:contextAssertion smartclassroom:sensesLuminosity ;
-      arg:intervalEnd "2014-01-01T12:00:00"^^xsd:dateTime ;
-      arg:intervalStart "2014-01-01T10:00:00"^^xsd:dateTime ;
-      spin:thisUnbound "true"^^xsd:boolean ;
-    ] ;
-  coordconf:hasStartAssertionCommand [
-      rdf:type coordconf:TimeIntervalAssertionActivation ;
-      arg:contextAssertion smartclassroom:sensesLuminosity ;
-      arg:intervalEnd "2014-01-01T18:00:00"^^xsd:dateTime ;
-      arg:intervalStart "2014-01-01T16:00:00"^^xsd:dateTime ;
-      spin:thisUnbound "true"^^xsd:boolean ;
-    ] ;
-  coordconf:hasStartAssertionCommand [
-      rdf:type coordconf:TimeIntervalAssertionActivation ;
-      arg:contextAssertion smartclassroom:sensesTemperature ;
-      arg:intervalEnd "2014-01-01T12:00:00"^^xsd:dateTime ;
-      arg:intervalStart "2014-01-01T10:00:00"^^xsd:dateTime ;
-      spin:thisUnbound "true"^^xsd:boolean ;
-    ] ;
-  coordconf:hasStartAssertionCommand [
-      rdf:type coordconf:TimeIntervalAssertionActivation ;
-      arg:contextAssertion smartclassroom:sensesTemperature ;
-      arg:intervalEnd "2014-01-01T18:00:00"^^xsd:dateTime ;
-      arg:intervalStart "2014-01-01T16:00:00"^^xsd:dateTime ;
-      spin:thisUnbound "true"^^xsd:boolean ;
-    ] ;
   coordconf:hasStopAssertionCommand [
       rdf:type coordconf:QueryAbsenceAssertionCancelation ;
       arg:contextAssertion smartclassroom:sensesLuminosity ;
-      arg:elapsedTimeThreshold 180 ;
+      arg:elapsedTimeThreshold 30 ;
       spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
   coordconf:hasStopAssertionCommand [
@@ -97,6 +69,26 @@ coordconf:hasStopAssertionCommand
         ) ;
       sp:where (
           [
+            rdf:type sp:Exists ;
+            sp:elements (
+                [
+                  rdf:type sp:NamedGraph ;
+                  sp:elements (
+                      [
+                        sp:object <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#EF210> ;
+                        sp:predicate person:locatedIn ;
+                        sp:subject [
+                            sp:varName "p"^^xsd:string ;
+                          ] ;
+                      ]
+                    ) ;
+                  sp:graphNameNode [
+                      sp:varName "g"^^xsd:string ;
+                    ] ;
+                ]
+              ) ;
+          ]
+          [
             rdf:type sp:SubQuery ;
             sp:query [
                 rdf:type sp:Select ;
@@ -133,38 +125,62 @@ coordconf:hasStopAssertionCommand
                       sp:elements (
                           [
                             sp:object [
-                                sp:varName "timeAnn"^^xsd:string ;
+                                sp:varName "validAnn"^^xsd:string ;
                               ] ;
-                            sp:predicate contextannotation:hasTimestamp ;
+                            sp:predicate contextannotation:hasValidity ;
                             sp:subject [
                                 sp:varName "gPersonLoc"^^xsd:string ;
                               ] ;
                           ]
                           [
                             sp:object [
-                                sp:varName "time"^^xsd:string ;
+                                sp:varName "validLoc"^^xsd:string ;
                               ] ;
                             sp:predicate contextannotation:hasStructuredValue ;
                             sp:subject [
-                                sp:varName "timeAnn"^^xsd:string ;
+                                sp:varName "validAnn"^^xsd:string ;
                               ] ;
                           ]
                         ) ;
                       sp:graphNameNode <http://pervasive.semanticweb.org/ont/2004/06/person/locatedInStore> ;
                     ]
                     [
-                      rdf:type sp:Filter ;
+                      rdf:type sp:Bind ;
                       sp:expression [
-                          rdf:type sp:ge ;
+                          rdf:type functions:datetimeDelay ;
                           sp:arg1 [
-                              rdf:type afn:now ;
+                              rdf:type functions:now ;
+                            ] ;
+                          sp:arg2 -15 ;
+                        ] ;
+                      sp:variable [
+                          sp:varName "past"^^xsd:string ;
+                        ] ;
+                    ]
+                    [
+                      rdf:type sp:Bind ;
+                      sp:expression [
+                          rdf:type functions:makeValidityInterval ;
+                          sp:arg1 [
+                              sp:varName "past"^^xsd:string ;
                             ] ;
                           sp:arg2 [
-                              rdf:type functions:datetimeDelay ;
-                              sp:arg1 [
-                                  sp:varName "time"^^xsd:string ;
-                                ] ;
-                              sp:arg2 120 ;
+                              sp:varName "past"^^xsd:string ;
+                            ] ;
+                        ] ;
+                      sp:variable [
+                          sp:varName "test"^^xsd:string ;
+                        ] ;
+                    ]
+                    [
+                      rdf:type sp:Filter ;
+                      sp:expression [
+                          rdf:type functions:validityIntervalsInclude ;
+                          sp:arg1 [
+                              sp:varName "validLoc"^^xsd:string ;
+                            ] ;
+                          sp:arg2 [
+                              sp:varName "test"^^xsd:string ;
                             ] ;
                         ] ;
                     ]
@@ -193,69 +209,34 @@ coordconf:hasStopAssertionCommand
                   ) ;
                 sp:where (
                     [
-                      rdf:type sp:Union ;
-                      sp:elements (
-                          (
-                            [
-                              rdf:type sp:TriplePath ;
-                              sp:object contextcore:entityRelationAssertion ;
-                              sp:path [
-                                  rdf:type sp:ModPath ;
-                                  sp:modMax -2 ;
-                                  sp:modMin 0 ;
-                                  sp:subPath rdfs:subPropertyOf ;
-                                ] ;
-                              sp:subject [
-                                  sp:varName "contextAssertion"^^xsd:string ;
-                                ] ;
-                            ]
-                          )
-                          (
-                            [
-                              rdf:type sp:TriplePath ;
-                              sp:object contextcore:entityDataAssertion ;
-                              sp:path [
-                                  rdf:type sp:ModPath ;
-                                  sp:modMax -2 ;
-                                  sp:modMin 0 ;
-                                  sp:subPath rdfs:subPropertyOf ;
-                                ] ;
-                              sp:subject [
-                                  sp:varName "contextAssertion"^^xsd:string ;
-                                ] ;
-                            ]
-                          )
-                          (
-                            [
-                              rdf:type sp:TriplePath ;
-                              sp:object contextcore:UnaryContextAssertion ;
-                              sp:path [
-                                  rdf:type sp:ModPath ;
-                                  sp:modMax -2 ;
-                                  sp:modMin 0 ;
-                                  sp:subPath rdfs:subClassOf ;
-                                ] ;
-                              sp:subject [
-                                  sp:varName "contextAssertion"^^xsd:string ;
-                                ] ;
-                            ]
-                          )
-                          (
-                            [
-                              rdf:type sp:TriplePath ;
-                              sp:object contextcore:NaryContextAssertion ;
-                              sp:path [
-                                  rdf:type sp:ModPath ;
-                                  sp:modMax -2 ;
-                                  sp:modMin 0 ;
-                                  sp:subPath rdfs:subClassOf ;
-                                ] ;
-                              sp:subject [
-                                  sp:varName "contextAssertion"^^xsd:string ;
-                                ] ;
-                            ]
-                          )
-                        ) ;
+                      sp:object coordconf:AssertionSpecificStatistic ;
+                      sp:predicate rdf:type ;
+                      sp:subject [
+                          sp:varName "stat"^^xsd:string ;
+                        ] ;
+                    ]
+                    [
+                      sp:object [
+                          sp:varName "contextAssertion"^^xsd:string ;
+                        ] ;
+                      sp:predicate coordconf:forContextAssertion ;
+                      sp:subject [
+                          sp:varName "stat"^^xsd:string ;
+                        ] ;
+                    ]
+                    [
+                      sp:object "false"^^xsd:boolean ;
+                      sp:predicate coordconf:isDerivedAssertion ;
+                      sp:subject [
+                          sp:varName "stat"^^xsd:string ;
+                        ] ;
+                    ]
+                    [
+                      sp:object "true"^^xsd:boolean ;
+                      sp:predicate coordconf:isEnabledAssertion ;
+                      sp:subject [
+                          sp:varName "stat"^^xsd:string ;
+                        ] ;
                     ]
                     [
                       rdf:type sp:Filter ;
@@ -273,7 +254,7 @@ coordconf:hasStopAssertionCommand
         ) ;
       spin:thisUnbound "true"^^xsd:boolean ;
     ] ;
-  spin:labelTemplate "Deactivate sending and derivation of all ContextAssertions except the presence ones, if no one is present in a smart classroom for the past 2 minutes."^^xsd:string ;
+  spin:labelTemplate "Deactivate sending and derivation of all ContextAssertions except the presence ones, if no one is present in a smart classroom for the past 15 seconds."^^xsd:string ;
   rdfs:comment "Command rule to deactivate the sending of several ContextAssertions if no people are present in a smart classroom."^^xsd:string ;
   rdfs:label "NonePresentAssertionCancelation"^^xsd:string ;
   rdfs:subClassOf coordconf:CommandRuleTemplate ;
@@ -283,24 +264,19 @@ coordconf:hasStopAssertionCommand
   coordconf:enablesAssertionByDefault "false"^^xsd:boolean ;
   coordconf:hasDefaultIntegrityResolution coordconf:PreferAccurate ;
   coordconf:hasDefaultOntReasoningInterval 10 ;
-  coordconf:hasDefaultRunWindow 300 ;
-  coordconf:hasDefaultTTLSpec 600 ;
+  coordconf:hasDefaultRunWindow 30 ;
+  coordconf:hasDefaultTTLSpec 100 ;
   coordconf:hasDefaultUniquenessResolution coordconf:PreferNewest ;
   coordconf:hasInferenceSchedulingType coordconf:FCFS ;
   coordconf:hasSpecificAssertionEnabling :enablePresenceByDefault ;
   coordconf:hasSpecificAssertionEnabling [
       rdf:type coordconf:AssertionSpecificEnableSpec ;
-      coordconf:forContextAssertion smartclassroom:hasNoiseLevel ;
+      coordconf:forContextAssertion device:hasDerivedLocation ;
       coordconf:hasParameterValue "true"^^xsd:boolean ;
     ] ;
   coordconf:hasSpecificAssertionEnabling [
       rdf:type coordconf:AssertionSpecificEnableSpec ;
-      coordconf:forContextAssertion smartclassroom:sensesLuminosity ;
-      coordconf:hasParameterValue "true"^^xsd:boolean ;
-    ] ;
-  coordconf:hasSpecificAssertionEnabling [
-      rdf:type coordconf:AssertionSpecificEnableSpec ;
-      coordconf:forContextAssertion smartclassroom:sensesTemperature ;
+      coordconf:forContextAssertion person:locatedIn ;
       coordconf:hasParameterValue "true"^^xsd:boolean ;
     ] ;
   rdfs:label "ProvisionPolicy_EF210"^^xsd:string ;

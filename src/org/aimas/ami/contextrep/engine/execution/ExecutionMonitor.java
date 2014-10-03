@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aimas.ami.contextrep.engine.api.InsertResult;
-import org.aimas.ami.contextrep.test.performance.PerformanceResult;
+import org.aimas.ami.contextrep.engine.api.PerformanceResult;
 import org.aimas.ami.contextrep.update.InferenceResult;
 
 

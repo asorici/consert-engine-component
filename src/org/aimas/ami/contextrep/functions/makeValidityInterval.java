@@ -41,7 +41,7 @@ public class makeValidityInterval extends FunctionBase2 {
 		}
 		else {
 			if (((String)v2.asNode().getLiteral().getValue()).equals(InfinityMarkerType.NEGATIVE_INFTY)) {
-				throw new ExprEvalException("interval start timestamp cannot be -infinity: " + v2) ;
+				throw new ExprEvalException("interval end timestamp cannot be -infinity: " + v2) ;
 			}
 		}
 		

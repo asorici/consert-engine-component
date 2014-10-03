@@ -113,6 +113,8 @@ public class CheckContinuityHook extends ContextUpdateHook {
 					RDFNode validity = qs.get("validity");
 					Literal timestamp = qs.getLiteral("timestamp");
 					
+					//System.out.println("Literal TIMESTAMP: " + timestamp);
+					
 					XSDDateTime timestampVal = (XSDDateTime)timestamp.getValue();
 					Calendar timestampCal = timestampVal.asCalendar();
 					if (maxTimestampCal == null) {
@@ -125,15 +127,11 @@ public class CheckContinuityHook extends ContextUpdateHook {
 							availableContinuityPair = new ContinuityWrapper(assertionUUID, validity);
 						}
 					}
-					
-					//System.out.println("CONTINUITY AVAILABALE FOR assertion <" + contextAssertion + ">. "
-					//        + "AssertionUUID: " + assertionUUID
-					//        + ", for duration: " + validity);
 				}
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();
-				return new ContinuityResult(contextAssertion, ex, false);
+				return new ContinuityResult(contextAssertion, ex, null);
 			}
 			finally {
 				qexec.close();
@@ -198,9 +196,17 @@ public class CheckContinuityHook extends ContextUpdateHook {
 				// Save the basic annotation revisions for later re-assertion
 				basicAnnotationRevisionMap.put(extendibleAssertionUUIDRes, revisedBasicAnnotations);
 				
-				//System.out.println("CONTINUITY AVAILABALE FOR assertion <" + contextAssertion.getOntologyResource().getLocalName() + ">. "
-				//        + "AssertionUUID: " + availableContinuityPair.assertionUUID
-				//        + ", for duration: " + availableContinuityPair.assertionValidity);
+				/*
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+				formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+				
+				if (contextAssertion.getOntologyResource().getURI().contains("HostsAdHoc")) {
+					System.out.println("CONTINUITY AVAILABALE FOR assertion <" + contextAssertion.getOntologyResource().getLocalName() + ">. "
+							+ "AssertionUUID: " + availableContinuityPair.assertionUUID
+							+ ", for duration: " + availableContinuityPair.assertionValidity
+							+ ", at timestamp: " + formatter.format(maxTimestampCal.getTime()));
+				}
+				*/
 			}
 			else {
 				allUpdated = false;
@@ -242,13 +248,13 @@ public class CheckContinuityHook extends ContextUpdateHook {
 				}
 			}
 			
-			return new ContinuityResult(contextAssertion, null, true);
+			return new ContinuityResult(contextAssertion, null, availableContinuityPair.assertionUUID.asNode());
 		}
 		
 		// finally sync the changes
 		TDB.sync(contextStoreDataset);
 		
-		return new ContinuityResult(contextAssertion, null, false);
+		return new ContinuityResult(contextAssertion, null, null);
 	}
 	
 	
@@ -267,7 +273,6 @@ public class CheckContinuityHook extends ContextUpdateHook {
 			if (structuredAnn != null) {	// if the new ContextAssertion has the type of ContextAnnotation bound by this structuredAnnProp
 				NodeValue newAssertionAnnVal = NodeValue.makeNode( ContextAnnotationUtil.getStructuredAnnotationValue(structuredAnnProp, 
 					newAssertionUUIDRes, assertionStoreModel).asNode());
-				
 				newAssertionStructuredAnnotations.put(structuredAnn, newAssertionAnnVal);
 			}
 		}

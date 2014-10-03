@@ -74,6 +74,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		
 		ContextAssertion insertedAssertion = null;
 		Node insertedAssertionUUID = null;
+		//Node originalAssertionUUID = null;
 		
 		ContinuityResult continuityResult = null;
 		ConstraintResult constraintResult = null;
@@ -118,6 +119,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 			
 			// STEP 5: if there was an assertion instance update check the hooks in order
 			if (insertedAssertion != null) {
+				
 				// STEP 5A: first check continuity
 				continuityResult = (ContinuityResult) new CheckContinuityHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
 				ExecutionMonitor.getInstance().logContinuityCheckDuration(request.hashCode(), continuityResult.getDuration());
@@ -126,6 +128,11 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 					InsertResult res = new InsertResult(request, new InsertException(continuityResult.getError()), null, false, false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
 					return res;
+				}
+				else if (continuityResult.hasContinuity()) {
+					// If we successfully extended a previous assertion, we need to update the insertedAssertionUUID for
+					// the following checks
+					insertedAssertionUUID = continuityResult.getExtendedAssertionUUID();
 				}
 				
 				// STEP 5B: check for constraints
@@ -138,6 +145,9 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 					return res;
 				}
 				else if (constraintResult.hasViolation()) {
+					// ============================================================================
+					// BIG TODO: IF WE DETECT A VIOLATION WE MUST INVOKE THE RESOLUTION SERVICE NOW
+					// ============================================================================
 					InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
 					return res;
@@ -148,6 +158,8 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				ExecutionMonitor.getInstance().logInheritanceCheckDuration(request.hashCode(), inheritanceResult.getDuration());
 				
 				if (inheritanceResult.hasError()) {
+					inheritanceResult.getError().printStackTrace();
+					
 					InsertResult res = new InsertResult(request, new InsertException(constraintResult.getError()), null, false, false); 
 					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
 					return res;

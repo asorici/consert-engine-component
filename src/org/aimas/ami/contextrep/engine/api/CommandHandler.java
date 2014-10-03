@@ -1,17 +1,20 @@
 package org.aimas.ami.contextrep.engine.api;
 
 import java.util.Calendar;
+import java.util.Map;
 import java.util.Set;
 
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
+import org.topbraid.spin.util.CommandWrapper;
 
 import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 
 public interface CommandHandler {
 	
-	// Access to ContextStore 
+	// Access to ContextStore and Context Model
 	////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Get access to a snapshot of the runtime ContextStore. This method should be used to get access
@@ -29,7 +32,22 @@ public interface CommandHandler {
 	 */
 	public ContextAssertionType getAssertionType(Resource assertionResource);
 	
+	/**
+	 * Determine the ContextAssertions referenced in the body of rules that infer the assertion identified by
+	 * <code>derivedAssertionRes</code>.
+	 * @param derivedAssertionRes
+	 * @return The set of referenced ContextAssertions identified by their ontology resources.
+	 */
 	public Set<Resource> getReferencedAssertions(Resource derivedAssertionRes);
+	
+	/**
+	 * Determine the ContextAssertions referenced by a SPIN-encoded control command (used by the external 
+	 * middleware to control the provisioning cycle of the CONSERT Engine).
+	 * @param controlCommand
+	 * @param templateBindings
+	 * @return The set of referenced ContextAssertions identified by their ontology resources.
+	 */
+	public Set<Resource> getControlCommandAssertions(CommandWrapper controlCommand, Map<String, RDFNode> templateBindings);
 	
 	// Configuration of CONSERT Engine dynamic parameters 
 	////////////////////////////////////////////////////////////////////////////////////

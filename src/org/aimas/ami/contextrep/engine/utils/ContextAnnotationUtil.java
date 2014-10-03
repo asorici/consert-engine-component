@@ -50,7 +50,9 @@ public class ContextAnnotationUtil {
 		for(OntProperty annProp : annotationProperties) {
 			// by definition there can be only one instance of each annotation type attached to an assertion
 			Pair<Statement, Set<Statement>> annContents = getAnnotationFor(annProp, assertionUUID, assertionStoreModel);
-			annotationsMap.put(annContents.car(), annContents.cdr());
+			if (annContents != null) {
+				annotationsMap.put(annContents.car(), annContents.cdr());
+			}
 		}
 		
 		return annotationsMap;
@@ -74,7 +76,7 @@ public class ContextAnnotationUtil {
 		// by definition there can be only one instance of each annotation type attached to an assertion
 		Statement annStatement = assertionStoreModel.getProperty(assertionUUID, annProperty);
 		
-		if (annStatement.getObject().isResource()) {
+		if (annStatement != null && annStatement.getObject().isResource()) {
 			Resource annResource = annStatement.getResource();
 			
 			// get all statement within the assertion store that start out from the annotation resource
@@ -84,7 +86,7 @@ public class ContextAnnotationUtil {
 		
 			return new Pair<Statement, Set<Statement>>(annStatement, collectedAnnotationStatements);
 		}
-		
+	
 		return null;
 	}
 	

@@ -62,10 +62,13 @@ public class ContextQueryUtil {
 		
 		// Convert the initialBindings to the map form used by ContextAssertionFinder
 		Map<String, RDFNode> bindingsMap = new HashMap<String, RDFNode>();
-		Iterator<String> varNames = initialBindings.varNames();
-		for (;varNames.hasNext();) {
-			String varName = varNames.next();
-			bindingsMap.put(varName, initialBindings.get(varName));
+		
+		if (initialBindings != null) {
+			Iterator<String> varNames = initialBindings.varNames();
+			for (;varNames.hasNext();) {
+				String varName = varNames.next();
+				bindingsMap.put(varName, initialBindings.get(varName));
+			}
 		}
 		
 		// get the where elements of the query
@@ -75,7 +78,7 @@ public class ContextQueryUtil {
 		}
 		
 		ContextAssertionFinder assertionFinder = new ContextAssertionFinder(whereElements, 
-				Engine.getContextAssertionIndex(), coreContextModel, bindingsMap);
+				Engine.getContextAssertionIndex(), bindingsMap);
 		assertionFinder.run();
 		Set<ContextAssertionGraph> visitedAssertionGraphs = assertionFinder.getResult();
 		

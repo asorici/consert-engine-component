@@ -167,7 +167,7 @@ public class ContextConstraintIndex {
 			Map<String, RDFNode> templateBindings = initialTemplateBindings.get(cmd);
 			//Map<String, RDFNode> templateBindings = cmd.getTemplateBinding();
 			
-			ContextAssertionFinder ruleBodyFinder = new ContextAssertionFinder(whereElements, contextAssertionIndex, domainConstraintModel, templateBindings);
+			ContextAssertionFinder ruleBodyFinder = new ContextAssertionFinder(whereElements, contextAssertionIndex, templateBindings);
 			
 			// run context assertion rule body finder and collect results
 			ruleBodyFinder.run();

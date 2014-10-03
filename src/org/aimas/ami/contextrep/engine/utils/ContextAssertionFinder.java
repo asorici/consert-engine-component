@@ -28,24 +28,22 @@ import org.topbraid.spin.model.visitor.AbstractElementVisitor;
 import org.topbraid.spin.model.visitor.AbstractExpressionVisitor;
 import org.topbraid.spin.model.visitor.ElementWalker;
 
-import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public class ContextAssertionFinder {
 	private Element rootElement;
 	private ContextAssertionIndex assertionIndex;
-	private OntModel assertionModel;
+	//private OntModel assertionModel;
 	private Map<String, RDFNode> templateBindings;
 	
 	private Set<ContextAssertionGraph> contextAssertions;
 	
 	private ElementWalker walker;
 	
-	public ContextAssertionFinder(Element rootElement, ContextAssertionIndex contextAssertionIndex, OntModel assertionModel, Map<String, RDFNode> templateBindings) {
+	public ContextAssertionFinder(Element rootElement, ContextAssertionIndex contextAssertionIndex, Map<String, RDFNode> templateBindings) {
 		this.rootElement = rootElement;
 		this.assertionIndex = contextAssertionIndex;
-		this.assertionModel = assertionModel;
 		this.templateBindings = templateBindings;
 		
 		contextAssertions = new HashSet<ContextAssertionGraph>();
@@ -99,7 +97,7 @@ public class ContextAssertionFinder {
 		public void visit(NamedGraph namedGraph) {
 			//System.out.println("A NAMED GRAPH statement: " + namedGraph.getElements().size() + " subelements");
 			//System.out.println();
-			ContextAssertionGraph assertion = ContextAssertionUtil.getFromNamedGraph(namedGraph,  assertionIndex, assertionModel, templateBindings);
+			ContextAssertionGraph assertion = ContextAssertionUtil.getFromNamedGraph(namedGraph,  assertionIndex, templateBindings);
 			if (assertion != null) {
 				contextAssertions.add(assertion);
 			}

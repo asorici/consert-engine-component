@@ -2,6 +2,7 @@ package org.aimas.ami.contextrep.engine.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +63,16 @@ public class ContextAssertionIndex {
 		}
 	}
 	
+	public List<Resource> getActiveAssertions() {
+		List<Resource> activeAssertions = new LinkedList<Resource>();
+		for (Resource assertionRes : assertionActiveState.keySet()) {
+			if (assertionActiveState.get(assertionRes)) {
+				activeAssertions.add(assertionRes);
+			}
+		}
+		
+		return activeAssertions;
+	}
 	
 	
 	public List<ContextAssertion> getDynamicContextAssertions() {

@@ -2,6 +2,7 @@ package org.aimas.ami.contextrep.engine;
 
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -18,6 +19,7 @@ import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
+import org.aimas.ami.contextrep.engine.api.PerformanceResult;
 import org.aimas.ami.contextrep.engine.api.QueryHandler;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
@@ -26,14 +28,16 @@ import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
 import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionFinder;
+import org.aimas.ami.contextrep.engine.utils.ContextAssertionGraph;
 import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 import org.aimas.ami.contextrep.resources.TimeService;
-import org.aimas.ami.contextrep.test.performance.PerformanceResult;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
 import org.aimas.ami.contextrep.utils.ResourceManager;
+import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.apache.felix.dm.Dependency;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
@@ -41,12 +45,25 @@ import org.osgi.framework.Bundle;
 import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.topbraid.spin.model.Command;
+import org.topbraid.spin.model.Construct;
+import org.topbraid.spin.model.ElementList;
+import org.topbraid.spin.model.SPINFactory;
+import org.topbraid.spin.model.Template;
+import org.topbraid.spin.model.TemplateCall;
+import org.topbraid.spin.util.CommandWrapper;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolutionMap;
+import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 import com.hp.hpl.jena.update.UpdateRequest;
 
@@ -187,6 +204,35 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// Call this when the bundle containing the CONSERT Engine is destroyed
 	void closeEngine(org.apache.felix.dm.Component component) {
 		try {
+			Dataset contextStore = Engine.getRuntimeContextStore();
+			contextStore.begin(ReadWrite.READ);
+			try {
+				// get positions of microphones
+				Model profiledLocationStore = 
+						contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/device/hasProfiledLocationStore");
+				StmtIterator locIt = profiledLocationStore.listStatements(null, ConsertCore.CONTEXT_ASSERTION_RESOURCE, 
+						ResourceFactory.createResource("http://pervasive.semanticweb.org/ont/2004/06/device#hasProfiledLocation"));
+				while (locIt.hasNext()) {
+					Statement s = locIt.next();
+					Model m = contextStore.getNamedModel(s.getSubject().getURI());
+					m.write(System.out, "TTL");
+				}
+				
+				System.out.println("#####################################################");
+				
+				Model locatedInStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/person/locatedInStore"); 
+				locatedInStore.write(System.out, "TTL");
+				
+				System.out.println("=========================================================");
+				System.out.println();
+				
+				Model discussionActivityStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/HostsAdHocDiscussionStore"); 
+				discussionActivityStore.write(System.out, "TTL");
+			}
+			finally {
+				contextStore.end();
+			}
+			
 			Engine.close(false);
 		}
 		catch (Exception e) {
@@ -295,6 +341,44 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		return referencedAssertions;
 	}
 	
+	public Set<Resource> getControlCommandAssertions(CommandWrapper controlCommand, Map<String, RDFNode> templateBindings) {
+		Set<Resource> referencedAssertions = new HashSet<Resource>();
+		
+		Command spinCommand = extractCommand(controlCommand);
+		Construct constructCommand =  spinCommand.as(Construct.class);
+		ElementList whereElements = constructCommand.getWhere();
+		
+		ContextAssertionFinder ruleBodyFinder = new ContextAssertionFinder(whereElements, 
+				Engine.getContextAssertionIndex(), templateBindings);
+		
+		// run context assertion rule body finder and collect results
+		ruleBodyFinder.run();
+		Set<ContextAssertionGraph> bodyContextAssertions = ruleBodyFinder.getResult();
+		
+		for (ContextAssertionGraph cag : bodyContextAssertions) {
+			referencedAssertions.add(cag.getAssertion().getOntologyResource());
+		}
+			
+		return referencedAssertions;
+	}
+	
+	private Command extractCommand(CommandWrapper controlCommand) {
+		Command spinCommand = null;
+		
+		TemplateCall templateCall = SPINFactory.asTemplateCall(controlCommand.getSource());
+		if (templateCall != null) {
+			Template template = templateCall.getTemplate();
+			if(template != null) {
+				spinCommand = template.getBody();
+			}
+		}
+		else {
+			spinCommand = SPINFactory.asCommand(controlCommand.getSource());
+		}
+		
+		return spinCommand;
+    }
+
 	@Override
     public void setDefaultQueryRunWindow(long runWindow) {
 	    Engine.getQueryService().setDefaultRunWindow(runWindow);
@@ -477,6 +561,12 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
     public boolean assertionUpdatesEnabled(Resource assertionResource) {
 		return Engine.getContextAssertionIndex().isAssertionActive(assertionResource);
     }
+	
+	@Override
+	public List<Resource> getEnabledAssertions() {
+		return Engine.getContextAssertionIndex().getActiveAssertions();
+	}
+	
 	
 	@Override
 	public PerformanceResult measurePerformance() {

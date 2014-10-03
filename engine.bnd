@@ -1,5 +1,4 @@
 Bundle-Activator: org.aimas.ami.contextrep.engine.EngineActivator
-Bundle-ClassPath: ., spin-1.3.0.jar
 Bundle-Description: The bundle offering the CONSERT Engine Component.
 Bundle-Name: consert-engine
 Bundle-Version: 1.0.0
@@ -13,8 +12,6 @@ Import-Package:  \
     javax.xml.transform.stream;resolution:=optional,\
     org.w3c.dom;resolution:=optional,\
     *
-Include-Resource:  \
-    lib/spin-1.3.0.jar
 Private-Package:  \
 	org.aimas.ami.contextrep.engine,\
 	org.aimas.ami.contextrep.functions,\

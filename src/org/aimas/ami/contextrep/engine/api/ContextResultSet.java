@@ -10,10 +10,9 @@ import com.hp.hpl.jena.sparql.core.ResultBinding;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 
 public class ContextResultSet implements ResultSetRewindable {
-	
 	private List<String> resultVars;
 	private int rowNumber;
-	private Model model;
+	private transient Model model;
 	private final List<Binding> bindings;
 	private Iterator<Binding> iter;
 	

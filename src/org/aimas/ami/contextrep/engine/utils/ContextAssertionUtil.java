@@ -1,20 +1,16 @@
 package org.aimas.ami.contextrep.engine.utils;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
 import org.aimas.ami.contextrep.engine.core.ContextAssertionIndex;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;
-import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.topbraid.spin.model.Element;
 import org.topbraid.spin.model.NamedGraph;
@@ -22,21 +18,15 @@ import org.topbraid.spin.model.SPINFactory;
 import org.topbraid.spin.model.TriplePattern;
 import org.topbraid.spin.util.JenaUtil;
 
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.enhanced.EnhGraph;
-import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.ontology.OntResource;
-import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.NodeIterator;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.ReifiedStatement;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Selector;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.vocabulary.OWL;
@@ -50,13 +40,12 @@ public class ContextAssertionUtil {
 	 * the ContextAssertion definitions available in the ontology model give by <code>assertionModel</code> 
 	 * @param namedGraph The named graph instance which is supposed to contain the statements of a ContextAssertion
 	 * @param assertionIndex The index of available ContextAssertions
-	 * @param assertionModel The ontology model which contains definitions for available ContextAssertions
 	 * @param templateBindings A map containing mappings of possible variable resources contained in 
 	 * the statements of the named graph
 	 * @return The appropriate instance of a ContextAssertion or null if the Named Graph does not contain statements
 	 * that make up a ContextAssertion
 	 */
-	public static ContextAssertionGraphImpl getFromNamedGraph(NamedGraph namedGraph, ContextAssertionIndex assertionIndex, OntModel assertionModel, Map<String, RDFNode> templateBindings) {
+	public static ContextAssertionGraphImpl getFromNamedGraph(NamedGraph namedGraph, ContextAssertionIndex assertionIndex, Map<String, RDFNode> templateBindings) {
 		List<Element> childElements = namedGraph.getElements();
 		
 		for (Element element : childElements) {
@@ -80,49 +69,19 @@ public class ContextAssertionUtil {
 					}
 				}
 				
-				// check if we have an assertion property
 				if (property.isURIResource()) {
-					OntProperty assertionProperty = assertionModel.getOntProperty(property.asResource().getURI());
-					
-					if (assertionProperty != null) {
-						ContextAssertion binaryAssertion = assertionIndex.getAssertionFromResource(assertionProperty);
-						
-						if (binaryAssertion != null) {
-							return new ContextAssertionGraphImpl(namedGraph.asNode(), (EnhGraph)namedGraph.getModel(), binaryAssertion);
-						}
-						
-						// get the entityRelationAssertion and entityDataAssertion properties
-						/*
-						OntProperty entityRelationAssertion = assertionModel.getOntProperty(ConsertCore.ENTITY_RELATION_ASSERTION.getURI());
-						OntProperty entityDataAssertion = assertionModel.getOntProperty(ConsertCore.ENTITY_DATA_ASSERTION.getURI());
-						Set<? extends OntProperty> supers = assertionProperty.listSuperProperties().toSet();
-						
-						if (supers.contains(entityRelationAssertion) || supers.contains(entityDataAssertion)) {
-							return new ContextAssertionGraphImpl(namedGraph.asNode(), (EnhGraph)namedGraph.getModel(), assertionProperty);
-						}
-						*/
+					// check if we have an assertion property
+					ContextAssertion binaryAssertion = assertionIndex.getAssertionFromResource(property.asResource());
+					if (binaryAssertion != null) {
+						return new ContextAssertionGraphImpl(namedGraph.asNode(), (EnhGraph)namedGraph.getModel(), binaryAssertion);
 					}
 					
 					// check if we have an assertion class
 					if (property.equals(RDF.type) && object != null && object.isURIResource()) {
-						OntClass assertionClass = assertionModel.getOntClass(object.asResource().getURI());
+						ContextAssertion naryAssertion = assertionIndex.getAssertionFromResource(object.asResource());
 						
-						if (assertionClass != null) {
-							ContextAssertion naryAssertion = assertionIndex.getAssertionFromResource(assertionClass);
-							
-							if (naryAssertion != null) {
-								return new ContextAssertionGraphImpl(namedGraph.asNode(), (EnhGraph)namedGraph.getModel(), naryAssertion);
-							}
-							
-							/*
-							OntClass unaryContextAssertion = assertionModel.getOntClass(ConsertCore.UNARY_CONTEXT_ASSERTION.getURI());
-							OntClass naryContextAssertion = assertionModel.getOntClass(ConsertCore.NARY_CONTEXT_ASSERTION.getURI());
-							Set<? extends OntClass> supers = assertionClass.listSuperClasses().toSet();
-							
-							if (supers.contains(unaryContextAssertion) || supers.contains(naryContextAssertion)) {
-								return new ContextAssertionGraphImpl(namedGraph.asNode(), (EnhGraph)namedGraph.getModel(), assertionClass);
-							}
-							*/
+						if (naryAssertion != null) {
+							return new ContextAssertionGraphImpl(namedGraph.asNode(), (EnhGraph)namedGraph.getModel(), naryAssertion);
 						}
 					}
 				}

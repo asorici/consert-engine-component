@@ -1,6 +1,6 @@
 package org.aimas.ami.contextrep.engine.api;
 
-import org.aimas.ami.contextrep.test.performance.PerformanceResult;
+import java.util.List;
 
 import com.hp.hpl.jena.rdf.model.Resource;
 
@@ -20,6 +20,7 @@ public interface StatsHandler {
 	// public EngineInsertionStats getInsertionStatistics();
 	public boolean assertionUpdatesEnabled(Resource assertionResource);
 	
+	public List<Resource> getEnabledAssertions();
 	
 	/* ================ Statistics for ContextAssertion inferences ================ */
 	public EngineInferenceStats getInferenceStatistics();
@@ -29,7 +30,6 @@ public interface StatsHandler {
 	public int nrDerivations(Resource derivedAssertionResource);
 	
 	public int nrSuccessfulDerivations(Resource derivedAssertionResource);
-	
 	
 	/* ================ Statistics for ContextAssertion queries ================ */
 	public EngineQueryStats getQueryStatistics();
