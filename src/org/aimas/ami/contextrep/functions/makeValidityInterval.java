@@ -1,6 +1,7 @@
 package org.aimas.ami.contextrep.functions;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.aimas.ami.contextrep.datatype.CalendarInterval;
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
@@ -28,7 +29,7 @@ public class makeValidityInterval extends FunctionBase2 {
 		Calendar t2 = null;
 		
 		if (v1.isDateTime()) {
-			t1 = v1.getDateTime().toGregorianCalendar();
+			t1 = v1.getDateTime().toGregorianCalendar(TimeZone.getTimeZone("GMT"), null, null);
 		}
 		else {
 			if (((String)v1.asNode().getLiteral().getValue()).equals(InfinityMarkerType.POSITIVE_INFTY)) {
@@ -37,7 +38,7 @@ public class makeValidityInterval extends FunctionBase2 {
 		}
 		
 		if (v2.isDateTime()) {
-			t2 = v2.getDateTime().toGregorianCalendar();
+			t2 = v2.getDateTime().toGregorianCalendar(TimeZone.getTimeZone("GMT"), null, null);
 		}
 		else {
 			if (((String)v2.asNode().getLiteral().getValue()).equals(InfinityMarkerType.NEGATIVE_INFTY)) {
