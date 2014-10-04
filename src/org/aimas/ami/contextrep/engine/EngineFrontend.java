@@ -260,14 +260,14 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// =============================== INSERT HANDLING ============================== //
 	////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void insert(UpdateRequest insertionRequest, InsertionResultNotifier notifier) {
+	public void insert(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode) {
 		ExecutionMonitor.getInstance().logInsertEnqueue(insertionRequest.hashCode());
-		Engine.getInsertionService().executeRequest(insertionRequest, notifier);
+		Engine.getInsertionService().executeRequest(insertionRequest, notifier, updateMode);
 	}
 	
 	@Override
-	public Future<InsertResult> insert(UpdateRequest insertionRequest) {
-		return Engine.getInsertionService().executeRequest(insertionRequest, null);
+	public Future<InsertResult> insert(UpdateRequest insertionRequest, int updateMode) {
+		return Engine.getInsertionService().executeRequest(insertionRequest, null, updateMode);
 	}
 	
 	@Override

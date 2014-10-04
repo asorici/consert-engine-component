@@ -21,8 +21,9 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckConstraintHook extends ContextUpdateHook {
-	public CheckConstraintHook(UpdateRequest insertionRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(insertionRequest, contextAssertion, contextAssertionUUID);
+	public CheckConstraintHook(UpdateRequest insertionRequest, ContextAssertion contextAssertion, 
+			Node contextAssertionUUID, int updateMode) {
+		super(insertionRequest, contextAssertion, contextAssertionUUID, updateMode);
 	}
 	
 	@Override

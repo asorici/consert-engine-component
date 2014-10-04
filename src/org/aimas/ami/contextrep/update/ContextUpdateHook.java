@@ -11,12 +11,14 @@ public abstract class ContextUpdateHook {
 	protected UpdateRequest insertionRequest;
 	protected ContextAssertion contextAssertion;
 	protected Node contextAssertionUUID;
+	protected int updateMode;
 	
-	
-	public ContextUpdateHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
+	public ContextUpdateHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, 
+			Node contextAssertionUUID, int updateMode) {
 		this.insertionRequest = updateRequest;
 		this.contextAssertion = contextAssertion;
 		this.contextAssertionUUID = contextAssertionUUID;
+		this.updateMode = updateMode;
 	}
 	
 	public UpdateRequest getInsertionRequest() {

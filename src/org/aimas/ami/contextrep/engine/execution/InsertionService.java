@@ -48,8 +48,8 @@ public class InsertionService implements ExecutionService {
     }
 	
 	
-	public Future<InsertResult> executeRequest(UpdateRequest insertionRequest, InsertionResultNotifier notifier) {
-		return insertionExecutor.submit(new ContextUpdateTask(insertionRequest, notifier));
+	public Future<InsertResult> executeRequest(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode) {
+		return insertionExecutor.submit(new ContextUpdateTask(insertionRequest, notifier, updateMode));
 	}
 	
 	public Future<?> executeBulkRequest(UpdateRequest bulkRequest) {

@@ -33,8 +33,7 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 		// STEP 1: start a new READ transaction on the contextStoreDataset
 		Dataset contextDataset = Engine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.READ);
-		//contextDataset.getLock().enterCriticalSection(true);
-		
+			
 		try {
 			// STEP 2: execute inference hook
 			inferenceHookResult = (InferenceResult) inferenceHook.exec(contextDataset);
@@ -52,7 +51,6 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 		}
 		finally {
 			contextDataset.end();
-			//contextDataset.getLock().leaveCriticalSection();
 		}
 		
 		return inferenceHookResult;

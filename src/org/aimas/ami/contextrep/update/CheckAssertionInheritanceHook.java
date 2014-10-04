@@ -29,8 +29,9 @@ import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	
-	public CheckAssertionInheritanceHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(updateRequest, contextAssertion, contextAssertionUUID);
+	public CheckAssertionInheritanceHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, 
+			Node contextAssertionUUID, int updateMode) {
+		super(updateRequest, contextAssertion, contextAssertionUUID, updateMode);
 	}
 	
 	@Override
@@ -59,7 +60,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	            // enqueue them as individual insertion requests
 	            for (UpdateRequest req : ancestorAssertionInsertions) {
 	            	ExecutionMonitor.getInstance().logInsertEnqueue(req.hashCode());
-	            	Engine.getInsertionService().executeRequest(req, null);
+	            	Engine.getInsertionService().executeRequest(req, null, updateMode);
 	            }
 	            
 	            return new AssertionInheritanceResult(contextAssertion, null, assertionAncestorList);

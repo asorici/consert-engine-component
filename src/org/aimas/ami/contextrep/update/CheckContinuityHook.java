@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.aimas.ami.contextrep.datatype.CalendarInterval;
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
+import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.utils.ContextAnnotationUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextUpdateUtil;
@@ -49,7 +50,7 @@ import com.hp.hpl.jena.update.UpdateRequest;
 public class CheckContinuityHook extends ContextUpdateHook {
 	
 	public CheckContinuityHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(updateRequest, contextAssertion, contextAssertionUUID);
+		super(updateRequest, contextAssertion, contextAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE);
 	}
 	
 	@Override

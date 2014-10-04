@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.core.ContextARQFactory;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
@@ -49,8 +50,11 @@ import com.hp.hpl.jena.update.UpdateRequest;
 public class CheckInferenceHook extends ContextUpdateHook {
 	private DerivationRuleWrapper derivationRule;
 	
-	public CheckInferenceHook(UpdateRequest triggeringRequest, ContextAssertion contextAssertion, Node contextAssertionUUID, DerivationRuleWrapper derivationRule) {
-		super(triggeringRequest, contextAssertion, contextAssertionUUID);
+	public CheckInferenceHook(UpdateRequest triggeringRequest, ContextAssertion contextAssertion, 
+			Node contextAssertionUUID, DerivationRuleWrapper derivationRule) {
+		// WE CURRENTLY CONSIDER THAT A DERIVED ContextAssertion ALWAYS WORKS WITH A TIME-BASED UPDATE MODE
+		super(triggeringRequest, contextAssertion, contextAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE);
+		
 		this.derivationRule = derivationRule;
 	}
 	
@@ -87,7 +91,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		if (!inferredContext.isEmpty()) {
 			for (UpdateRequest inferredAssertionReq : inferredContext) {
 				ExecutionMonitor.getInstance().logDerivedInsertEnqueue(insertionRequest.hashCode(), inferredAssertionReq.hashCode());
-				Engine.getInsertionService().executeRequest(inferredAssertionReq, null);
+				Engine.getInsertionService().executeRequest(inferredAssertionReq, null, updateMode);
 			}
 			
 			return new InferenceResult(contextAssertion, null, derivationRule.getDerivedAssertion());
@@ -138,10 +142,6 @@ public class CheckInferenceHook extends ContextUpdateHook {
 			//		+ " following insertion of " + contextAssertion );
 			//}
 			//ScenarioInit.printStatements(newTriples);
-			
-			// for testing purpose only count number of inferred assertions
-			// TODO performance collection: RunTest.numInferredAssertions.getAndIncrement();
-			
 			
 			/* 
 			 * If there was a deduction the CONSTRUCTED result is in the newTriples model. 

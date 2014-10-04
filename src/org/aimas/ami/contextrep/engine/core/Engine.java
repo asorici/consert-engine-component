@@ -409,7 +409,6 @@ public class Engine {
 	}
 	
 	
-	
 	// ######################## Access CONSERT Engine Context Model and Indexes ########################
 	public static ContextModelLoader getModelLoader() {
 		return contextModelLoader;

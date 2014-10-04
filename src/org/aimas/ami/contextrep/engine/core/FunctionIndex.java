@@ -10,6 +10,7 @@ import org.aimas.ami.contextrep.functions.datetimeDelay;
 import org.aimas.ami.contextrep.functions.getCurrentAgent;
 import org.aimas.ami.contextrep.functions.makeValidityInterval;
 import org.aimas.ami.contextrep.functions.minusInfty;
+import org.aimas.ami.contextrep.functions.mostRecentAssertionInstance;
 import org.aimas.ami.contextrep.functions.newGraphUUID;
 import org.aimas.ami.contextrep.functions.now;
 import org.aimas.ami.contextrep.functions.plusInfty;
@@ -65,7 +66,9 @@ public class FunctionIndex {
 		
 		// register minusInfty function
 		customFunctions.put(ConsertFunctions.NS + "minusInfty", minusInfty.class) ;
-				
+		
+		// register mostRecentAssertionInstance function
+		customFunctions.put(ConsertFunctions.NS + "mostRecentAssertionInstance", mostRecentAssertionInstance.class);
 	}
 	
 	public static Class<?> getFunctionClass(String operatorURI) {

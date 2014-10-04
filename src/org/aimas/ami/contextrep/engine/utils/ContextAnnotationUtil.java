@@ -72,7 +72,7 @@ public class ContextAnnotationUtil {
 	 * 		</ul>
 	 * 		The method returns null if there is no such annotation.
 	 */
-	public static Pair<Statement, Set<Statement>> getAnnotationFor(OntProperty annProperty, Resource assertionUUID, Model assertionStoreModel) {
+	public static Pair<Statement, Set<Statement>> getAnnotationFor(Property annProperty, Resource assertionUUID, Model assertionStoreModel) {
 		// by definition there can be only one instance of each annotation type attached to an assertion
 		Statement annStatement = assertionStoreModel.getProperty(assertionUUID, annProperty);
 		

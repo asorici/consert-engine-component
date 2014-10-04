@@ -1,31 +1,46 @@
 package org.aimas.ami.contextrep.update;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
+import org.aimas.ami.contextrep.datatype.CalendarInterval;
+import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
 import org.aimas.ami.contextrep.engine.api.InsertException;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
+import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
 import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
+import org.aimas.ami.contextrep.engine.utils.ContextAnnotationUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextStoreUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextUpdateUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
+import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
+import org.openjena.atlas.lib.Pair;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.rdf.model.InfModel;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.sparql.expr.NodeValue;
+import com.hp.hpl.jena.sparql.function.FunctionBase1;
+import com.hp.hpl.jena.sparql.function.FunctionRegistry;
 import com.hp.hpl.jena.update.GraphStore;
 import com.hp.hpl.jena.update.GraphStoreFactory;
 import com.hp.hpl.jena.update.Update;
@@ -45,11 +60,15 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 	
 	
 	private UpdateRequest request;
+	private int updateMode;
+	
 	private InsertionResultNotifier resultNotifier;
 	private boolean inferenceProbable;
 	
-	public ContextUpdateTask(UpdateRequest request, InsertionResultNotifier notifier) {
+	public ContextUpdateTask(UpdateRequest request, InsertionResultNotifier notifier, int updateMode) {
 		this.request = request;
+		this.updateMode = updateMode;
+		
 		this.resultNotifier = notifier;
 		this.inferenceProbable = false;
 	}
@@ -117,26 +136,35 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				entityStore.add(newData);
 			}
 			
-			// STEP 5: if there was an assertion instance update check the hooks in order
+			// STEP 5: if there was an assertion instance update, check the hooks in order
 			if (insertedAssertion != null) {
 				
-				// STEP 5A: first check continuity
-				continuityResult = (ContinuityResult) new CheckContinuityHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
-				ExecutionMonitor.getInstance().logContinuityCheckDuration(request.hashCode(), continuityResult.getDuration());
-				
-				if (continuityResult.hasError()) {
-					InsertResult res = new InsertResult(request, new InsertException(continuityResult.getError()), null, false, false); 
-					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
-					return res;
+				// STEP 5A: check the update mode type - for a time-based update we perform a continuity check;
+				// for a change-based update we have to change the end of the validity period for the previous 
+				// instance of this ContextAssertion
+				if (updateMode == InsertionHandler.TIME_BASED_UPDATE_MODE) {
+					// time-based update => check continuity
+					continuityResult = (ContinuityResult) new CheckContinuityHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+					ExecutionMonitor.getInstance().logContinuityCheckDuration(request.hashCode(), continuityResult.getDuration());
+					
+					if (continuityResult.hasError()) {
+						InsertResult res = new InsertResult(request, new InsertException(continuityResult.getError()), null, false, false); 
+						if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+						return res;
+					}
+					else if (continuityResult.hasContinuity()) {
+						// If we successfully extended a previous assertion, we need to update the insertedAssertionUUID for
+						// the following checks
+						insertedAssertionUUID = continuityResult.getExtendedAssertionUUID();
+					}
 				}
-				else if (continuityResult.hasContinuity()) {
-					// If we successfully extended a previous assertion, we need to update the insertedAssertionUUID for
-					// the following checks
-					insertedAssertionUUID = continuityResult.getExtendedAssertionUUID();
+				else {
+					// change-based update => mark the end of the validity for the previous ContextAssertion instance
+					alterPreviousValidity(insertedAssertion, insertedAssertionUUID, contextDataset);
 				}
 				
 				// STEP 5B: check for constraints
-				constraintResult = (ConstraintResult) new CheckConstraintHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				constraintResult = (ConstraintResult) new CheckConstraintHook(request, insertedAssertion, insertedAssertionUUID, updateMode).exec(contextDataset);
 				ExecutionMonitor.getInstance().logConstraintCheckDuration(request.hashCode(), constraintResult.getDuration());
 				
 				if (constraintResult.hasError()) {
@@ -154,7 +182,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				}
 				
 				// STEP 5C: if all is well up to here, check for inheritance
-				inheritanceResult = (AssertionInheritanceResult) new CheckAssertionInheritanceHook(request, insertedAssertion, insertedAssertionUUID).exec(contextDataset);
+				inheritanceResult = (AssertionInheritanceResult) new CheckAssertionInheritanceHook(request, insertedAssertion, insertedAssertionUUID, updateMode).exec(contextDataset);
 				ExecutionMonitor.getInstance().logInheritanceCheckDuration(request.hashCode(), inheritanceResult.getDuration());
 				
 				if (inheritanceResult.hasError()) {
@@ -227,6 +255,60 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 		
 		return updatedContextStores;
 	}
+	
+	
+	private void alterPreviousValidity(ContextAssertion insertedAssertion, Node insertedAssertionUUID, Dataset contextStoreDataset) {
+	    // Get the ContextAssertionStore of the inserted assertion type
+		String assertionStoreURI = insertedAssertion.getAssertionStoreURI();
+		Model assertionStoreModel = contextStoreDataset.getNamedModel(assertionStoreURI);
+		Resource assertionUUIDResource = ResourceFactory.createResource(insertedAssertionUUID.getURI());
+		
+		// First determine the start of the validity interval for the new assertion instance
+		Calendar newIntervalStart = null;
+		RDFNode newValidityNode = ContextAnnotationUtil.getStructuredAnnotationValue(ConsertAnnotation.HAS_VALIDITY, 
+				assertionUUIDResource, assertionStoreModel);
+		
+		if (newValidityNode != null) {
+			CalendarIntervalList newValidityList = (CalendarIntervalList)newValidityNode.asLiteral().getValue();
+			
+			// for the newly inserted assertion instance, we access the first interval since there is only one
+			CalendarInterval newInterval = newValidityList.get(0);
+			newIntervalStart = newInterval.lowerLimit();
+		}
+		
+		// Then get the previous instance of the same ContextAssertion type as that of the insertedAssertion
+		FunctionBase1 mostRecentAssertionFunc = (FunctionBase1)FunctionRegistry.get()
+				.get("mostRecentAssertionInstance").create("mostRecentAssertionInstance");
+		NodeValue assertionType = NodeValue.makeNode(insertedAssertion.getOntologyResource().asNode());
+		NodeValue mostRecentAssertionUUIDVal = mostRecentAssertionFunc.exec(assertionType);
+		Resource previousAssertionUUIDRes = ResourceFactory.createResource(mostRecentAssertionUUIDVal.getNode().getURI());
+		
+		// Access the validity annotation
+		Pair<Statement, Set<Statement>> previousValidityAnnotation = ContextAnnotationUtil.getAnnotationFor(ConsertAnnotation.HAS_VALIDITY, 
+				previousAssertionUUIDRes, assertionStoreModel);
+		
+		if (previousValidityAnnotation != null) {
+			Set<Statement> validityAnnotationStmts = previousValidityAnnotation.cdr();
+			for (Statement st : validityAnnotationStmts) {
+				if (st.getPredicate().equals(ConsertAnnotation.HAS_STRUCTURED_VALUE)) {
+					CalendarIntervalList previousValidityList = (CalendarIntervalList)st.getLiteral().getValue();
+					
+					// we access the last interval in the list - since NORMALLY that is the one being updated
+					// (in most envisioned use cases, there will only be one interval in the list anyway)
+					CalendarInterval previousInterval = previousValidityList.get(previousValidityList.size() - 1);
+					
+					// create the updated interval and replace it in the assertionStore for the previous assertion instance
+					CalendarInterval updatedInterval = new CalendarInterval(previousInterval.lowerLimit(), true, newIntervalStart, true);
+					previousValidityList.insertAt(previousValidityList.size() - 1, updatedInterval);
+					
+					Literal updatedValidityLiteral = ResourceFactory.createTypedLiteral(previousValidityList);
+					
+					// replace the previous validity literal with the update one in the statement - SHOULD WORK
+					st.changeObject(updatedValidityLiteral);
+				}
+			}
+		}
+    }
 	
 	
 	private void enqueueInferenceChecks(ContextAssertion insertedAssertion, Node insertedAssertionUUID) {
