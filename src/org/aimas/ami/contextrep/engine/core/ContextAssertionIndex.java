@@ -16,7 +16,6 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntProperty;
-import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
@@ -30,43 +29,43 @@ public class ContextAssertionIndex {
 	private Map<Resource, ContextAssertion> assertionInfoMap;
 	private Map<String, ContextAssertion> graphURIBase2AssertionMap;
 	
-	private Map<Resource, Boolean> assertionActiveState;
-	private boolean activeByDefault = false;
+	private Map<Resource, Boolean> assertionUpdateEnabledState;
+	private boolean enabledByDefault = false;
 	
 	ContextAssertionIndex() {
-		dynamicContextAssertions = new ArrayList<>();
-		profiledContextAssertions = new ArrayList<>();
-		sensedContextAssertions = new ArrayList<>();
-		derivedContextAssertions = new ArrayList<>();
+		dynamicContextAssertions = new ArrayList<ContextAssertion>();
+		profiledContextAssertions = new ArrayList<ContextAssertion>();
+		sensedContextAssertions = new ArrayList<ContextAssertion>();
+		derivedContextAssertions = new ArrayList<ContextAssertion>();
 		
-		assertionInfoMap = new HashMap<>();
-		graphURIBase2AssertionMap = new HashMap<>();
+		assertionInfoMap = new HashMap<Resource, ContextAssertion>();
+		graphURIBase2AssertionMap = new HashMap<String, ContextAssertion>();
 		
-		assertionActiveState = new HashMap<Resource, Boolean>();
+		assertionUpdateEnabledState = new HashMap<Resource, Boolean>();
 	}
 	
 	
-	public void setActiveByDefault(boolean active) {
-		activeByDefault = active;
+	public void setEnabledByDefault(boolean enabled) {
+		enabledByDefault = enabled;
 	}
 	
-	public void setAssertionActive(Resource assertionResource, boolean active) {
-		synchronized(assertionActiveState) {
-			assertionActiveState.put(assertionResource, active);
+	public void setAssertionUpdateEnabledActive(Resource assertionResource, boolean enabled) {
+		synchronized(assertionUpdateEnabledState) {
+			assertionUpdateEnabledState.put(assertionResource, enabled);
 		}
 	}
 	
-	public boolean isAssertionActive(Resource assertionResource) {
-		synchronized(assertionActiveState) {
-			Boolean active = assertionActiveState.get(assertionResource);
-			return active == null ? activeByDefault : active;
+	public boolean isAssertionUpdateEnabled(Resource assertionResource) {
+		synchronized(assertionUpdateEnabledState) {
+			Boolean active = assertionUpdateEnabledState.get(assertionResource);
+			return active == null ? enabledByDefault : active;
 		}
 	}
 	
-	public List<Resource> getActiveAssertions() {
+	public List<Resource> listEnabledAssertions() {
 		List<Resource> activeAssertions = new LinkedList<Resource>();
-		for (Resource assertionRes : assertionActiveState.keySet()) {
-			if (assertionActiveState.get(assertionRes)) {
+		for (Resource assertionRes : assertionUpdateEnabledState.keySet()) {
+			if (assertionUpdateEnabledState.get(assertionRes)) {
 				activeAssertions.add(assertionRes);
 			}
 		}
@@ -174,7 +173,7 @@ public class ContextAssertionIndex {
 	}
 	
 	
-	public boolean containsAssertion(OntResource assertion) {
+	public boolean containsAssertion(Resource assertion) {
 		return assertionInfoMap.containsKey(assertion);
 	}
 	

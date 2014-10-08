@@ -602,7 +602,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// =============================== CONSERT Engine assertion update/inference management =============================== //
 	@Override
 	public void setAssertionInsertActiveByDefault(boolean activeByDefault) {
-		Engine.getContextAssertionIndex().setActiveByDefault(activeByDefault);
+		Engine.getContextAssertionIndex().setEnabledByDefault(activeByDefault);
 	}
 	
 	@Override
@@ -612,7 +612,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
 	public void setAssertionActive(Resource assertionResource, boolean active) {
-		Engine.getContextAssertionIndex().setAssertionActive(assertionResource, active);
+		Engine.getContextAssertionIndex().setAssertionUpdateEnabledActive(assertionResource, active);
 		
 		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		if (assertion.getAssertionType() == ContextAssertionType.Derived) {
@@ -622,7 +622,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
     public void setDerivationRuleActive(Resource derivedAssertionResource, boolean active) {
-		Engine.getContextAssertionIndex().setAssertionActive(derivedAssertionResource, active);
+		Engine.getContextAssertionIndex().setAssertionUpdateEnabledActive(derivedAssertionResource, active);
 		
 		ContextAssertion derivedAssertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
 		Engine.getDerivationRuleDictionary().setDerivedAssertionActive(derivedAssertion, active);
@@ -743,13 +743,20 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	}
 
 	@Override
-    public boolean assertionUpdatesEnabled(Resource assertionResource) {
-		return Engine.getContextAssertionIndex().isAssertionActive(assertionResource);
+    public AssertionEnableStatus getAssertionEnableStatus(Resource assertionResource) {
+		boolean containedInModel = Engine.getContextAssertionIndex().containsAssertion(assertionResource);
+		boolean updatesEnabled = false;
+		
+		if (containedInModel) {
+			updatesEnabled = Engine.getContextAssertionIndex().isAssertionUpdateEnabled(assertionResource);
+		}
+		
+		return new AssertionEnableStatus(containedInModel, updatesEnabled);
     }
 	
 	@Override
 	public List<Resource> getEnabledAssertions() {
-		return Engine.getContextAssertionIndex().getActiveAssertions();
+		return Engine.getContextAssertionIndex().listEnabledAssertions();
 	}
 	
 	

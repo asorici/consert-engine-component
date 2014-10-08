@@ -6,6 +6,24 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 public interface StatsHandler {
 	
+	public static class AssertionEnableStatus {
+		private boolean containedInContextModel;
+		private boolean updatesEnabled;
+		
+		public AssertionEnableStatus(boolean containedInContextModel, boolean updatesEnabled) {
+	        this.containedInContextModel = containedInContextModel;
+	        this.updatesEnabled = updatesEnabled;
+        }
+
+		public boolean updatesEnabled() {
+			return updatesEnabled;
+		}
+		
+		public boolean containedInContextModel() {
+			return containedInContextModel;
+		}
+	}
+	
 	/* ================ Statistics computation parameters ================ */
 	public long getDefaultQueryRunWindow();
 	
@@ -18,7 +36,7 @@ public interface StatsHandler {
 	
 	/* ================ Statistics for ContextAssertion insertions ================ */
 	// public EngineInsertionStats getInsertionStatistics();
-	public boolean assertionUpdatesEnabled(Resource assertionResource);
+	public AssertionEnableStatus getAssertionEnableStatus(Resource assertionResource);
 	
 	public List<Resource> getEnabledAssertions();
 	
