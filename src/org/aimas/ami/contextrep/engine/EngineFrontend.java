@@ -1,6 +1,7 @@
 package org.aimas.ami.contextrep.engine;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.concurrent.Future;
 import org.aimas.ami.contextrep.engine.api.AssertionUpdateListener;
 import org.aimas.ami.contextrep.engine.api.CommandException;
 import org.aimas.ami.contextrep.engine.api.CommandHandler;
+import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
 import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.engine.api.EngineConfigException;
 import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
@@ -24,10 +26,12 @@ import org.aimas.ami.contextrep.engine.api.QueryHandler;
 import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
+import org.aimas.ami.contextrep.engine.core.ContextConstraintIndex.ConstraintType;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
 import org.aimas.ami.contextrep.engine.execution.ExecutionMonitor;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
+import org.aimas.ami.contextrep.engine.execution.PreferNewestConstraintResolution;
 import org.aimas.ami.contextrep.engine.utils.ContextAssertionFinder;
 import org.aimas.ami.contextrep.engine.utils.ContextAssertionGraph;
 import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
@@ -94,8 +98,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	private TimeService timeService;
 	
 	/**
-	 * The default OSGi logging service (used also for logging information 
-	 * relevant to execution performance monitoring)
+	 * The default OSGi logging service
 	 */
 	//private LogService logService;
 	//private LogReaderService logReaderService;
@@ -113,8 +116,18 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	 */
 	private Dependency inferencePriorityProviderDependency;
 	
+	private Dependency defaultIntegrityResolutionDependency;
+	private Dependency defaultUniquenessResolutionDependency;
 	
-	public EngineFrontend() {}
+	private Map<Resource, Dependency> specificIntegrityResolutionDependenies;
+	private Map<Resource, Dependency> specificUniquenessResolutionDependenies;
+	private Map<Resource, Dependency> specificValueResolutionDependenies;
+	
+	public EngineFrontend() {
+		specificIntegrityResolutionDependenies = new HashMap<Resource, Dependency>();
+		specificUniquenessResolutionDependenies = new HashMap<Resource, Dependency>();
+		specificValueResolutionDependenies = new HashMap<Resource, Dependency>();
+	}
 	
 	// ==================== INITIALIZATION AND TAKE-DOWN HANDLING =================== //
 	////////////////////////////////////////////////////////////////////////////////////
@@ -137,13 +150,45 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 			Engine.getInferenceService().setPriorityProvider(inferencePriorityProvider, false);
 		}
 		
-		/* There will be a case when this method is called when we switch out services 
+		/* 
+		 * There will be a case when this method is called when we switch out services 
 		 * from one type to another. However, in those cases the addedInferencePriorityProvider
 		 * function will have already been called with the new interface, such that when we call this
 		 * with the old provider, we don't have to do anything.
 		 */
 	}
 	
+	
+	@SuppressWarnings("unused")
+	private void addedDefaultUniquenessResolution(ConstraintResolutionService uniquenessResolutionService) {
+		Engine.getConstraintIndex().setDefaultUniquenessResolutionService(uniquenessResolutionService);
+	}
+	
+	@SuppressWarnings("unused")
+	private void removedDefaultUniquenessResolution(ConstraintResolutionService uniquenessResolutionService) {
+		ConstraintResolutionService currentUniquenessResolutionService = Engine.getConstraintIndex().getDefaultUniquenessResolutionService();
+		
+		if (currentUniquenessResolutionService == uniquenessResolutionService) {
+			// if the priority provider we were currently using was removed, revert to the default implementation (PreferNewest)
+			Engine.getConstraintIndex().setDefaultUniquenessResolutionService(PreferNewestConstraintResolution.getInstance());
+		}
+	}
+	
+	
+	@SuppressWarnings("unused")
+	private void addedDefaultIntegrityResolution(ConstraintResolutionService integrityResolutionService) {
+		Engine.getConstraintIndex().setDefaultIntegrityResolutionService(integrityResolutionService);
+	}
+	
+	@SuppressWarnings("unused")
+	private void removedDefaultIntegrityResolution(ConstraintResolutionService integrityResolutionService) {
+		ConstraintResolutionService currentIntegrityResolutionService = Engine.getConstraintIndex().getDefaultIntegrityResolutionService();
+		
+		if (currentIntegrityResolutionService == integrityResolutionService) {
+			// if the priority provider we were currently using was removed, revert to the default implementation (PreferNewest)
+			Engine.getConstraintIndex().setDefaultIntegrityResolutionService(PreferNewestConstraintResolution.getInstance());
+		}
+	}
 	
 	// We first wait for the context-domain specific configuration above and now try
 	// initialization. We try to read the CONSERT Engine specific configuration file and process it. 
@@ -316,7 +361,6 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	// =============================== COMMAND HANDLING =============================== //
 	//////////////////////////////////////////////////////////////////////////////////////
-	
 	@Override
     public Dataset getRuntimeContextStore() {
 	    return Engine.getRuntimeContextStore();
@@ -399,12 +443,13 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	    Engine.getInferenceService().setSpecificRunWindow(assertionResource, runWindow);
     }
 	
+	// =============================== CONSERT Engine dynamic service configuration =============================== // 
 	@Override
     public void setInferenceSchedulingType(String priorityProviderType) {
 	    Dependency oldDependency = inferencePriorityProviderDependency;
 	    inferencePriorityProviderDependency = 
 	    	engineComponent.getDependencyManager().createServiceDependency()
-				.setService(InferencePriorityProvider.class, "(type=" + priorityProviderType + ")")
+				.setService(InferencePriorityProvider.class, "(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + priorityProviderType + ")")
 				.setDefaultImplementation(FCFSPriorityProvider.getInstance())
 				.setCallbacks("addedInferencePriorityProvider", "removedInferencePriorityProvider");
 	    
@@ -412,9 +457,149 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	    engineComponent.add(inferencePriorityProviderDependency);
 	    
 	    // remove the old one
-	    engineComponent.remove(oldDependency);
+	    if (oldDependency != null) {
+	    	engineComponent.remove(oldDependency);
+	    }
 	}
 	
+	
+	@Override
+    public void setDefaultUniquenessConstraintResolution(String resolutionServiceName) {
+		Dependency oldDependency = defaultUniquenessResolutionDependency;
+		defaultUniquenessResolutionDependency = 
+	    	engineComponent.getDependencyManager().createServiceDependency()
+				.setService(ConstraintResolutionService.class, "(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")")
+				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setCallbacks("addedDefaultUniquenessResolution", "removedDefaultUniquenessResolution");
+	    
+	    // add the new dependency
+	    engineComponent.add(defaultUniquenessResolutionDependency);
+	    
+	    // remove the old one
+	    if (oldDependency != null) {
+	    	engineComponent.remove(oldDependency);
+	    }
+    }
+
+	@Override
+    public void setDefaultIntegrityConstraintResolution(String resolutionServiceName) {
+		Dependency oldDependency = defaultIntegrityResolutionDependency;
+		defaultIntegrityResolutionDependency = 
+	    	engineComponent.getDependencyManager().createServiceDependency()
+				.setService(ConstraintResolutionService.class, "(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")")
+				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setCallbacks("addedDefaultIntegrityResolution", "removedDefaultIntegrityResolution");
+	    
+	    // add the new dependency
+	    engineComponent.add(defaultIntegrityResolutionDependency);
+	    
+	    // remove the old one
+	    if (oldDependency != null) {
+	    	engineComponent.remove(oldDependency);
+	    }
+    }
+
+	@Override
+    public void setSpecificUniquenessConstraintResolution(Resource assertionResource, String resolutionServiceName) {
+		SpecificConstraintResolutionServiceTracker serviceTracker = new SpecificConstraintResolutionServiceTracker(assertionResource, ConstraintType.Uniqueness);
+		Dependency oldDependency = specificUniquenessResolutionDependenies.get(assertionResource);
+		Dependency newDependency = 
+			engineComponent.getDependencyManager().createServiceDependency()
+				.setService(ConstraintResolutionService.class, "(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")")
+				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setCallbacks(serviceTracker, "resolutionServiceAdded", "resolutionServiceRemoved");
+		
+		// add the new dependency
+		specificUniquenessResolutionDependenies.put(assertionResource, newDependency);
+	    engineComponent.add(newDependency);
+	    
+	    // remove the old one
+	    if (oldDependency != null) {
+	    	engineComponent.remove(oldDependency);
+	    }
+    }
+
+	@Override
+    public void setSpecificIntegrityConstraintResolution(Resource assertionResource, String resolutionServiceName) {
+		SpecificConstraintResolutionServiceTracker serviceTracker = new SpecificConstraintResolutionServiceTracker(assertionResource, ConstraintType.Integrity);
+		Dependency oldDependency = specificIntegrityResolutionDependenies.get(assertionResource);
+		Dependency newDependency = 
+			engineComponent.getDependencyManager().createServiceDependency()
+				.setService(ConstraintResolutionService.class, "(type=" + resolutionServiceName + ")")
+				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setCallbacks(serviceTracker, "resolutionServiceAdded", "resolutionServiceRemoved");
+		
+		// add the new dependency
+		specificIntegrityResolutionDependenies.put(assertionResource, newDependency);
+	    engineComponent.add(newDependency);
+	    
+	    // remove the old one
+	    if (oldDependency != null) {
+	    	engineComponent.remove(oldDependency);
+	    }
+    }
+
+	@Override
+    public void setSpecificValueConstraintResolution(Resource assertionResource, String resolutionServiceName) {
+		SpecificConstraintResolutionServiceTracker serviceTracker = new SpecificConstraintResolutionServiceTracker(assertionResource, ConstraintType.Value);
+		Dependency oldDependency = specificValueResolutionDependenies.get(assertionResource);
+		Dependency newDependency = 
+			engineComponent.getDependencyManager().createServiceDependency()
+				.setService(ConstraintResolutionService.class, "(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")")
+				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setCallbacks(serviceTracker, "resolutionServiceAdded", "resolutionServiceRemoved");
+		
+		// add the new dependency
+		specificValueResolutionDependenies.put(assertionResource, newDependency);
+	    engineComponent.add(newDependency);
+	    
+	    // remove the old one
+	    if (oldDependency != null) {
+	    	engineComponent.remove(oldDependency);
+	    }
+    }
+	
+	private class SpecificConstraintResolutionServiceTracker {
+		private Resource assertionResource;
+		private ConstraintType constraintType;
+		
+		public SpecificConstraintResolutionServiceTracker(Resource assertionResource, ConstraintType constraintType) {
+	        this.assertionResource = assertionResource;
+	        this.constraintType = constraintType;
+        }
+
+		@SuppressWarnings("unused")
+        public void resolutionServiceAdded(ConstraintResolutionService resolutionService) {
+			ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+			
+			if (constraintType == ConstraintType.Uniqueness) {
+				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, resolutionService);
+			}
+			else if (constraintType == ConstraintType.Integrity) {
+				Engine.getConstraintIndex().setIntegrityResolutionService(assertion, resolutionService);
+			}
+			else {
+				Engine.getConstraintIndex().setValueResolutionService(assertion, resolutionService);
+			}
+		}
+		
+		@SuppressWarnings("unused")
+        public void resolutionServiceRemoved(ConstraintResolutionService resolutionService) {
+			ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+			
+			if (constraintType == ConstraintType.Uniqueness && Engine.getConstraintIndex().getUniquenessResolutionService(assertion) == resolutionService) {
+				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
+			}
+			else if (constraintType == ConstraintType.Integrity && Engine.getConstraintIndex().getIntegrityResolutionService(assertion) == resolutionService) {
+				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
+			}
+			else if (Engine.getConstraintIndex().getValueResolutionService(assertion) == resolutionService) {
+				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
+			}
+		}
+	}
+	
+	// =============================== CONSERT Engine assertion update/inference management =============================== //
 	@Override
 	public void setAssertionInsertActiveByDefault(boolean activeByDefault) {
 		Engine.getContextAssertionIndex().setActiveByDefault(activeByDefault);

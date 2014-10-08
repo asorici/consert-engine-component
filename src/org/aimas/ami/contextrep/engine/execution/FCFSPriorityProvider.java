@@ -13,6 +13,8 @@ import org.aimas.ami.contextrep.engine.api.InferenceRequest;
 public class FCFSPriorityProvider implements InferencePriorityProvider {
 	private static FCFSPriorityProvider instance;
 	
+	private FCFSPriorityProvider() {}
+	
 	@Override
     public void computePriorities(List<? extends InferenceRequest> requestList, EngineInferenceStats inferenceStats) {
 	    // effectively do nothing, as the request list is ordered by default by its enqueue timestamp (FCFS)

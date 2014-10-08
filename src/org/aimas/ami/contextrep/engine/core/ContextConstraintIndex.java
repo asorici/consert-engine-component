@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
 import org.aimas.ami.contextrep.engine.utils.ConstraintsWrapper;
 import org.aimas.ami.contextrep.engine.utils.ContextAssertionFinder;
 import org.aimas.ami.contextrep.engine.utils.ContextAssertionGraph;
@@ -27,10 +28,24 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public class ContextConstraintIndex {
+	public static enum ConstraintType {
+		Integrity, Uniqueness, Value
+	}
+	
 	private Map<ContextAssertion, ConstraintsWrapper> assertion2ConstraintMap;
+	private Map<ContextAssertion, ConstraintResolutionService> uniquenessResolutionServiceMap;
+	private Map<ContextAssertion, ConstraintResolutionService> integrityResolutionServiceMap;
+	private Map<ContextAssertion, ConstraintResolutionService> valueResolutionServiceMap;
+	
+	private ConstraintResolutionService defaultUniquenessResolutionService;
+	private ConstraintResolutionService defaultIntegrityResolutionService;
 	
 	ContextConstraintIndex() {
-		assertion2ConstraintMap = new HashMap<>();
+		assertion2ConstraintMap = new HashMap<ContextAssertion, ConstraintsWrapper>();
+		
+		uniquenessResolutionServiceMap = new HashMap<ContextAssertion, ConstraintResolutionService>();
+		integrityResolutionServiceMap = new HashMap<ContextAssertion, ConstraintResolutionService>();
+		valueResolutionServiceMap = new HashMap<ContextAssertion, ConstraintResolutionService>();
 	}
 	
 	public void addAssertionConstraint(ContextAssertion assertion, ConstraintsWrapper constraints) {
@@ -41,6 +56,48 @@ public class ContextConstraintIndex {
 		return assertion2ConstraintMap.get(assertion);
 	}
 	
+	// ============================== Default constraint resolution services ============================ 
+	public void setDefaultUniquenessResolutionService(ConstraintResolutionService uniquenessResolutionService) {
+	    this.defaultUniquenessResolutionService = uniquenessResolutionService;
+    }
+	
+	public ConstraintResolutionService getDefaultUniquenessResolutionService() {
+	    return defaultUniquenessResolutionService;
+    }
+	
+	public void setDefaultIntegrityResolutionService(ConstraintResolutionService integrityResolutionService) {
+		this.defaultIntegrityResolutionService = integrityResolutionService;
+    }
+	
+	public ConstraintResolutionService getDefaultIntegrityResolutionService() {
+	    return defaultIntegrityResolutionService;
+    }
+
+	// ============================== ContextAssertion specific constraint resolution services ============================
+	public void setUniquenessResolutionService(ContextAssertion assertion, ConstraintResolutionService resolutionService) {
+		uniquenessResolutionServiceMap.put(assertion, resolutionService);
+	}
+	
+	public ConstraintResolutionService getUniquenessResolutionService(ContextAssertion assertion) {
+		return uniquenessResolutionServiceMap.get(assertion);
+	}
+	
+	public void setIntegrityResolutionService(ContextAssertion assertion, ConstraintResolutionService resolutionService) {
+		integrityResolutionServiceMap.put(assertion, resolutionService);
+	}
+	
+	public ConstraintResolutionService getIntegrityResolutionService(ContextAssertion assertion) {
+		return integrityResolutionServiceMap.get(assertion);
+	}
+	
+	public void setValueResolutionService(ContextAssertion assertion, ConstraintResolutionService resolutionService) {
+		valueResolutionServiceMap.put(assertion, resolutionService);
+	}
+	
+	public ConstraintResolutionService getValueResolutionService(ContextAssertion assertion) {
+		return valueResolutionServiceMap.get(assertion);
+	}
+		
 	
 	/**
 	 * Create an index of uniqueness or value constraints attached to a ContextAssertion. It provides a mapping

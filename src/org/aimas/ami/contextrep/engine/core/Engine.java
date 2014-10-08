@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
 import org.aimas.ami.contextrep.engine.api.EngineConfigException;
 import org.aimas.ami.contextrep.engine.execution.InferenceService;
 import org.aimas.ami.contextrep.engine.execution.InsertionService;

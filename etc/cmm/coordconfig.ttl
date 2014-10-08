@@ -262,11 +262,11 @@ coordconf:hasStopAssertionCommand
 :ProvisionPolicy_EF210
   rdf:type coordconf:ControlPolicy ;
   coordconf:enablesAssertionByDefault "false"^^xsd:boolean ;
-  coordconf:hasDefaultIntegrityResolution coordconf:PreferAccurate ;
+  coordconf:hasDefaultIntegrityConstraintResolution coordconf:PreferAccurate ;
   coordconf:hasDefaultOntReasoningInterval 10 ;
   coordconf:hasDefaultRunWindow 30 ;
   coordconf:hasDefaultTTLSpec 100 ;
-  coordconf:hasDefaultUniquenessResolution coordconf:PreferNewest ;
+  coordconf:hasDefaultUniquenessConstraintResolution coordconf:PreferNewest ;
   coordconf:hasInferenceSchedulingType coordconf:FCFS ;
   coordconf:hasSpecificAssertionEnabling :enablePresenceByDefault ;
   coordconf:hasSpecificAssertionEnabling [

@@ -13,7 +13,6 @@ import org.aimas.ami.contextrep.update.CheckContinuityHook;
 import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.openjena.atlas.lib.Pair;
 
-import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -32,12 +31,10 @@ public class ContextAnnotationUtil {
 	 * grouped by the Statements which bind the <i>ContextAssertion</i> to its <i>ContextAnnotations</i>.
 	 * @param contextAssertion
 	 * @param assertionUUID
-	 * @param contextModel
 	 * @param contextStoreDataset
 	 * @return A mapping from the <i>ContextAnnotation</i> {@link Statement} to the list of statements that define the annotations. 
 	 */
-	public static Map<Statement, Set<Statement>> getAnnotationsFor(ContextAssertion contextAssertion, Resource assertionUUID, 
-			OntModel contextModel, Dataset contextStoreDataset) {
+	public static Map<Statement, Set<Statement>> getAnnotationsFor(ContextAssertion contextAssertion, Resource assertionUUID, Dataset contextStoreDataset) {
 		Map<Statement, Set<Statement>> annotationsMap = new HashMap<Statement, Set<Statement>>();
 		
 		// get the all annotation properties defined in the Context Model

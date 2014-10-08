@@ -10,10 +10,12 @@ import java.util.concurrent.Callable;
 
 import org.aimas.ami.contextrep.datatype.CalendarInterval;
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
+import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
 import org.aimas.ami.contextrep.engine.api.InsertException;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
+import org.aimas.ami.contextrep.engine.core.ContextStoreSnapshot;
 import org.aimas.ami.contextrep.engine.core.DerivationRuleDictionary;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.execution.ContextInsertNotifier;
@@ -23,6 +25,8 @@ import org.aimas.ami.contextrep.engine.utils.ContextStoreUtil;
 import org.aimas.ami.contextrep.engine.utils.ContextUpdateUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
+import org.aimas.ami.contextrep.model.ContextConstraintViolation;
+import org.aimas.ami.contextrep.model.ViolationAssertionWrapper;
 import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.openjena.atlas.lib.Pair;
@@ -173,12 +177,71 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 					return res;
 				}
 				else if (constraintResult.hasViolation()) {
-					// ============================================================================
-					// BIG TODO: IF WE DETECT A VIOLATION WE MUST INVOKE THE RESOLUTION SERVICE NOW
-					// ============================================================================
-					InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
-					if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
-					return res;
+					// IF WE DETECT A VIOLATION WE INVOKE THE RESOLUTION SERVICE NOW
+					
+					// wrap this transaction of the ContextStore as a snapshot
+					ContextStoreSnapshot contextStoreSnapshot = new ContextStoreSnapshot(contextDataset);
+					
+					for (ContextConstraintViolation violation : constraintResult.getViolations()) {
+						// If we are dealing with a value constraint violation
+						if (violation.isValueConstraint()) {
+							ConstraintResolutionService resolutionService = Engine.getConstraintIndex().getValueResolutionService(insertedAssertion);
+							if (resolutionService != null) {
+								if (resolutionService.resolveViolation(violation, contextStoreSnapshot) == null) {
+									// the assertion instance was rejected, so what we do is just break off the transaction and notify failure of insertion
+									InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
+									if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+									return res;
+								}
+								// The resolution service must have applied a correction since it wants to keep the newly inserted value, 
+								// so we just along
+							}
+						}
+						else {
+							// Otherwise we must distinguish between integrity and uniqueness constraint violations
+							ConstraintResolutionService resolutionService = null;
+							if (violation.isUniquenessConstraint()) {
+								resolutionService = Engine.getConstraintIndex().getUniquenessResolutionService(insertedAssertion); 
+								if (resolutionService == null) resolutionService = Engine.getConstraintIndex().getDefaultUniquenessResolutionService();
+							}
+							else if (violation.isIntegrityConstraint()) {
+								resolutionService = Engine.getConstraintIndex().getUniquenessResolutionService(insertedAssertion); 
+								if (resolutionService == null) resolutionService = Engine.getConstraintIndex().getDefaultUniquenessResolutionService();
+							}
+							
+							ContextAssertion firstAssertion = violation.getViolatingAssertions()[0].getAssertion();
+							Resource firstAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[0].getAssertionInstanceUUID());
+							
+							ContextAssertion secondAssertion = violation.getViolatingAssertions()[1].getAssertion();
+							Resource secondAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[1].getAssertionInstanceUUID());
+							
+							ViolationAssertionWrapper keptAssertionWrapper = resolutionService.resolveViolation(violation, contextStoreSnapshot);
+							if (keptAssertionWrapper == null) {
+								// we need to delete both instances
+								ContextUpdateUtil.deleteContextAssertionInstance(firstAssertion, firstAssertionUUID, contextDataset);
+								ContextUpdateUtil.deleteContextAssertionInstance(secondAssertion, secondAssertionUUID, contextDataset);
+								
+								// commit the changes and return insertion failure
+								contextDataset.commit();
+								InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
+								if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+								return res;
+							}
+							else {
+								if (keptAssertionWrapper.getAssertionInstanceUUID().equals(insertedAssertionUUID)) {
+									// If we must delete the newly inserted ContextAssertion instance, abandon the transaction and return insertion failure
+									InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
+									if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
+									return res;
+								}
+								else {
+									// Otherwise an existing assertion instance must be deleted and afterward we continue normally with the checks
+									ContextUpdateUtil.deleteContextAssertionInstance(keptAssertionWrapper.getAssertion(), 
+											ResourceFactory.createResource(keptAssertionWrapper.getAssertionInstanceUUID()), contextDataset);
+								}
+							}
+						}
+					}
 				}
 				
 				// STEP 5C: if all is well up to here, check for inheritance

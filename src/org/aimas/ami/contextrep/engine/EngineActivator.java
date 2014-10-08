@@ -3,11 +3,15 @@ package org.aimas.ami.contextrep.engine;
 import java.util.Hashtable;
 
 import org.aimas.ami.contextrep.engine.api.CommandHandler;
+import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
 import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
 import org.aimas.ami.contextrep.engine.api.InsertionHandler;
 import org.aimas.ami.contextrep.engine.api.QueryHandler;
 import org.aimas.ami.contextrep.engine.api.StatsHandler;
+import org.aimas.ami.contextrep.engine.execution.DropAllConstraintResolution;
 import org.aimas.ami.contextrep.engine.execution.FCFSPriorityProvider;
+import org.aimas.ami.contextrep.engine.execution.PreferAccurateConstraintResolution;
+import org.aimas.ami.contextrep.engine.execution.PreferNewestConstraintResolution;
 import org.aimas.ami.contextrep.resources.SystemTimeService;
 import org.aimas.ami.contextrep.resources.TimeService;
 import org.apache.felix.dm.DependencyActivatorBase;
@@ -16,12 +20,11 @@ import org.osgi.framework.BundleContext;
 
 public class EngineActivator extends DependencyActivatorBase {
 	
-	public EngineActivator() {
-	}
+	public EngineActivator() {}
 	
 	@Override
 	public void init(BundleContext context, DependencyManager manager) throws Exception {
-		// create the CONSERT Engine component and configure its dependencies and lifecycle management
+		// Create the CONSERT Engine component and configure its dependencies and lifecycle management
 		manager.add(createComponent()
 			.setInterface(new String[] {InsertionHandler.class.getName(), QueryHandler.class.getName(), 
 					StatsHandler.class.getName(), CommandHandler.class.getName()}, null)
@@ -51,12 +54,26 @@ public class EngineActivator extends DependencyActivatorBase {
 			*/
 		);
 		
-		// register the Default FCFS InferenceRequestComparatorProvider that the CONSERT Engine
-		// supplies by default
+		// Register services exposed by default by the CONSERT Engine
+		// FCFS InferenceRequestComparatorProvider
 		Hashtable<String, String> props = new Hashtable<String, String>();
-		props.put("type", "FCFS");
-		context.registerService(InferencePriorityProvider.class, 
-				FCFSPriorityProvider.getInstance(), props);
+		props.put(InferencePriorityProvider.PRIORITY_PROVIDER_TYPE, "FCFS");
+		context.registerService(InferencePriorityProvider.class, FCFSPriorityProvider.getInstance(), props);
+		
+		// PreferNewest Constraint Resolution Service
+		props = new Hashtable<String, String>();
+		props.put(ConstraintResolutionService.RESOLUTION_TYPE, "PreferNewest");
+		context.registerService(ConstraintResolutionService.class, PreferNewestConstraintResolution.getInstance(), props);
+		
+		// PreferAccurate Constraint Resolution Service
+		props = new Hashtable<String, String>();
+		props.put(ConstraintResolutionService.RESOLUTION_TYPE, "PreferAccurate");
+		context.registerService(ConstraintResolutionService.class, PreferAccurateConstraintResolution.getInstance(), props);
+		
+		// DropAll Constraint Resolution Service
+		props = new Hashtable<String, String>();
+		props.put(ConstraintResolutionService.RESOLUTION_TYPE, "DropAll");
+		context.registerService(ConstraintResolutionService.class, DropAllConstraintResolution.getInstance(), props);
 	}
 	
 	@Override

@@ -79,6 +79,8 @@ public interface CommandHandler {
 	 */
 	public void setSpecificInferenceRunWindow(Resource assertionResource, long runWindow);
 	
+	// Configuration of CONSERT Engine dynamic services (e.g. inference priority computation, constraint resolution service) 
+	////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Set the InferenceRequest priority provider service type to be used by the 
 	 * CONSERT Engine inference service. The CONSERT Engine component will look up the new service
@@ -87,6 +89,43 @@ public interface CommandHandler {
 	 */
 	public void setInferenceSchedulingType(String priorityProviderType);
 	
+	/**
+	 * Set the Uniqueness Constraint Resolution service type to be used by the CONSERT Engine constraint resolution service.
+	 * The CONSERT Engine component will look up the new service type (which should exist in the OSGi runtime) and set it accordingly.
+	 * @param resolutionServiceName The name of the resolution service which will be used to filter for the appropriate OSGi service at runtime.
+	 */
+	public void setDefaultUniquenessConstraintResolution(String resolutionServiceName);
+	
+	/**
+	 * Set the Integrity Constraint Resolution service type to be used by the CONSERT Engine constraint resolution service.
+	 * The CONSERT Engine component will look up the new service type (which should exist in the OSGi runtime) and set it accordingly.
+	 * @param resolutionServiceName The name of the resolution service which will be used to filter for the appropriate OSGi service at runtime.
+	 */
+	public void setDefaultIntegrityConstraintResolution(String resolutionServiceName);
+	
+	/**
+	 * Set a ContextAssertion specific Uniqueness Constraint Resolution service type to be used by the CONSERT Engine constraint resolution service.
+	 * The CONSERT Engine component will look up the new service type (which should exist in the OSGi runtime) and set it accordingly.
+	 * @param assertionResource The ontology resource identifying the type of ContextAssertion for which we assign constraint resolution service
+	 * @param resolutionServiceName The name of the resolution service which will be used to filter for the appropriate OSGi service at runtime.
+	 */
+	public void setSpecificUniquenessConstraintResolution(Resource assertionResource, String resolutionServiceName);
+	
+	/**
+	 * Set a ContextAssertion specific Integrity Constraint Resolution service type to be used by the CONSERT Engine constraint resolution service.
+	 * The CONSERT Engine component will look up the new service type (which should exist in the OSGi runtime) and set it accordingly.
+	 * @param assertionResource The ontology resource identifying the type of ContextAssertion for which we assign constraint resolution service
+	 * @param resolutionServiceName The name of the resolution service which will be used to filter for the appropriate OSGi service at runtime.
+	 */
+	public void setSpecificIntegrityConstraintResolution(Resource assertionResource, String resolutionServiceName);
+	
+	/**
+	 * Set a ContextAssertion specific Value Constraint Resolution service type to be used by the CONSERT Engine constraint resolution service.
+	 * The CONSERT Engine component will look up the new service type (which should exist in the OSGi runtime) and set it accordingly.
+	 * @param assertionResource The ontology resource identifying the type of ContextAssertion for which we assign constraint resolution service
+	 * @param resolutionServiceName The name of the resolution service which will be used to filter for the appropriate OSGi service at runtime.
+	 */
+	public void setSpecificValueConstraintResolution(Resource assertionResource, String resolutionServiceName);
 	
 	
 	// Command (reasoning, cleanup, insertion and inference activate/deactivate) execution triggers

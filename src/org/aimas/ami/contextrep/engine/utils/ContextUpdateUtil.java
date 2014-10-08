@@ -2,10 +2,12 @@ package org.aimas.ami.contextrep.engine.utils;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.model.ContextAssertion;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Dataset;
@@ -129,5 +131,21 @@ public class ContextUpdateUtil {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Delete a ContextAssertion instance (content and annotations).
+	 * @param assertion The type of the ContextAssertion.
+	 * @param assertionUUID The assertion instance identifier encoded as a {@link Resource}.
+	 * @param contextStore A snapshot of the runtime ContextStore of the CONSERT Engine.
+	 */
+	public static void deleteContextAssertionInstance(ContextAssertion assertion, Resource assertionUUID, Dataset contextStore) {
+		// STEP 1: delete instance content
+		contextStore.removeNamedModel(assertionUUID.getURI());
+		
+		// STEP 2: access assertionStore and remove all annotation for the assertion instance
+		Model assertionStoreModel = contextStore.getNamedModel(assertion.getAssertionStoreURI());
+		Set<Statement> assertionAnnotationStatements = getAllMetaPropertiesFor(assertionUUID, assertionStoreModel);
+		assertionStoreModel.remove(new LinkedList<Statement>(assertionAnnotationStatements));
 	}
 }
