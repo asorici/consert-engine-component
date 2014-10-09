@@ -5,7 +5,7 @@ import org.aimas.ami.contextrep.engine.api.InferenceRequest;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;
 
-public class InferenceRequestWrapper implements InferenceRequest, Comparable<InferenceRequest> {
+public class InferenceRequestWrapper implements InferenceRequest {
 	private long priority;
 	
 	long enqueueTimestamp;
@@ -25,6 +25,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
 		return inferenceRequest;
 	}
 	
+	/*
 	@Override
     public long getPriority() {
 	    return priority;
@@ -35,7 +36,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
     public void setPriority(long priority) {
 	    this.priority = priority;
     }
-	
+	*/
 	
 	@Override
 	public long getEnqueueTimestamp() {
@@ -48,7 +49,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
 	    return inferenceRequest.getDerivationRule();
     }
 	
-	
+	/*
 	@Override
     public int compareTo(InferenceRequest o) {
 	    // since this is used in a priority queue if smallest first and we want 
@@ -72,7 +73,7 @@ public class InferenceRequestWrapper implements InferenceRequest, Comparable<Inf
 	    
 	    return 0;
     }
-	
+	*/
 	
 	@Override
     public int hashCode() {

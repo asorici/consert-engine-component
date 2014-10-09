@@ -7,7 +7,4 @@ public interface InferenceRequest {
 	
 	public ContextDerivationRule getDerivationRule();
 	
-	public long getPriority();
-	
-	public void setPriority(long priority);
 }

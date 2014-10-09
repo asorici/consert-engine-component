@@ -1,6 +1,7 @@
 package org.aimas.ami.contextrep.engine.execution;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,8 +19,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
 import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
+import org.aimas.ami.contextrep.engine.api.InferenceRequest;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.engine.core.Engine;
+import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.update.CheckInferenceHook;
 import org.aimas.ami.contextrep.update.ContextInferenceTask;
@@ -29,6 +33,8 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	private static InferenceService instance;
 	
 	private static final int DEFAULT_NUM_WORKERS = 1;
+	private static final int DEFAULT_PRIORITY_QUEUE_CAPACITY = 10;
+	
 	private static final int DEFAULT_SCHEDULER_SLEEP = 50;
 	private static final long DEFAULT_RUN_WINDOW = 60000;
 	
@@ -37,11 +43,14 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	private int numWorkers = DEFAULT_NUM_WORKERS;
 	
 	private PriorityBlockingQueue<InferenceRequestWrapper> requestQueue;
-	private InferencePriorityProvider requestPriorityProvider;
+	private InferencePriorityProvider rulePriorityProvider;
 	private AtomicBoolean newRequests = new AtomicBoolean(false);
 	
 	private ScheduledExecutorService schedulingTimer;
 	private int schedulingSleep = DEFAULT_SCHEDULER_SLEEP;
+	
+	private ScheduledExecutorService priorityEvaluationTimer;
+	private ScheduledFuture<?> priorityEvaluationTask;
 	
 	private long defaultRunWindow = DEFAULT_RUN_WINDOW;
 	private Map<Resource, Long> assertionSpecificRunWindow = new HashMap<Resource, Long>();	
@@ -54,21 +63,21 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     	// configure
 		configureExecutionParameters(execConfiguration);
     	
-		// setup scheduler (including comparator provider)
-    	setupScheduler();
-    	
     	// setup the request queue
-    	configureRequestQueue();
+    	List<ContextDerivationRule> activeDerivationRules = getActiveDerivationRules();
+		Map<ContextDerivationRule, Integer> priorityMap = rulePriorityProvider.computePriorities(activeDerivationRules, InferenceService.this);
+		Comparator<InferenceRequest> priorityComparator = new InferencePriorityComparator(priorityMap);
+    	configureRequestQueue(priorityComparator);
     	
     	// setup stats collection
     	configureStatisticsCollector();
 	}
     
-	
-    private void configureRequestQueue() {
+
+	private void configureRequestQueue(Comparator<InferenceRequest> priorityComparator) {
     	if (requestQueue == null) {
 	    	// first time initialization, we just have to create the queue
-	    	requestQueue = new PriorityBlockingQueue<InferenceRequestWrapper>();
+	    	requestQueue = new PriorityBlockingQueue<InferenceRequestWrapper>(DEFAULT_PRIORITY_QUEUE_CAPACITY, priorityComparator);
     	}
     	else {
     		// queue already exists, we have to recompute the priorities of the inference requests
@@ -77,8 +86,8 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     			List<InferenceRequestWrapper> temp = new ArrayList<InferenceRequestWrapper>();
     			requestQueue.drainTo(temp);
     			
-    			// ask the requestPriorityProvider to recompute the priorities
-    			requestPriorityProvider.computePriorities(temp, this);
+    			// set the new priority comparator for the inference request queue
+    			requestQueue = new PriorityBlockingQueue<InferenceRequestWrapper>(temp.size(), priorityComparator);
     			
     			// re-add the re-prioritized requests to the queue 
     			requestQueue.addAll(temp);
@@ -124,28 +133,65 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     private void setupScheduler() {
     	// setup the internal scheduler (a ScheduledExecutorService)
     	schedulingTimer = Executors.newScheduledThreadPool(1);
-    	
-    	// setup the default inference request comparator provider
-    	requestPriorityProvider = FCFSPriorityProvider.getInstance();
     }
+    
+    private void setupPriorityComputation() {
+    	// setup the default inference request comparator provider
+    	if (rulePriorityProvider == null) {
+    		rulePriorityProvider = FCFSPriorityProvider.getInstance();
+    	}
+    	
+    	// setup the internal scheduler for the priority evaluation
+    	priorityEvaluationTimer = Executors.newScheduledThreadPool(1);
+    }
+
+    
     
     // ============================== RUNTIME ==============================
  	////////////////////////////////////////////////////////////////////////
     public void start() {
 		// start the first scheduling task
+    	if (schedulingTimer == null || schedulingTimer.isShutdown()) {
+    		setupScheduler();
+    	}
     	schedulingTimer.schedule(new InferenceSchedulingTask(), 0, TimeUnit.MILLISECONDS);
+    	
+    	// start the priority computation task
+    	if (priorityEvaluationTimer == null || priorityEvaluationTimer.isShutdown()) {
+    		setupPriorityComputation();
+    	}
+    	priorityEvaluationTask = priorityEvaluationTimer.scheduleAtFixedRate(new PriorityEvaluationTask(), defaultRunWindow / 2, defaultRunWindow, TimeUnit.MILLISECONDS);
 	}
 	
     @Override
     public void stop() {
     	// stop the internal scheduler, allowing the last schedule task to finish execution
-	    schedulingTimer.shutdown();
+	    if (schedulingTimer != null) {
+	    	schedulingTimer.shutdown();
+	    	schedulingTimer = null;
+	    }
+	    
+	    // stop the internal priority evaluation scheduler, cancelling the ongoing task
+	    if (priorityEvaluationTimer != null) {
+	    	priorityEvaluationTimer.shutdown();
+	    	priorityEvaluationTimer = null;
+	    	priorityEvaluationTask = null;
+	    }
     }
     
     @Override
     public void close() {
     	// stop the internal scheduler now
-    	schedulingTimer.shutdownNow();
+    	if (schedulingTimer != null) {
+    		schedulingTimer.shutdownNow();
+    	}
+    	
+    	// stop the priority evaluation scheduler
+    	if (priorityEvaluationTimer != null) {
+    		priorityEvaluationTimer.shutdown();
+    		priorityEvaluationTimer = null;
+    		priorityEvaluationTask = null;
+    	}
     	
     	// close executors
 		inferenceExecutor.shutdown();
@@ -153,17 +199,28 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	
 	
     public void setPriorityProvider(InferencePriorityProvider requestPriorityProvider, boolean reviseQueue) {
-    	this.requestPriorityProvider = requestPriorityProvider;
+    	// set the new rule priority evaluation provider
+    	this.rulePriorityProvider = requestPriorityProvider;
     	
     	if (reviseQueue) {
-    		configureRequestQueue();
+    		// compute the new priority comparator now and revise the queue ordering
+    		List<ContextDerivationRule> activeDerivationRules = getActiveDerivationRules();
+    		Map<ContextDerivationRule, Integer> priorityMap = requestPriorityProvider.computePriorities(activeDerivationRules, InferenceService.this);
+    		Comparator<InferenceRequest> priorityComparator = new InferencePriorityComparator(priorityMap);
+        	
+    		configureRequestQueue(priorityComparator);
     	}
     }
     
     
-    
     public void setDefaultRunWindow(long runWindow) {
     	this.defaultRunWindow = runWindow * 1000;	// conversion to milliseconds
+    	
+    	// If we change the default run window and there is an active priorityEvaluation task, cancel it and reschedule
+    	if (priorityEvaluationTask != null) {
+    		priorityEvaluationTask.cancel(false);
+    		priorityEvaluationTask = priorityEvaluationTimer.scheduleAtFixedRate(new PriorityEvaluationTask(), defaultRunWindow / 2, defaultRunWindow, TimeUnit.MILLISECONDS);
+    	}
     }
     
     /**
@@ -184,6 +241,21 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
      */
     public Long getSpecificRunWindow(Resource contextAssertionRes) {
     	return assertionSpecificRunWindow.get(contextAssertionRes);
+    }
+    
+    
+    private List<ContextDerivationRule> getActiveDerivationRules() {
+    	List<ContextAssertion> derivedAssertions = Engine.getContextAssertionIndex().getDerivedContextAssertions();
+    	
+    	List<ContextDerivationRule> activeDerivationRules = new LinkedList<ContextDerivationRule>();
+		for (ContextAssertion assertion: derivedAssertions) {
+			if (Engine.getDerivationRuleDictionary().isDerivedAssertionActive(assertion)) {
+				List<DerivationRuleWrapper> assertionDerivationRules = Engine.getDerivationRuleDictionary().getDerivedAssertionRules(assertion);
+				activeDerivationRules.addAll(assertionDerivationRules);
+			}
+		}
+		
+		return activeDerivationRules;
     }
     
     
@@ -244,20 +316,68 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	        	}
 	        }
 			
-			// STEP 3: if from last time there were new entries in the request queue,
-			// reconfigure it based on updated statistics
-			if (newRequests.get()) {
-				configureRequestQueue();	// if the queue is now empty, we basically just update the comparator
-				newRequests.set(false);		// reset newRequest marker
-			}
-			
-			// STEP 4: if we are not stopped, schedule a new InferenceScheduling task within `schedulingSleep' ms
+			// STEP 3: if we are not stopped, schedule a new InferenceScheduling task within `schedulingSleep' ms
 			if (!schedulingTimer.isShutdown()) {
 				schedulingTimer.schedule(new InferenceSchedulingTask(), schedulingSleep, TimeUnit.MILLISECONDS);
 			}
         }
 	}
 	
+	
+	private class PriorityEvaluationTask implements Runnable {
+
+		@Override
+        public void run() {
+			// If from last time there were new entries in the request queue, re-evaluate based on updated statistics
+			if (newRequests.get()) {
+				// STEP 1: get all active ContextDerivationRules
+				List<ContextDerivationRule> activeDerivationRules = getActiveDerivationRules();
+				
+				// STEP 2: invoke the inference priority provider service to get the priority map
+				Map<ContextDerivationRule, Integer> priorityMap = rulePriorityProvider.computePriorities(activeDerivationRules, InferenceService.this);
+				Comparator<InferenceRequest> priorityComparator = new InferencePriorityComparator(priorityMap);
+				
+				// STEP 3: recompute the inference priority queue
+				configureRequestQueue(priorityComparator);
+				
+				// Lastly, reset newRequest marker
+				newRequests.set(false);		
+			}
+        }
+	}
+	
+	
+	private class InferencePriorityComparator implements Comparator<InferenceRequest> {
+		
+		private Map<ContextDerivationRule, Integer> priorityMap;
+		
+		public InferencePriorityComparator(Map<ContextDerivationRule, Integer> priorityMap) {
+	        this.priorityMap = priorityMap;
+        }
+		
+		@Override
+        public int compare(InferenceRequest req1, InferenceRequest req2) {
+			int p1 = 0;
+	        int p2 = 0;
+        
+			if (priorityMap != null) {
+				p1 = priorityMap.get(req1.getDerivationRule()) == null ? 0 : priorityMap.get(req1.getDerivationRule());
+		        p2 = priorityMap.get(req2.getDerivationRule()) == null ? 0 : priorityMap.get(req2.getDerivationRule());
+	        }
+			
+	        if (p1 == p2) {
+	        	if (req1.getEnqueueTimestamp() > req2.getEnqueueTimestamp()) 
+	        		return -1;
+	        	else if (req1.getEnqueueTimestamp() < req2.getEnqueueTimestamp()) 
+	        		return 1;
+	        	else 
+	        		return 0;
+	        }
+	        else {
+	        	return p2 - p1;
+	        }
+		}
+	}
 	
 	// ================ Inference Statistics Implementation ================
 	////////////////////////////////////////////////////////////////////////

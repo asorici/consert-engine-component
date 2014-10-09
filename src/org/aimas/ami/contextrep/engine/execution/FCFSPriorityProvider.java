@@ -1,7 +1,9 @@
 package org.aimas.ami.contextrep.engine.execution;
 
 import java.util.List;
+import java.util.Map;
 
+import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
 import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
 import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
 import org.aimas.ami.contextrep.engine.api.InferenceRequest;
@@ -15,10 +17,6 @@ public class FCFSPriorityProvider implements InferencePriorityProvider {
 	
 	private FCFSPriorityProvider() {}
 	
-	@Override
-    public void computePriorities(List<? extends InferenceRequest> requestList, EngineInferenceStats inferenceStats) {
-	    // effectively do nothing, as the request list is ordered by default by its enqueue timestamp (FCFS)
-    }
 	
 	public static FCFSPriorityProvider getInstance() {
 		if (instance == null) {
@@ -27,4 +25,10 @@ public class FCFSPriorityProvider implements InferencePriorityProvider {
 		
 		return instance;
 	}
+
+	@Override
+    public Map<ContextDerivationRule, Integer> computePriorities(List<ContextDerivationRule> derivationRules, EngineInferenceStats inferenceStats) {
+	    // A null map will imply a timestamp based comparison
+		return null;
+    }
 }
