@@ -1,0 +1,14 @@
+Bundle-Version: 1.0.0
+Bundle-Name: cmm-instance-default
+Bundle-Description: Contains the default configuration files and resources required by the CONSERT Engine and the CMM agents.
+Bundle-Vendor: org.aimas.ami
+
+Bundle-ClassPath: .
+Include-Resource: \
+    etc=etc/
+-exportcontents: etc, etc.*
+Export-Package:  \
+	org.aimas.ami.contextrep.resources
+Bundle-Activator: org.aimas.ami.contextrep.resources.CMMResourceActivator
+
+Consert-ApplicationId: SmartClassroom

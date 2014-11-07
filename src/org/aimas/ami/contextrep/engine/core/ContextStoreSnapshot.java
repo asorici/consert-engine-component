@@ -102,5 +102,9 @@ public class ContextStoreSnapshot implements ContextStore {
 		
 		return annotationList;
 	}
-	
+
+	@Override
+    public Dataset getRawDataset() {
+	    return contextStore;
+    }
 }

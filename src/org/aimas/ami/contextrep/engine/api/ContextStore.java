@@ -2,6 +2,7 @@ package org.aimas.ami.contextrep.engine.api;
 
 import java.util.List;
 
+import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
@@ -58,7 +59,11 @@ public interface ContextStore {
 	 */
 	public List<AnnotationWrapper> listAnnotationContents(Resource assertionResource, String assertionUUID);
 	
-	
+	/**
+	 * Access the raw dataset underlying the ContextStore. 
+	 * @return The raw dataset underlying the ContextStore.
+	 */
+	public Dataset getRawDataset();
 	
 	public static class AnnotationWrapper {
 		private Statement annotationBindingStatement;
