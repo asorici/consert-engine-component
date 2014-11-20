@@ -305,13 +305,13 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// =============================== INSERT HANDLING ============================== //
 	////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void insert(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode) {
+	public void insertAssertion(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode) {
 		ExecutionMonitor.getInstance().logInsertEnqueue(insertionRequest.hashCode());
 		Engine.getInsertionService().executeRequest(insertionRequest, notifier, updateMode);
 	}
 	
 	@Override
-	public Future<InsertResult> insert(UpdateRequest insertionRequest, int updateMode) {
+	public Future<InsertResult> insertAssertion(UpdateRequest insertionRequest, int updateMode) {
 		return Engine.getInsertionService().executeRequest(insertionRequest, null, updateMode);
 	}
 	
@@ -324,6 +324,15 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		return result;
 	}
 	
+	@Override
+    public Future<?> updateEntityDescriptions(UpdateRequest entityDescriptionRequest) {
+	    return Engine.getInsertionService().executeEntityDescriptionRequest(entityDescriptionRequest);
+    }
+	
+	@Override
+	public void updateProfiledAssertion(UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier) {
+		Engine.getInsertionService().executeProfiledAssertionRequest(profiledAssertionRequest, notifier);
+	}
 	
 	// =============================== QUERY HANDLING =============================== //
 	////////////////////////////////////////////////////////////////////////////////////

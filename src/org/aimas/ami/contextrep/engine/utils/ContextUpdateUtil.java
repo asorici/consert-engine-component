@@ -19,13 +19,14 @@ import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.sparql.core.Quad;
 import com.hp.hpl.jena.sparql.modify.request.UpdateData;
+import com.hp.hpl.jena.sparql.modify.request.UpdateDataInsert;
 import com.hp.hpl.jena.sparql.modify.request.UpdateDeleteWhere;
 import com.hp.hpl.jena.sparql.modify.request.UpdateModify;
 import com.hp.hpl.jena.update.Update;
 
 public class ContextUpdateUtil {
 	/**
-	 * Gets all graph nodes that are potentially updated in a given Update request.
+	 * Gets all named graph nodes that are potentially updated in the given Update request.
 	 * @param update  the Update (UpdateData, UpdateModify and UpdateDeleteWhere are supported)
 	 * @param dataset  the Dataset to get the Graphs from
 	 * @return the graphs nodes
@@ -45,7 +46,31 @@ public class ContextUpdateUtil {
 		}
 		return results;
 	}
-
+	
+	
+	/**
+	 * Gets all named graph nodes to which data is inserted in the given Update request.
+	 * @param update  the Update (UpdateData, UpdateModify and UpdateDeleteWhere are supported)
+	 * @param dataset  the Dataset from which to get the Graphs
+	 * @return the graphs nodes
+	 */
+	public static Collection<Node> getInsertionGraphs(Update update, Dataset dataset, 
+			Map<String,RDFNode> templateBindings, boolean storesOnly) {
+		Set<Node> results = new HashSet<Node>();
+		
+		if (update instanceof UpdateDataInsert) {
+			addUpdatedGraphs(results, (UpdateData)update, dataset, templateBindings, storesOnly);
+		}
+		else if(update instanceof UpdateModify) {
+			UpdateModify updateModify = (UpdateModify)update;
+			if (updateModify.hasInsertClause()) {
+				addUpdatedGraphs(results, updateModify.getInsertQuads(), dataset, templateBindings, storesOnly);
+			}
+		}
+		
+		return results;
+	}
+	
 	
 	private static void addUpdatedGraphs(Set<Node> results, UpdateData update, Dataset dataset, 
 			Map<String, RDFNode> templateBindings, boolean storesOnly) {

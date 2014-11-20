@@ -10,6 +10,7 @@ import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.update.ContextBulkUpdateTask;
 import org.aimas.ami.contextrep.update.ContextUpdateTask;
+import org.aimas.ami.contextrep.update.ProfiledOneShotUpdateTask;
 
 import com.hp.hpl.jena.update.UpdateRequest;
 
@@ -56,6 +57,13 @@ public class InsertionService implements ExecutionService {
 		return insertionExecutor.submit(new ContextBulkUpdateTask(bulkRequest));
 	}
 	
+	public Future<?> executeEntityDescriptionRequest(UpdateRequest entityDescriptionRequest) {
+	    return insertionExecutor.submit(new EntityDescriptionUpdateTask(entityDescriptionRequest));
+    }
+	
+	public Future<InsertResult> executeProfiledAssertionRequest(UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier) {
+	    return insertionExecutor.submit(new ProfiledOneShotUpdateTask(profiledAssertionRequest, notifier));
+    }
 	
 	private ThreadPoolExecutor createInsertionExecutor(Properties execConfiguration) {
 		try {

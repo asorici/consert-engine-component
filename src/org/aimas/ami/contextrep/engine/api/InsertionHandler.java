@@ -23,7 +23,7 @@ public interface InsertionHandler {
 	 * @param updateMode The way in which updates for this ContextAssertion are carried out: time-based 
 	 * 		(at a given period of time) or change-based (when there is a change from a previous value)
 	 */
-	public void insert(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode);
+	public void insertAssertion(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode);
 	
 	
 	/**
@@ -39,7 +39,7 @@ public interface InsertionHandler {
 	 * 		(at a given period of time) or change-based (when there is a change from a previous value)
 	 * @return A {@link Future} object that can be used to check on the insert operation status.
 	 */
-	public Future<InsertResult> insert(UpdateRequest insertionRequest, int updateMode);
+	public Future<InsertResult> insertAssertion(UpdateRequest insertionRequest, int updateMode);
 	
 	
 	
@@ -51,4 +51,10 @@ public interface InsertionHandler {
 	 * @return A {@link Future} object that can be used to check on the update operation status.
 	 */
 	public Future<?> bulkInsert(UpdateRequest bulkRequest);
+	
+	
+	public Future<?> updateEntityDescriptions(UpdateRequest entityDescriptionRequest);
+	
+	
+	public void updateProfiledAssertion(UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier);
 }

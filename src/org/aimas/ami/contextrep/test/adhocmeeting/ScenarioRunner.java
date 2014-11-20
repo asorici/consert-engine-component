@@ -158,7 +158,7 @@ public class ScenarioRunner {
 					System.out.println("GENERATING EVENT: " + event);
 					InsertionHandler eventInsertionHandler = engineInsertionHandler;
 					if (eventInsertionHandler != null) {
-						eventResults.add(eventInsertionHandler.insert(event.getUpdateRequest(), 0));
+						eventResults.add(eventInsertionHandler.insertAssertion(event.getUpdateRequest(), 0));
 					}
 				}
 			}
