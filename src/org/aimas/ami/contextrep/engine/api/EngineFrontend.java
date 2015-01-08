@@ -1,6 +1,7 @@
-package org.aimas.ami.contextrep.engine;
+package org.aimas.ami.contextrep.engine.api;
 
 import java.util.Calendar;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,22 +10,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import org.aimas.ami.contextrep.engine.api.AssertionUpdateListener;
-import org.aimas.ami.contextrep.engine.api.CommandException;
-import org.aimas.ami.contextrep.engine.api.CommandHandler;
-import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
-import org.aimas.ami.contextrep.engine.api.ContextDerivationRule;
-import org.aimas.ami.contextrep.engine.api.EngineConfigException;
-import org.aimas.ami.contextrep.engine.api.EngineInferenceStats;
-import org.aimas.ami.contextrep.engine.api.EngineQueryStats;
-import org.aimas.ami.contextrep.engine.api.InferencePriorityProvider;
-import org.aimas.ami.contextrep.engine.api.InsertResult;
-import org.aimas.ami.contextrep.engine.api.InsertionHandler;
-import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
-import org.aimas.ami.contextrep.engine.api.PerformanceResult;
-import org.aimas.ami.contextrep.engine.api.QueryHandler;
-import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
-import org.aimas.ami.contextrep.engine.api.StatsHandler;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
 import org.aimas.ami.contextrep.engine.core.ContextConstraintIndex.ConstraintType;
 import org.aimas.ami.contextrep.engine.core.Engine;
@@ -38,14 +23,14 @@ import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.engine.utils.DerivationRuleWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextAssertion.ContextAssertionType;
+import org.aimas.ami.contextrep.resources.CMMConstants;
 import org.aimas.ami.contextrep.resources.TimeService;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
 import org.aimas.ami.contextrep.utils.ResourceManager;
-import org.aimas.ami.contextrep.vocabulary.ConsertCore;
+import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.apache.felix.dm.Dependency;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,18 +50,10 @@ import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
-import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 import com.hp.hpl.jena.update.UpdateRequest;
 
-
-@Component(
-	name = "consert-engine",
-	immediate = true
-)
-@Service
 public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHandler, StatsHandler {
 	private Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -192,9 +169,19 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	// We first wait for the context-domain specific configuration above and now try
 	// initialization. We try to read the CONSERT Engine specific configuration file and process it. 
-	void initEngine(org.apache.felix.dm.Component component) throws ConfigurationException {
+	@SuppressWarnings("unchecked")
+    void initEngine(org.apache.felix.dm.Component component) throws ConfigurationException {
 		// keep reference to our component view
 		this.engineComponent = component;
+		
+		// retrieve component service properties and get the cmmInstanceBundleId - that's where
+		// the model files are located so we must build our BundleResourceManager from that bundle
+		Dictionary<String, String> engineServiceProperties = component.getServiceProperties();
+		long cmmInstanceBundleId = Long.parseLong(engineServiceProperties.get(CMMConstants.CONSERT_INSTANCE_BUNDLE_ID));
+		
+		// retrieve the 
+		BundleContext bundleContext = component.getDependencyManager().getBundleContext();
+		modelResourceBundle = bundleContext.getBundle(cmmInstanceBundleId);
 		
 		if (modelResourceBundle != null && timeService != null) {
 			try {
@@ -209,8 +196,8 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 				//Engine.setLogService(logService);
 				//logReaderService.addLogListener(ExecutionMonitor.getInstance());
 				
-	            // initialize the engine
-	            Engine.init(true);
+	            // initialize the engine - engineServiceProperties includes the model-definition-files dictionary 
+	            Engine.init(engineServiceProperties, true);
             }
             catch (EngineConfigException e) {
 				e.printStackTrace();
@@ -252,7 +239,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 			Dataset contextStore = Engine.getRuntimeContextStore();
 			contextStore.begin(ReadWrite.READ);
 			try {
-				// get positions of microphones
+				/*
 				Model profiledLocationStore = 
 						contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/device/hasProfiledLocationStore");
 				StmtIterator locIt = profiledLocationStore.listStatements(null, ConsertCore.CONTEXT_ASSERTION_RESOURCE, 
@@ -263,15 +250,42 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 					m.write(System.out, "TTL");
 				}
 				
+				Model entityStore = contextStore.getNamedModel(ConsertCore.ENTITY_STORE_URI);
+				StmtIterator personIt = entityStore.listStatements(null, RDF.type, 
+					ResourceFactory.createResource("http://pervasive.semanticweb.org/ont/2004/06/person#Person"));
+				
+				while (personIt.hasNext()) {
+					Statement s = personIt.next();
+					StmtIterator personDataIt = entityStore.listStatements(s.getSubject(), null, (RDFNode)null);
+					while(personDataIt.hasNext()) {
+						System.out.println(personDataIt.next());
+					}
+					System.out.println("--------------------------------------");
+				}
+				*/
+				/*
+				System.out.println("#####################################################");
+				Model skeletonStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core/sensesSkeletonInPositionStore"); 
+				StmtIterator skeletonIt = skeletonStore.listStatements(null, ConsertAnnotation.HAS_TIMESTAMP, (RDFNode)null);
+				while (skeletonIt.hasNext()) {
+					Model skeletonModel = contextStore.getNamedModel(skeletonIt.next().getSubject().getURI());
+					skeletonModel.write(System.out, "TTL");
+				}
+				*/
+				
 				System.out.println("#####################################################");
 				
 				Model locatedInStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/person/locatedInStore"); 
-				locatedInStore.write(System.out, "TTL");
+				StmtIterator personLocationIt = locatedInStore.listStatements(null, ConsertAnnotation.HAS_TIMESTAMP, (RDFNode)null);
+				while (personLocationIt.hasNext()) {
+					Model personLocationModel = contextStore.getNamedModel(personLocationIt.next().getSubject().getURI());
+					personLocationModel.write(System.out, "TTL");
+				}
 				
 				System.out.println("=========================================================");
 				System.out.println();
 				
-				Model discussionActivityStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/HostsAdHocDiscussionStore"); 
+				Model discussionActivityStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core/HostsAdHocDiscussionStore"); 
 				discussionActivityStore.write(System.out, "TTL");
 			}
 			finally {
@@ -312,6 +326,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
 	public Future<InsertResult> insertAssertion(UpdateRequest insertionRequest, int updateMode) {
+		ExecutionMonitor.getInstance().logInsertEnqueue(insertionRequest.hashCode());
 		return Engine.getInsertionService().executeRequest(insertionRequest, null, updateMode);
 	}
 	
@@ -347,8 +362,24 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	}
 	
 	@Override
-	public void subscribe(Query subscribeQuery, QuerySolutionMap initialBindings, QueryResultNotifier notifier) {
-		Engine.subscriptionMonitor().newSubscription(subscribeQuery, initialBindings, notifier);
+	public void registerSubscription(Query subscribeQuery) {
+		//Engine.subscriptionMonitor().newSubscription(subscribeQuery, initialBindings, notifier);
+		OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
+		Set<ContextAssertion> subscribedAssertions = ContextQueryUtil.analyzeContextQuery(subscribeQuery, null, coreContextModel);
+		
+		for (ContextAssertion assertion : subscribedAssertions) {
+			Engine.getQueryService().markSubscription(assertion);
+		}
+	}
+	
+	@Override
+	public void unregisterSubscription(Query subscribeQuery) {
+		OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
+		Set<ContextAssertion> subscribedAssertions = ContextQueryUtil.analyzeContextQuery(subscribeQuery, null, coreContextModel);
+		
+		for (ContextAssertion assertion : subscribedAssertions) {
+			Engine.getQueryService().unmarkSubscription(assertion);
+		}
 	}
 	
 	@Override
@@ -738,7 +769,13 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		Integer ct = Engine.getQueryService().nrQueries().get(assertionResource);
 		return ct == null ? 0 : ct;
     }
-
+	
+	@Override
+	public int nrSubscriptions(Resource assertionResource) {
+		Integer ct = Engine.getQueryService().nrSubscriptions().get(assertionResource);
+		return ct == null ? 0 : ct;
+	}
+	
 	@Override
     public int nrSuccessfulQueries(Resource assertionResource) {
 		Integer ct = Engine.getQueryService().nrSuccessfulQueries().get(assertionResource);

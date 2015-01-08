@@ -133,7 +133,12 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
     public Map<Resource, Integer> nrQueries() {
 	    return queryTracker.nrQueries();
     }
-
+	
+	@Override
+    public Map<Resource, Integer> nrSubscriptions() {
+	    return queryTracker.nrSubscriptions();
+    }
+	
 	@Override
     public Map<Resource, Long> timeSinceLastQuery() {
 	    return queryTracker.timeSinceLastQuery();
@@ -146,22 +151,32 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 	
 	@Override
 	public void markQueryExecution(Set<ContextAssertion> assertions, boolean successful) {
-		queryTracker.markInferenceExecution(assertions, Engine.currentTimeMillis(), successful);
+		queryTracker.markQueryExecution(assertions, Engine.currentTimeMillis(), successful);
 	}
 	
+	@Override
+	public void markSubscription(ContextAssertion contextAssertion) {
+		queryTracker.markSubscription(contextAssertion);
+	}
+	
+	@Override
+	public void unmarkSubscription(ContextAssertion contextAssertion) {
+		queryTracker.unmarkSubscription(contextAssertion);
+	}
 	
 	private class QueryTracker {
 		Map<Resource, Queue<QueryTrackParams>> queryTracker;
 		Map<Resource, Long> mostRecentTracker;
-		
+		Map<Resource, Integer> subscriptionsTracker;
 		
 		QueryTracker () {
 			this.queryTracker = new HashMap<Resource, Queue<QueryTrackParams>>();
 			this.mostRecentTracker = new HashMap<Resource, Long>();
+			this.subscriptionsTracker = new HashMap<Resource, Integer>();
 		}
 		
 		
-		void markInferenceExecution(Set<ContextAssertion> assertions, long timestamp, boolean successful) {
+		void markQueryExecution(Set<ContextAssertion> assertions, long timestamp, boolean successful) {
 			// add it in the queryTracker
 			synchronized (queryTracker) {
 				for (ContextAssertion assertion : assertions) {
@@ -185,6 +200,25 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 					mostRecentTracker.put(assertion.getOntologyResource(), timestamp);
 				}
 			}
+		}
+		
+		
+		void markSubscription(ContextAssertion assertion) {
+			synchronized (subscriptionsTracker) {
+				Integer nrSubs = subscriptionsTracker.get(assertion.getOntologyResource());
+	            int newSubs = nrSubs == null ? 1 : (nrSubs + 1);
+				
+				subscriptionsTracker.put(assertion.getOntologyResource(), newSubs);
+            }
+		}
+		
+		void unmarkSubscription(ContextAssertion assertion) {
+			synchronized (subscriptionsTracker) {
+				Integer nrSubs = subscriptionsTracker.get(assertion.getOntologyResource());
+				int newSubs = nrSubs == null ? 0 : nrSubs > 0 ? (nrSubs - 1) : 0;
+				
+				subscriptionsTracker.put(assertion.getOntologyResource(), newSubs);
+            }
 		}
 		
 		
@@ -225,6 +259,25 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 				
 				return counter;
 			}
+		}
+		
+		public Map<Resource, Integer> nrSubscriptions() {
+			// create a snapshot of the current tracker
+        	Map<Resource, Integer> subscriptionsSnapshot = new HashMap<Resource, Integer>();
+        	
+			synchronized(subscriptionsTracker) {
+	        	subscriptionsSnapshot.putAll(subscriptionsTracker);
+	        }
+			
+			synchronized(queryTracker) {
+				for (Resource assertionRes : queryTracker.keySet()) {
+					if (!subscriptionsSnapshot.containsKey(assertionRes)) {
+						subscriptionsSnapshot.put(assertionRes, 0);
+					}
+				}
+			}
+        
+			return subscriptionsSnapshot;
 		}
 		
 		

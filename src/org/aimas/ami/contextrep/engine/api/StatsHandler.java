@@ -54,6 +54,8 @@ public interface StatsHandler {
 	
 	public int nrQueries(Resource assertionResource);
 	
+	public int nrSubscriptions(Resource assertionResource);
+	
 	public int nrSuccessfulQueries(Resource assertionResource);
 	
 	public long timeSinceLastQuery(Resource assertionResource);

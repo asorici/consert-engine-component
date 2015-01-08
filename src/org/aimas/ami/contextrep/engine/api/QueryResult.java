@@ -64,9 +64,25 @@ public class QueryResult implements Serializable {
 		return error != null;
 	}
 	
+	public void cumulateAsk(boolean askResult) {
+		if (isAsk && error != null) {
+			this.askResult |= askResult;
+		}
+	}
+	
+	public void cumulateResultSet(ContextResultSet rs) {
+		if (!isAsk && error != null) {
+			if (queryResult == null) {
+				queryResult = rs;
+			}
+			else {
+				queryResult.accumulate(rs);
+			}
+		}
+	}
+	
 	// SERIALIZATION / DESERIALIZATION
 	////////////////////////////////////////////////////////////////////////////////////////
-	
 	
 	/*
 	private void writeObject(ObjectOutputStream oos) throws IOException {

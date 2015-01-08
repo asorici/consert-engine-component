@@ -1,0 +1,6 @@
+Export-Package:  \
+	org.aimas.ami.contextrep.resources
+Bundle-Name: cmm-resources
+Bundle-Description: Contains the resource interfaces that are common to both the CONSERT Engine and the CMM agents (e.g. TimeService).
+Bundle-Vendor: org.aimas.ami
+Bundle-Version: 1.0.0

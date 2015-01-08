@@ -6,4 +6,8 @@ import org.aimas.ami.contextrep.model.ContextAssertion;
 
 public interface QueryStatsCollector {
 	public void markQueryExecution(Set<ContextAssertion> assertions, boolean successful);
+	
+	public void markSubscription(ContextAssertion assertion);
+	
+	public void unmarkSubscription(ContextAssertion assertion);
 }

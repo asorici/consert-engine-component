@@ -37,6 +37,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Selector;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.sparql.core.Quad;
@@ -48,6 +49,9 @@ import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckInferenceHook extends ContextUpdateHook {
+	private static final String ASSERTION_UUID_PARAM = "contextAssertionUUID";
+	private static final String ASSERTION_TYPE_PARAM = "contextAssertionType";
+	
 	private DerivationRuleWrapper derivationRule;
 	
 	public CheckInferenceHook(UpdateRequest triggeringRequest, ContextAssertion contextAssertion, 
@@ -119,8 +123,17 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		Resource entityRes = ruleDict.getEntityForDerivation(derivationWrapper);
 		CommandWrapper cmd = derivationWrapper.getDerivationCommand();
 		
+		// create the initialTemplateBindings and ADD THE DEFAULT PARAMETERS: ?contextAssertionUUID and ?contextAssertionResource
 		Map<CommandWrapper, Map<String, RDFNode>> initialTemplateBindings = new HashMap<CommandWrapper, Map<String, RDFNode>>();
-		initialTemplateBindings.put(cmd, derivationWrapper.getCommandBindings());
+		
+		Map<String, RDFNode> commandBindings = new HashMap<String, RDFNode>();
+		if (derivationWrapper.getCommandBindings() != null) {
+			commandBindings.putAll(derivationWrapper.getCommandBindings());
+		}
+		commandBindings.put(ASSERTION_UUID_PARAM, ResourceFactory.createResource(contextAssertionUUID.getURI()));
+		commandBindings.put(ASSERTION_TYPE_PARAM, contextAssertion.getOntologyResource());
+		
+		initialTemplateBindings.put(cmd, commandBindings);
 		
 		// create entityCommandWrappers required for SPIN inference API call
 		List<CommandWrapper> entityCommandWrappers = new ArrayList<CommandWrapper>();

@@ -20,7 +20,6 @@ import org.aimas.ami.contextrep.test.ContextEvent;
 import org.aimas.ami.contextrep.utils.ContextModelUtils;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -43,10 +42,10 @@ import com.hp.hpl.jena.update.Update;
 import com.hp.hpl.jena.update.UpdateRequest;
 import com.hp.hpl.jena.vocabulary.RDF;
 
-@Component(
-	name = "adhocmeeting-test",
-	immediate = true
-)
+//@Component(
+//	name = "adhocmeeting-test",
+//	immediate = true
+//)
 public class ScenarioRunner {
 	private static final int ADVANCE_MIN_SKEL = -7;
 	private static final int ADVANCE_MIN_MIC = -3;
@@ -124,7 +123,7 @@ public class ScenarioRunner {
 				}
 			};
 			
-			currentQueryHandler.subscribe(scenarioQuery, bindings, subscribeNotifier);
+			currentQueryHandler.registerSubscription(scenarioQuery);
 		}
 		else {
 			System.out.println("QUERY HANDLER WHY U NO WORK!");

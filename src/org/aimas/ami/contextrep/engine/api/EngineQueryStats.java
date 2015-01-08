@@ -2,8 +2,6 @@ package org.aimas.ami.contextrep.engine.api;
 
 import java.util.Map;
 
-import org.aimas.ami.contextrep.model.ContextAssertion;
-
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public interface EngineQueryStats {
@@ -17,9 +15,16 @@ public interface EngineQueryStats {
 	/**
 	 * Return a map detailing the number of queries received during the last RUN_WINDOW milliseconds,
 	 * for each type of ContextAssertion (given as ontology resource) that the CONSERT Engine knows about.
-	 * @return Popularity map of ContextAssertions
+	 * @return ContextAssertions query popularity map
 	 */
 	public Map<Resource, Integer> nrQueries();
+	
+	/**
+	 * Return a map detailing the current number of subscriptions registered for each type of 
+	 * ContextAssertion (given as ontology resource) that the CONSERT Engine knows about.
+	 * @return ContextAssertion subscriptions count map
+	 */
+	public Map<Resource, Integer> nrSubscriptions();
 	
 	/**
 	 * Return the time since the last query was received for a each ContextAssertion 

@@ -50,13 +50,21 @@ public interface QueryHandler {
 	 */
 	public void execAsk(Query askQuery, QuerySolutionMap initialBindings, QueryResultNotifier notifier);
 	
-	
 	/**
-	 * Subscribe for results to the given query object. 
-	 * @param subscribeQuery The Jena subscription query object.
-	 * @param initialBindings A map of {variable: value} pairs for initial binding. May be null.
-	 * @param notifier A notifier callback used to announce subscription results.
+	 * Register a query as a subscription. This method only serves to increase the count of the
+	 * number of subscriptions made for each ContextAssertion. This count can be used in the CONSERT Engine
+	 * usage statistics.  
+	 * @param subscribeQuery The subscription query object.
 	 * @throws QueryException
 	 */
-	public void subscribe(Query subscribeQuery, QuerySolutionMap initialBindings, QueryResultNotifier notifier);
+	public void registerSubscription(Query subscribeQuery);
+	
+	/**
+	 * Unregister a subscription. This method only serves to decrease the count of the
+	 * number of subscriptions made for each ContextAssertion. This count can be used in the CONSERT Engine
+	 * usage statistics.  
+	 * @param subscribeQuery The subscription query.
+	 * @throws QueryException
+	 */
+	public void unregisterSubscription(Query subscribeQuery);
 }

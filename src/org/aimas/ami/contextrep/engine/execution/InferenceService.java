@@ -60,14 +60,9 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	
 	@Override
     public void init(Properties execConfiguration) {
-    	// configure
+    	// configure execution parameters
 		configureExecutionParameters(execConfiguration);
     	
-    	// setup the request queue
-    	List<ContextDerivationRule> activeDerivationRules = getActiveDerivationRules();
-		Map<ContextDerivationRule, Integer> priorityMap = rulePriorityProvider.computePriorities(activeDerivationRules, InferenceService.this);
-		Comparator<InferenceRequest> priorityComparator = new InferencePriorityComparator(priorityMap);
-    	configureRequestQueue(priorityComparator);
     	
     	// setup stats collection
     	configureStatisticsCollector();
@@ -150,16 +145,24 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     // ============================== RUNTIME ==============================
  	////////////////////////////////////////////////////////////////////////
     public void start() {
-		// start the first scheduling task
-    	if (schedulingTimer == null || schedulingTimer.isShutdown()) {
-    		setupScheduler();
-    	}
-    	schedulingTimer.schedule(new InferenceSchedulingTask(), 0, TimeUnit.MILLISECONDS);
-    	
-    	// start the priority computation task
+    	// 1) configure priority evaluation
     	if (priorityEvaluationTimer == null || priorityEvaluationTimer.isShutdown()) {
     		setupPriorityComputation();
     	}
+    	
+    	// 2) configure the request queue
+    	List<ContextDerivationRule> activeDerivationRules = getActiveDerivationRules();
+		Map<ContextDerivationRule, Integer> priorityMap = rulePriorityProvider.computePriorities(activeDerivationRules, InferenceService.this);
+		Comparator<InferenceRequest> priorityComparator = new InferencePriorityComparator(priorityMap);
+    	configureRequestQueue(priorityComparator);
+    	
+    	// 3) configure the inference scheduler
+    	if (schedulingTimer == null || schedulingTimer.isShutdown()) {
+    		setupScheduler();
+    	}
+    	
+    	// 4) start the above schedulers
+    	schedulingTimer.schedule(new InferenceSchedulingTask(), 0, TimeUnit.MILLISECONDS);
     	priorityEvaluationTask = priorityEvaluationTimer.scheduleAtFixedRate(new PriorityEvaluationTask(), defaultRunWindow / 2, defaultRunWindow, TimeUnit.MILLISECONDS);
 	}
 	
@@ -171,7 +174,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	    	schedulingTimer = null;
 	    }
 	    
-	    // stop the internal priority evaluation scheduler, cancelling the ongoing task
+	    // stop the internal priority evaluation scheduler, canceling the ongoing task
 	    if (priorityEvaluationTimer != null) {
 	    	priorityEvaluationTimer.shutdown();
 	    	priorityEvaluationTimer = null;
@@ -260,6 +263,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     
     
 	public void executeRequest(CheckInferenceHook inferenceRequest) {
+		/*
 		// Only insert the incoming request if it is not already 
 		// in the requestQueue (i.e. we already have a pending request for this type of derived assertion)
 		InferenceRequestWrapper wrappedRequest = new InferenceRequestWrapper(inferenceRequest);
@@ -273,6 +277,11 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 		else {
 			//System.out.println("We already have a inferenceRequest for: " + wrappedRequest.getDerivationRule().getDerivedAssertion());
 		}
+		*/
+		
+		InferenceRequestWrapper wrappedRequest = new InferenceRequestWrapper(inferenceRequest);
+		requestQueue.add(wrappedRequest);
+		newRequests.set(true);
 	}
 	
 	

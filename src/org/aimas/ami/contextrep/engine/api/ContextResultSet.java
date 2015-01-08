@@ -116,4 +116,12 @@ public class ContextResultSet implements ResultSetRewindable {
 	public int size() {
 		return bindings.size();
 	}
+
+	public void accumulate(ContextResultSet rs) {
+	    if (resultVars.equals(rs.resultVars)) {
+	    	bindings.addAll(rs.bindings);
+	    }
+	    
+	    reset();
+    }
 }

@@ -1,10 +1,12 @@
 package org.aimas.ami.contextrep.update;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.aimas.ami.contextrep.datatype.CalendarInterval;
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
@@ -201,7 +203,7 @@ public class CheckContinuityHook extends ContextUpdateHook {
 				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 				formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 				
-				if (contextAssertion.getOntologyResource().getURI().contains("HostsAdHoc")) {
+				if (contextAssertion.getOntologyResource().getURI().contains("locatedIn")) {
 					System.out.println("CONTINUITY AVAILABALE FOR assertion <" + contextAssertion.getOntologyResource().getLocalName() + ">. "
 							+ "AssertionUUID: " + availableContinuityPair.assertionUUID
 							+ ", for duration: " + availableContinuityPair.assertionValidity

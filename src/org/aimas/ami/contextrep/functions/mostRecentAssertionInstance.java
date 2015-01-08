@@ -67,8 +67,12 @@ public class mostRecentAssertionInstance extends FunctionBase1 {
 			contextStore.end();
 		}
 		
-		// return the assertionUUID as a node
-		return NodeValue.makeNode(newestAssertionUUID.asNode());
+		// return the assertionUUID as a node, if there was an inserted instance
+		if (newestAssertionUUID != null) {
+			return NodeValue.makeNode(newestAssertionUUID.asNode());
+		}
+		
+		// otherwise, for lack of a better alternative, just return an anonymous "nothing node"
+		return NodeValue.nvNothing;
 	}
-	
 }

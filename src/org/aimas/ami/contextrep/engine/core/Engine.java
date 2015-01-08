@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.aimas.ami.contextrep.engine.api.ConstraintResolutionService;
 import org.aimas.ami.contextrep.engine.api.EngineConfigException;
 import org.aimas.ami.contextrep.engine.execution.InferenceService;
 import org.aimas.ami.contextrep.engine.execution.InsertionService;
@@ -174,11 +174,12 @@ public class Engine {
     }
 	
 	
-	public static void init(boolean printDurations) throws EngineConfigException {
-		init(CONFIG_FILENAME, printDurations);
+	public static void init(Dictionary<String, String> modelDefinitionFileDict, boolean printDurations) throws EngineConfigException {
+		init(CONFIG_FILENAME, modelDefinitionFileDict, printDurations);
 	}
 	
-	public static void init(String configFile, boolean printDurations) throws EngineConfigException {
+	
+	public static void init(String configFile, Dictionary<String, String> modelDefinitionFileDict, boolean printDurations) throws EngineConfigException {
 		long timestamp = Engine.currentTimeMillis();
 		
 		// ====================== read and store CONSERT Engine configuration ======================
@@ -214,7 +215,7 @@ public class Engine {
 		// this has the side effect of also configuring the ontology document managers for
 		// CONSERT ontology, SPIN ontology set and Context Domain ontology
 		try {
-	        contextModelLoader = new ContextModelLoader(engineResourceManager);
+			contextModelLoader = new ContextModelLoader(engineResourceManager, modelDefinitionFileDict);
 	        contextModelLoader.loadModel();
 		}
         catch (ContextModelConfigException e) {
@@ -262,7 +263,7 @@ public class Engine {
 		OntModel baseAnnotationModule = contextModelLoader.getAnnotationContextModel();
 		OntModel rdfsAnnotationModule = contextModelLoader.getRDFSInferenceModel(baseAnnotationModule);
 		contextAnnotationIndex = ContextAnnotationIndex.create(rdfsAnnotationModule);
-		System.out.println(contextAnnotationIndex.getAllStructuredAnnotations());
+		//System.out.println(contextAnnotationIndex.getAllStructuredAnnotations());
 		
 		if (printDurations) {
 			System.out.println("Task: create the ContextAnnotationIndex. Duration: " + 
@@ -285,8 +286,8 @@ public class Engine {
 				(Engine.currentTimeMillis() - timestamp) + " ms");
 		}
 		
-		System.out.println("#### Derivation Rule Map : ");
-		System.out.println(derivationRuleDictionary.getAssertion2QueryMap());
+		//System.out.println("#### Derivation Rule Map : ");
+		//System.out.println(derivationRuleDictionary.getAssertion2QueryMap());
 		timestamp = Engine.currentTimeMillis();
 		
 		// register custom TDB UpdateEgine to listen for ContextAssertion insertions
