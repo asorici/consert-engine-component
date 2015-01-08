@@ -104,6 +104,15 @@ public class ExecutionMonitor {
 		}
 	}
 	
+	public void logInsertExecType(int insertID, String assertionType) {
+		if (enabled) {
+			AssertionInsertInfo insertInfo = insertionMonitor.get(insertID);
+			if (insertInfo != null) {
+				insertInfo.setAssertionType(assertionType);
+			}
+		}
+	}
+	
 	public void logContinuityCheckDuration(int insertID, long duration) {
 		if (enabled) {
 			AssertionInsertInfo insertInfo = insertionMonitor.get(insertID);
@@ -167,6 +176,14 @@ public class ExecutionMonitor {
 		}
 	}
 	
+	public void logInferenceExecType(int triggeringInsertID, String derivedAssertionType) {
+		if (enabled) {
+			AssertionInferenceInfo inferenceInfo = inferenceMonitor.get(triggeringInsertID);
+			if (inferenceInfo != null) {
+				inferenceInfo.setDerivedAssertionType(derivedAssertionType);
+			}
+		}
+	}
 	
 	// Performance export
 	public PerformanceResult exportPerformanceResult() {
@@ -181,7 +198,8 @@ public class ExecutionMonitor {
 		for (int i = 0; i < insertInfoList.size(); i++) {
 			AssertionInsertInfo insertInfo = insertInfoList.get(i);
 			if (insertInfo.isFinished()) {
-				performanceResult.accumulateInsert(i, insertInfo.delay(), insertInfo.execDuration());
+				performanceResult.accumulateInsert(i, insertInfo.delay(), insertInfo.execDuration(), 
+						insertInfo.getAssertionType());
 				performanceResult.accumulateContinuityCheck(i, insertInfo.getContinuityCheckDuration());
 				performanceResult.accumulateConstraintCheck(i, insertInfo.getConstraintCheckDuration());
 				
@@ -207,12 +225,15 @@ public class ExecutionMonitor {
 				for (int j = 0; j < insertInfoList.size(); j++) {
 					AssertionInsertInfo insertInfo = insertInfoList.get(j);
 					if (insertInfo.getInsertID() == inferenceInfo.getTriggerID()) {
-						performanceResult.accumulateInference(j, inferenceInfo.delay(), inferenceInfo.execDuration());
+						performanceResult.accumulateInference(j, inferenceInfo.delay(), 
+								inferenceInfo.execDuration(), inferenceInfo.getDerivedAssertionType());
 						break;
 					}
 				}
 			}
 		}
+		
+		performanceResult.pruneOutliers();
 		
 		performanceResult.doAverages();
 		
@@ -288,6 +309,7 @@ public class ExecutionMonitor {
 		long continuityCheckDuration;
 		long constraintCheckDuration;
 		long inheritanceCheckDuration;
+		String assertionType;
 		
 		AssertionInsertInfo(int id, long enqueueTime) {
 	        super(id, enqueueTime);
@@ -312,7 +334,7 @@ public class ExecutionMonitor {
 		public void setConstraintCheckDuration(long constraintCheckDuration) {
 			this.constraintCheckDuration = constraintCheckDuration;
 		}
-
+		
 		public long getInheritanceCheckDuration() {
 			return inheritanceCheckDuration;
 		}
@@ -328,10 +350,19 @@ public class ExecutionMonitor {
 		public void addTriggeredInference(AssertionInferenceInfo inferenceInfo) {
 			triggeredInferences.add(inferenceInfo);
 		}
+		
+		public void setAssertionType(String assertionType) {
+	        this.assertionType = assertionType;
+        }
+		
+		public String getAssertionType() {
+			return assertionType;
+		}
 	}
 	
 	private static class AssertionInferenceInfo extends MonitorizationBase {
 		List<AssertionInsertInfo> triggeredInsertions = new LinkedList<AssertionInsertInfo>();
+		String derivedAssertionType;
 		
 		AssertionInferenceInfo(int id, long enqueueTime) {
 	        super(id, enqueueTime);
@@ -347,6 +378,14 @@ public class ExecutionMonitor {
 		
 		public void addTriggeredInsertion(AssertionInsertInfo insertionInfo) {
 			triggeredInsertions.add(insertionInfo);
+		}
+		
+		public void setDerivedAssertionType(String assertionType) {
+	        this.derivedAssertionType = assertionType;
+        }
+		
+		public String getDerivedAssertionType() {
+			return derivedAssertionType;
 		}
 	}
 }

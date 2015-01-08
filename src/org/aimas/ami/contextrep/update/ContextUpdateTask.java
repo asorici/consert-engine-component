@@ -142,6 +142,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 			
 			// STEP 5: if there was an assertion instance update, check the hooks in order
 			if (insertedAssertion != null) {
+				ExecutionMonitor.getInstance().logInsertExecType(request.hashCode(), insertedAssertion.getOntologyResource().getLocalName());
 				
 				// STEP 5A: check the update mode type - for a time-based update we perform a continuity check;
 				// for a change-based update we have to change the end of the validity period for the previous 
@@ -386,6 +387,8 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 				CheckInferenceHook inferenceHook = new CheckInferenceHook(request, insertedAssertion, insertedAssertionUUID, derivationCommand);
 				
 				ExecutionMonitor.getInstance().logInferenceEnqueue(request.hashCode());
+				ExecutionMonitor.getInstance().logInferenceExecType(request.hashCode(), 
+						derivedAssertion.getOntologyResource().getLocalName());
 				Engine.getInferenceService().executeRequest(inferenceHook);
 			}
 		}

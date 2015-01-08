@@ -1,6 +1,8 @@
 package org.aimas.ami.contextrep.engine.api;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class PerformanceResult {
@@ -38,14 +40,17 @@ public class PerformanceResult {
 	public long maxConstraintCheckDuration = -INF;
 	
 	public Map<Integer, Long> insertionDelayHistory = new HashMap<Integer, Long>();
+	public Map<Integer, String> insertionTypeHistory = new HashMap<Integer, String>();
+	
 	public Map<Integer, Long> inferenceDelayHistory = new HashMap<Integer, Long>();
+	public Map<Integer, String> inferenceTypeHistory = new HashMap<Integer, String>();
 	
 	public Map<Integer, Long> insertionDurationHistory = new HashMap<Integer, Long>();
 	public Map<Integer, Long> inferenceDurationHistory = new HashMap<Integer, Long>();
 	
 	public Map<Integer, Long> deductionCycleHistory = new HashMap<Integer, Long>();
 	
-	public void accumulateInsert(int insertID, long insertDelay, long insertDuration) {
+	public void accumulateInsert(int insertID, long insertDelay, long insertDuration, String insertionType) {
 		averageInsertionDelay += insertDelay;
 		averageInsertionDuration += insertDuration;
 		numInsertions++;
@@ -62,6 +67,7 @@ public class PerformanceResult {
 		
 		insertionDelayHistory.put(insertID, insertDelay);
 		insertionDurationHistory.put(insertID, insertDuration);
+		insertionTypeHistory.put(insertID, insertionType);
 	}
 	
 	public void accumulateContinuityCheck(int insertID, long duration) {
@@ -83,13 +89,14 @@ public class PerformanceResult {
 			minConstraintCheckDuration = duration;
 	}
 	
-	public void accumulateInference(int triggerID, long inferenceDelay, long inferenceDuration) {
+	public void accumulateInference(int triggerID, long inferenceDelay, long inferenceDuration, String inferenceType) {
 		averageInferenceDelay += inferenceDelay;
 		averageInferenceCheckDuration += inferenceDuration;
 		numInferences++;
 		
 		inferenceDelayHistory.put(triggerID, inferenceDelay);
 		inferenceDurationHistory.put(triggerID, inferenceDuration);
+		inferenceTypeHistory.put(triggerID, inferenceType);
 		
 		if (inferenceDelay > maxInferenceDelay)
 			maxInferenceDelay = inferenceDelay;
@@ -132,4 +139,57 @@ public class PerformanceResult {
 			averageDeductionCycleDuration /= numDeductionCycles;
 		}
 	}
+
+	public void pruneOutliers() {
+	    if (numInsertions != 0) {
+	    	maxInsertionDelay = 0;
+	    	long average = averageInsertionDelay / numInsertions; 
+	    	
+	    	int ctRemoved = 0;
+			for (int i = 0; i < numInsertions; i++) {
+		    	long insertionDelay = insertionDelayHistory.get(i);  
+				if (4 * average < insertionDelay) {
+					insertionDelayHistory.remove(i);
+					insertionDurationHistory.remove(i);
+					insertionTypeHistory.remove(i);
+					
+					deductionCycleHistory.remove(i);
+					ctRemoved++;
+				}
+				else {
+					if (insertionDelay > maxInsertionDelay) {
+						maxInsertionDelay = insertionDelay;
+					}
+				}
+		    }
+			
+			numInsertions -= ctRemoved;
+	    }
+	    
+	    if (numInferences != 0) {
+	    	maxInferenceDelay = 0;
+	    	long average = averageInferenceDelay / numInferences;
+	    	
+	    	List<Integer> toRemove = new LinkedList<Integer>();
+	    	for (Integer id : inferenceDelayHistory.keySet()) {
+	    		long inferenceDelay = inferenceDelayHistory.get(id);  
+				if (4 * average < inferenceDelay) {
+					toRemove.add(id);
+				}
+				else {
+					if (inferenceDelay > maxInferenceDelay) {
+						maxInferenceDelay = inferenceDelay;
+					}
+				}
+	    	}
+	    	
+	    	for (Integer id : toRemove) {
+	    		inferenceDelayHistory.remove(id);
+	    		inferenceDurationHistory.remove(id);
+	    		inferenceTypeHistory.remove(id);
+	    	}
+	    	
+	    	numInferences -= toRemove.size();
+	    }
+    }
 }
