@@ -147,14 +147,18 @@ public class PerformanceResult {
 	    	
 	    	int ctRemoved = 0;
 			for (int i = 0; i < numInsertions; i++) {
-		    	long insertionDelay = insertionDelayHistory.get(i);  
+		    	long insertionDelay = insertionDelayHistory.get(i) == null ? 0 : insertionDelayHistory.get(i);
 				if (4 * average < insertionDelay) {
-					insertionDelayHistory.remove(i);
-					insertionDurationHistory.remove(i);
+					long delay = insertionDelayHistory.remove(i);
+					long duration = insertionDurationHistory.remove(i);
+					
+					long deductionTime = deductionCycleHistory.get(i) == null ? 0 : deductionCycleHistory.remove(i);
 					insertionTypeHistory.remove(i);
 					
-					deductionCycleHistory.remove(i);
 					ctRemoved++;
+					averageInsertionDelay -= delay;
+					averageInsertionDuration -= duration;
+					averageDeductionCycleDuration -= deductionTime;
 				}
 				else {
 					if (insertionDelay > maxInsertionDelay) {
@@ -184,9 +188,12 @@ public class PerformanceResult {
 	    	}
 	    	
 	    	for (Integer id : toRemove) {
-	    		inferenceDelayHistory.remove(id);
-	    		inferenceDurationHistory.remove(id);
+	    		long delay = inferenceDelayHistory.remove(id);
+	    		long duration = inferenceDurationHistory.remove(id);
 	    		inferenceTypeHistory.remove(id);
+	    		
+	    		averageInferenceDelay -= delay;
+	    		averageInferenceCheckDuration -= duration;
 	    	}
 	    	
 	    	numInferences -= toRemove.size();
