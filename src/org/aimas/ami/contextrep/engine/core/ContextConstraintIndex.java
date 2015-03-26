@@ -102,16 +102,17 @@ public class ContextConstraintIndex {
 	/**
 	 * Create an index of uniqueness or value constraints attached to a ContextAssertion. It provides a mapping
 	 * between a ContextAssertion and the list of constraints attached to it.
+	 * @param consertEngine The CONSERT Engine instance for which the constraint index is built
 	 * @param contextModelConstraints The ontology (with transitive inference enabled) that defines this context model
 	 * @param contextAssertionIndex The index of ContextAssertions defined in the Context Model
 	 * @return An {@link ContextAssertionIndex} instance that holds the index structure.
 	 */
-	public static ContextConstraintIndex create(ContextAssertionIndex contextAssertionIndex, OntModel contextModelConstraints) {
+	public static ContextConstraintIndex create(Engine consertEngine, ContextAssertionIndex contextAssertionIndex, OntModel contextModelConstraints) {
 	    // create the ConstraintIndex instance
 		ContextConstraintIndex constraintIndex = new ContextConstraintIndex();
 		
 		// add the spl:, spin: and sp: namespaces to the constraints model to be able to detect them
-		OntModel extendedConstraintModel = Engine.getModelLoader().ensureSPINImported(contextModelConstraints);
+		OntModel extendedConstraintModel = consertEngine.getModelLoader().ensureSPINImported(contextModelConstraints);
 		//System.out.println(extendedConstraintModel.listImportedOntologyURIs());
 		
 		// make sure to register the templates as they will be searched for when collecting the constraints

@@ -27,22 +27,23 @@ import com.hp.hpl.jena.update.Update;
 public class ContextUpdateUtil {
 	/**
 	 * Gets all named graph nodes that are potentially updated in the given Update request.
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param update  the Update (UpdateData, UpdateModify and UpdateDeleteWhere are supported)
 	 * @param dataset  the Dataset to get the Graphs from
 	 * @return the graphs nodes
 	 */
-	public static Collection<Node> getUpdatedGraphs(Update update, Dataset dataset, 
+	public static Collection<Node> getUpdatedGraphs(Engine consertEngine, Update update, Dataset dataset, 
 			Map<String,RDFNode> templateBindings, boolean storesOnly) {
 		Set<Node> results = new HashSet<Node>();
 		
 		if (update instanceof UpdateData) {
-			addUpdatedGraphs(results, (UpdateData)update, dataset, templateBindings, storesOnly);
+			addUpdatedGraphs(consertEngine, results, (UpdateData)update, dataset, templateBindings, storesOnly);
 		}
 		else if(update instanceof UpdateModify) {
-			addUpdatedGraphs(results, (UpdateModify)update, dataset, templateBindings, storesOnly);
+			addUpdatedGraphs(consertEngine, results, (UpdateModify)update, dataset, templateBindings, storesOnly);
 		}
 		else if(update instanceof UpdateDeleteWhere) {
-			addUpdatedGraphs(results, (UpdateDeleteWhere)update, dataset, templateBindings, storesOnly);
+			addUpdatedGraphs(consertEngine, results, (UpdateDeleteWhere)update, dataset, templateBindings, storesOnly);
 		}
 		return results;
 	}
@@ -50,21 +51,22 @@ public class ContextUpdateUtil {
 	
 	/**
 	 * Gets all named graph nodes to which data is inserted in the given Update request.
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param update  the Update (UpdateData, UpdateModify and UpdateDeleteWhere are supported)
 	 * @param dataset  the Dataset from which to get the Graphs
 	 * @return the graphs nodes
 	 */
-	public static Collection<Node> getInsertionGraphs(Update update, Dataset dataset, 
+	public static Collection<Node> getInsertionGraphs(Engine consertEngine, Update update, Dataset dataset, 
 			Map<String,RDFNode> templateBindings, boolean storesOnly) {
 		Set<Node> results = new HashSet<Node>();
 		
 		if (update instanceof UpdateDataInsert) {
-			addUpdatedGraphs(results, (UpdateData)update, dataset, templateBindings, storesOnly);
+			addUpdatedGraphs(consertEngine, results, (UpdateData)update, dataset, templateBindings, storesOnly);
 		}
 		else if(update instanceof UpdateModify) {
 			UpdateModify updateModify = (UpdateModify)update;
 			if (updateModify.hasInsertClause()) {
-				addUpdatedGraphs(results, updateModify.getInsertQuads(), dataset, templateBindings, storesOnly);
+				addUpdatedGraphs(consertEngine, results, updateModify.getInsertQuads(), dataset, templateBindings, storesOnly);
 			}
 		}
 		
@@ -72,30 +74,30 @@ public class ContextUpdateUtil {
 	}
 	
 	
-	private static void addUpdatedGraphs(Set<Node> results, UpdateData update, Dataset dataset, 
+	private static void addUpdatedGraphs(Engine consertEngine, Set<Node> results, UpdateData update, Dataset dataset, 
 			Map<String, RDFNode> templateBindings, boolean storesOnly) {
-		addUpdatedGraphs(results, update.getQuads(), dataset, templateBindings, storesOnly);
+		addUpdatedGraphs(consertEngine, results, update.getQuads(), dataset, templateBindings, storesOnly);
     }
 
 
-	private static void addUpdatedGraphs(Set<Node> results, UpdateDeleteWhere update, 
+	private static void addUpdatedGraphs(Engine consertEngine, Set<Node> results, UpdateDeleteWhere update, 
 			Dataset dataset, Map<String,RDFNode> templateBindings, boolean storesOnly) {
-		addUpdatedGraphs(results, update.getQuads(), dataset, templateBindings, storesOnly);
+		addUpdatedGraphs(consertEngine, results, update.getQuads(), dataset, templateBindings, storesOnly);
 	}
 	
 	
-	private static void addUpdatedGraphs(Set<Node> results, UpdateModify update, Dataset dataset, 
+	private static void addUpdatedGraphs(Engine consertEngine, Set<Node> results, UpdateModify update, Dataset dataset, 
 			Map<String,RDFNode> templateBindings, boolean storesOnly) {
 		Node withIRI = update.getWithIRI();
 		if(withIRI != null) {
 			results.add(withIRI);
 		}
-		addUpdatedGraphs(results, update.getDeleteQuads(), dataset, templateBindings, storesOnly);
-		addUpdatedGraphs(results, update.getInsertQuads(), dataset, templateBindings, storesOnly);
+		addUpdatedGraphs(consertEngine, results, update.getDeleteQuads(), dataset, templateBindings, storesOnly);
+		addUpdatedGraphs(consertEngine, results, update.getInsertQuads(), dataset, templateBindings, storesOnly);
 	}
 
 	
-	private static void addUpdatedGraphs(Set<Node> results, Iterable<Quad> quads, Dataset graphStore, 
+	private static void addUpdatedGraphs(Engine consertEngine, Set<Node> results, Iterable<Quad> quads, Dataset graphStore, 
 			Map<String,RDFNode> templateBindings, boolean storesOnly) {
 		for(Quad quad : quads) {
 			if(quad.isDefaultGraph()) {
@@ -106,7 +108,7 @@ public class ContextUpdateUtil {
 					String varName = quad.getGraph().getName();
 					RDFNode binding = templateBindings.get(varName);
 					if(binding != null && binding.isURIResource()) {
-						if (storesOnly && Engine.getContextAssertionIndex().isContextStore(binding.asNode())) {
+						if (storesOnly && consertEngine.getContextAssertionIndex().isContextStore(binding.asNode())) {
 							results.add(binding.asNode());
 						}
 						else if (!storesOnly) {
@@ -116,7 +118,7 @@ public class ContextUpdateUtil {
 				}
 			}
 			else {
-				if (storesOnly && Engine.getContextAssertionIndex().isContextStore(quad.getGraph())) {
+				if (storesOnly && consertEngine.getContextAssertionIndex().isContextStore(quad.getGraph())) {
 					results.add(quad.getGraph());
 				}
 				else if (!storesOnly) {

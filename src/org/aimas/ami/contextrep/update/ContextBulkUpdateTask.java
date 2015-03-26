@@ -24,16 +24,19 @@ import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class ContextBulkUpdateTask implements Runnable {
+	
+	private Engine consertEngine;
 	private UpdateRequest bulkInsertRequest;
 	
-	public ContextBulkUpdateTask(UpdateRequest request) {
+	public ContextBulkUpdateTask(Engine consertEngine, UpdateRequest request) {
+		this.consertEngine = consertEngine;
 		this.bulkInsertRequest = request;
 	}
 	
 	@Override
 	public void run() {
 		// STEP 1: start a new WRITE transaction on the contextStoreDataset
-		Dataset contextDataset = Engine.getRuntimeContextStore();
+		Dataset contextDataset = consertEngine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.WRITE);
 		
 		try {
@@ -55,7 +58,7 @@ public class ContextBulkUpdateTask implements Runnable {
 			if (entityStoreUpdate) {
 				// TODO: see if there's a better / more elegant way to do this
 				Model entityStore = contextDataset.getNamedModel(ConsertCore.ENTITY_STORE_URI);
-				InfModel entityStoreInfModel = ModelFactory.createInfModel(Engine.getEntityStoreReasoner(), entityStore);
+				InfModel entityStoreInfModel = ModelFactory.createInfModel(consertEngine.getEntityStoreReasoner(), entityStore);
 				
 				Model newData = entityStoreInfModel.difference(entityStore);
 				entityStore.add(newData);
@@ -74,10 +77,10 @@ public class ContextBulkUpdateTask implements Runnable {
 		
 		for (Update up : bulkInsertRequest.getOperations()) {
 			if (updatedContextStores == null) {
-				updatedContextStores = ContextUpdateUtil.getUpdatedGraphs(up, dataset, templateBindings, false);
+				updatedContextStores = ContextUpdateUtil.getUpdatedGraphs(consertEngine, up, dataset, templateBindings, false);
 			}
 			else {
-				updatedContextStores.addAll(ContextUpdateUtil.getUpdatedGraphs(up, dataset, templateBindings, false));
+				updatedContextStores.addAll(ContextUpdateUtil.getUpdatedGraphs(consertEngine, up, dataset, templateBindings, false));
 			}
 		}
 		

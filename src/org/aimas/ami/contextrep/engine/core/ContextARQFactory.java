@@ -7,13 +7,14 @@ import com.hp.hpl.jena.rdf.model.Model;
 
 public class ContextARQFactory extends ARQFactory {
 	private Dataset contextDataset;
+	private Engine consertEngine;
 	
 	/**
-	 * Instantiate the ContextARQFactory. 
-	 * A new transactionable instance of the TDB-backed context dataset will be retrieved
-	 * from the core.Config class.
+	 * Instantiate the ContextARQFactory with the CONSERT Engine instance from which it will retrieve the transactionable TDB-backed dataset. 
 	 */
-	public ContextARQFactory() {}
+	public ContextARQFactory(Engine engine) {
+		this.consertEngine = engine;
+	}
 	
 	/**
 	 * Instantiate the ContextARQFactory with an instance of the TDB-backed context dataset
@@ -36,6 +37,6 @@ public class ContextARQFactory extends ARQFactory {
 			return contextDataset;
 		}
 		
-		return Engine.getRuntimeContextStore();
+		return consertEngine.getRuntimeContextStore();
 	}
 }

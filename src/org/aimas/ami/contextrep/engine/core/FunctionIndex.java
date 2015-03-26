@@ -10,9 +10,9 @@ import org.aimas.ami.contextrep.functions.datetimeDelay;
 import org.aimas.ami.contextrep.functions.getCurrentAgent;
 import org.aimas.ami.contextrep.functions.makeValidityInterval;
 import org.aimas.ami.contextrep.functions.minusInfty;
-import org.aimas.ami.contextrep.functions.mostRecentAssertionInstance;
+import org.aimas.ami.contextrep.functions.mostRecentAssertionInstance.mostRecentAssertionInstanceFactory;
 import org.aimas.ami.contextrep.functions.newGraphUUID;
-import org.aimas.ami.contextrep.functions.now;
+import org.aimas.ami.contextrep.functions.now.nowFactory;
 import org.aimas.ami.contextrep.functions.plusInfty;
 import org.aimas.ami.contextrep.functions.timestampPermitsContinuity;
 import org.aimas.ami.contextrep.functions.validityIntervalsCloseEnough;
@@ -23,14 +23,23 @@ import org.aimas.ami.contextrep.vocabulary.ConsertFunctions;
 import org.topbraid.spin.system.SPINModuleRegistry;
 
 import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.sparql.function.FunctionFactory;
 import com.hp.hpl.jena.sparql.function.FunctionRegistry;
 
 public class FunctionIndex {
-	private static Map<String, Class<?>> customFunctions = new HashMap<String, Class<?>>();
-	static {
-		// register now function
-		customFunctions.put(ConsertFunctions.NS + "now", now.class) ;
-		
+	private Engine consertEngine;
+	
+	public FunctionIndex(Engine consertEngine) {
+		this.consertEngine = consertEngine;
+	
+		setup();
+	}
+	
+	private Map<String, Class<?>> customFunctions = new HashMap<String, Class<?>>();
+	private Map<String, FunctionFactory> customFunctionFactories = new HashMap<String, FunctionFactory>();
+	
+	
+	private void setup() {
 		// register datetimeDelay function
 		customFunctions.put(ConsertFunctions.NS + "datetimeDelay", datetimeDelay.class) ;
 		
@@ -67,20 +76,26 @@ public class FunctionIndex {
 		// register minusInfty function
 		customFunctions.put(ConsertFunctions.NS + "minusInfty", minusInfty.class) ;
 		
+		// ==========================================================================================================
+		
+		// register now function
+		customFunctionFactories.put(ConsertFunctions.NS + "now", new nowFactory(consertEngine)) ;
+		
 		// register mostRecentAssertionInstance function
-		customFunctions.put(ConsertFunctions.NS + "mostRecentAssertionInstance", mostRecentAssertionInstance.class);
+		customFunctionFactories.put(ConsertFunctions.NS + "mostRecentAssertionInstance", new mostRecentAssertionInstanceFactory(consertEngine));
 	}
 	
-	public static Class<?> getFunctionClass(String operatorURI) {
+	
+	public Class<?> getFunctionClass(String operatorURI) {
 		return customFunctions.get(operatorURI);
 	}
 	
 	
-	public static List<Class<?>> listRegisteredFunctions() {
+	public List<Class<?>> listRegisteredFunctions() {
 		return new LinkedList<Class<?>>(customFunctions.values());
 	}
 	
-	public static Map<String, Class<?>> getFunctions() {
+	public Map<String, Class<?>> getFunctions() {
 		return customFunctions;
 	}
 	
@@ -89,7 +104,7 @@ public class FunctionIndex {
 	 * @param functionURI Function URI
 	 * @param functionClass	Class of the custom Java implementation of this function
 	 */
-	public static void addFunction(String functionURI, Class<?> functionClass) {
+	public void addFunction(String functionURI, Class<?> functionClass) {
 		addFunction(functionURI, functionClass, false);
 	}
 	
@@ -100,11 +115,38 @@ public class FunctionIndex {
 	 * @param functionClass Class of the custom Java implementation of this function
 	 * @param register Boolean flag telling whether to directly register the function with the {@link FunctionRegister} of the Jena API
 	 */
-	public static void addFunction(String functionURI, Class<?> functionClass, boolean register) {
+	public void addFunction(String functionURI, Class<?> functionClass, boolean register) {
 		customFunctions.put(functionURI, functionClass);
 		
 		if (register) {
 			FunctionRegistry.get().put(functionURI, functionClass) ;
+		}
+	}
+	
+	
+	/**
+	 * Add a function factory to this index. Do not yet perform registration of the factory in the {@link FunctionRegister} of the Jena API.
+	 * @param functionURI Function URI
+	 * @param factory Factory producing an instance of the desired custom function at each required execution.
+	 * @param register Boolean flag telling whether to directly register the function with the {@link FunctionRegister} of the Jena API
+	 */
+	public void addFunctionFactory(String functionURI, FunctionFactory factory) {
+		addFunctionFactory(functionURI, factory, false);
+	}
+	
+	
+	/**
+	 * Add a function factory to this index. If <code>register</code> is {@literal true} perform registration of the function with the {@link FunctionRegister} 
+	 * of the Jena API.
+	 * @param functionURI Function URI
+	 * @param factory Factory producing an instance of the desired custom function at each required execution.
+	 * @param register Boolean flag telling whether to directly register the function with the {@link FunctionRegister} of the Jena API
+	 */
+	public void addFunctionFactory(String functionURI, FunctionFactory factory, boolean register) {
+		customFunctionFactories.put(functionURI, factory);
+		
+		if (register) {
+			FunctionRegistry.get().put(functionURI, factory) ;
 		}
 	}
 	
@@ -117,12 +159,12 @@ public class FunctionIndex {
 	 * {@link FunctionRegistry} of the Jena API.
 	 * @param contextModelFunctions The ontology model containing the Function definitions
 	 */
-	static void registerCustomFunctions(OntModel contextModelFunctions) {
+	void registerCustomFunctions(OntModel contextModelFunctions) {
 		// register SPIN system functions and templates 
 		SPINModuleRegistry.get().init();
 		
 		// add the spin: and sp: namespaces to the functions module (they were not imported on initial load)
-		OntModel extendedFunctionsModel = Engine.getModelLoader().ensureSPINImported(contextModelFunctions);
+		OntModel extendedFunctionsModel = consertEngine.getModelLoader().ensureSPINImported(contextModelFunctions);
 		
 		/*
 		Statement splMaxStmt = extendedFunctionsModel.getProperty(ResourceFactory.createResource(SPL.NS + "max"), SPIN.body);
@@ -149,9 +191,15 @@ public class FunctionIndex {
 		//extendedFunctionsModel.close();
 	}
 	
-	private static void registerCustomFilterFunctions() {
+	private void registerCustomFilterFunctions() {
+		// register default custom functions
 		for (String functionURI : customFunctions.keySet()) {
 			FunctionRegistry.get().put(functionURI, customFunctions.get(functionURI)) ;
+		}
+		
+		// register default custom function factories
+		for (String functionURI : customFunctionFactories.keySet()) {
+			FunctionRegistry.get().put(functionURI, customFunctionFactories.get(functionURI)) ;
 		}
 	}
 }

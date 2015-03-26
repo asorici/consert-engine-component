@@ -89,6 +89,7 @@ public class ContextSPINInferences {
 	 * made within one iteration.
 	 * Note that in order to iterate more than single pass, the newTriples Model
 	 * must be a sub-model of the queryModel (which likely has to be an OntModel).
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param queryModel  the Model to query
 	 * @param newTriples  the Model to add the new triples to 
 	 * @param class2Query  the map of queries to run (see SPINQueryFinder)
@@ -102,6 +103,7 @@ public class ContextSPINInferences {
 	 * @return a {@link ContextInferenceResult} wrapper with the result of the inference
 	 */
 	public static ContextInferenceResult runContextInference(
+			Engine consertEngine,
 			Model queryModel,
 			Model newTriples,
 			Map<Resource, List<CommandWrapper>> class2Query,
@@ -145,7 +147,7 @@ public class ContextSPINInferences {
 			boolean thisUnbound = arqWrapper.isThisUnbound();
 			
 			Map<String, RDFNode> initialBindings = templateBindings.get(arqWrapper);
-			inferred |= runContextInferenceCommandOnClass(arqWrapper, arqWrapper.getLabel(),
+			inferred |= runContextInferenceCommandOnClass(consertEngine, arqWrapper, arqWrapper.getLabel(),
 			        queryModel, newTriples, cls, class2Constructor, templateBindings, initialBindings, statistics, thisUnbound);
 			
 			//inferred |= runContextInferenceCommandOnClass(arqWrapper, arqWrapper.getLabel(),
@@ -154,7 +156,7 @@ public class ContextSPINInferences {
 			if (!SPINUtil.isRootClass(cls) && !thisUnbound) {
 				Set<Resource> subClasses = JenaUtil.getAllSubClasses(cls);
 				for (Resource subClass : subClasses) {
-					inferred |= runContextInferenceCommandOnClass(arqWrapper,
+					inferred |= runContextInferenceCommandOnClass(consertEngine, arqWrapper,
 					        arqWrapper.getLabel(), queryModel, newTriples, subClass, class2Constructor,
 					        templateBindings, initialBindings, statistics, thisUnbound);
 					
@@ -169,6 +171,7 @@ public class ContextSPINInferences {
 
 	
 	private static boolean runContextInferenceCommandOnClass(
+			Engine consertEngine,
 			CommandWrapper commandWrapper, 
 			String queryLabel, 
 			final Model queryModel, 
@@ -195,7 +198,7 @@ public class ContextSPINInferences {
 				}
 			}
 			
-			long startTime = Engine.currentTimeMillis();
+			long startTime = consertEngine.currentTimeMillis();
 			final Map<Resource,Resource> newInstances = new HashMap<Resource,Resource>();
 			if(commandWrapper instanceof QueryWrapper) {
 				Query arq = ((QueryWrapper)commandWrapper).getQuery();
@@ -268,7 +271,7 @@ public class ContextSPINInferences {
 			}
 			
 			if(statistics != null) {
-				long endTime = Engine.currentTimeMillis();
+				long endTime = consertEngine.currentTimeMillis();
 				long duration = (endTime - startTime);
 				String queryText = SPINLabels.get().getLabel(commandWrapper.getSPINCommand());
 				if(queryLabel == null) {

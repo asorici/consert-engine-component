@@ -16,9 +16,17 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.sparql.expr.NodeValue;
+import com.hp.hpl.jena.sparql.function.Function;
 import com.hp.hpl.jena.sparql.function.FunctionBase1;
+import com.hp.hpl.jena.sparql.function.FunctionFactory;
 
 public class mostRecentAssertionInstance extends FunctionBase1 {
+	
+	private Engine consertEngine;
+	
+	public mostRecentAssertionInstance(Engine consertEngine) {
+		this.consertEngine = consertEngine;
+	}
 	
 	/*
 	 * Get the most recently inserted instance of a ContextAssertion.
@@ -36,13 +44,14 @@ public class mostRecentAssertionInstance extends FunctionBase1 {
 		String assertionResURI = paramNodeValue.asNode().getURI();
 		Resource assertionRes = ResourceFactory.createResource(assertionResURI);
 		
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionRes);
+		ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionRes);
 		String assertionStoreURI = assertion.getAssertionStoreURI();
+		
 		
 		Resource newestAssertionUUID = null;
 		Calendar newestAssertionTimestamp = null;
 		
-		Dataset contextStore = Engine.getRuntimeContextStore();
+		Dataset contextStore = consertEngine.getRuntimeContextStore();
 		contextStore.begin(ReadWrite.READ);
 		try {
 			Model assertionStore = contextStore.getNamedModel(assertionStoreURI);
@@ -74,5 +83,18 @@ public class mostRecentAssertionInstance extends FunctionBase1 {
 		
 		// otherwise, for lack of a better alternative, just return an anonymous "nothing node"
 		return NodeValue.nvNothing;
+	}
+	
+	public static class mostRecentAssertionInstanceFactory implements FunctionFactory {
+		private Engine consertEngine;
+		
+		public mostRecentAssertionInstanceFactory(Engine consertEngine) {
+			this.consertEngine = consertEngine;
+		}
+		
+		@Override
+        public Function create(String paramString) {
+	        return new mostRecentAssertionInstance(consertEngine);
+        }
 	}
 }

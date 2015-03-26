@@ -20,8 +20,7 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-public class QueryService implements ExecutionService, EngineQueryStats, QueryStatsCollector {
-	private static QueryService instance;
+public class QueryService extends ExecutionService implements EngineQueryStats, QueryStatsCollector {
 	
 	private static final int DEFAULT_NUM_WORKERS = 1;
 	private static final long DEFAULT_RUN_WINDOW = 5000;
@@ -32,7 +31,9 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 	private long defaultRunWindow = DEFAULT_RUN_WINDOW;
 	private Map<Resource, Long> assertionSpecificRunWindow = new HashMap<Resource, Long>(); 
 	
-	private QueryService() {}
+	public QueryService(Engine engine) {
+		super(engine);
+	}
 
 	@Override
     public void init(Properties configuration) {
@@ -103,7 +104,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 	
     
     public void executeRequest(Query query, QuerySolutionMap initialBindings, QueryResultNotifier notifier) {
-		queryExecutor.submit(new ContextQueryTask(query, initialBindings, notifier));
+		queryExecutor.submit(new ContextQueryTask(engine, query, initialBindings, notifier));
 	}
 	
 	
@@ -151,7 +152,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 	
 	@Override
 	public void markQueryExecution(Set<ContextAssertion> assertions, boolean successful) {
-		queryTracker.markQueryExecution(assertions, Engine.currentTimeMillis(), successful);
+		queryTracker.markQueryExecution(assertions, engine.currentTimeMillis(), successful);
 	}
 	
 	@Override
@@ -223,7 +224,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 		
 		
 		void siftTracker() {
-			long now = Engine.currentTimeMillis();
+			long now = engine.currentTimeMillis();
 			
 			for (Resource assertionRes : queryTracker.keySet()) {
 				long runWindowWidth = defaultRunWindow;
@@ -306,7 +307,7 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 		
 		Map<Resource, Long> timeSinceLastQuery() {
 			synchronized(queryTracker) {
-				long now = Engine.currentTimeMillis(); 
+				long now = engine.currentTimeMillis(); 
 				Map<Resource, Long> m = new HashMap<Resource, Long>();
 				
 				for (Resource assertionRes : mostRecentTracker.keySet()) {
@@ -337,14 +338,4 @@ public class QueryService implements ExecutionService, EngineQueryStats, QuerySt
 		}
 	}
 	
-	
-	// ============================== Factory ==============================
-	////////////////////////////////////////////////////////////////////////
-	public static QueryService getInstance() {
-		if (instance == null) {
-			instance = new QueryService();
-		}
-		
-		return instance;
-	}
 }

@@ -56,12 +56,13 @@ public class ContextStoreUtil {
 	 *  <li>The ContextAssertion <i>Store</i> named graph for <code>contextAssertion</code> </li>
 	 *  <li>The <i>entityStore</i> of the ContextStore</li>
 	 * </ul>
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param contextAssertion	The ContextAssertion for which to get the union model.
 	 * @param contextDatasetSnapshot The dataset representing the current view of the ContextStore.
 	 * @return A Jena {@link Model} representing the union of the named graphs 
 	 * 		relating to <code>contextAssertion</code>
 	 */
-	public static Model unionModelForAssertion(ContextAssertion contextAssertion, Dataset contextDatasetSnapshot) {
+	public static Model unionModelForAssertion(Engine consertEngine, ContextAssertion contextAssertion, Dataset contextDatasetSnapshot) {
 		MultiUnion union = new MultiUnion();
 		
 		// get the URIs of named graphs that identify instances of the ContextAssertion
@@ -70,7 +71,7 @@ public class ContextStoreUtil {
 		// Since all ContextAssertions MUST have a timestamp annotation it is by this feature that we identify all
 		// the named graphs that act as identifiers of ContextAssertion instances. In the ContextAssertion Store, 
 		// their URI will be bound by the timestamp property to a resource that represents the timestamp annotation.
-		OntProperty timestampAnnProp = Engine.getContextAnnotationIndex()
+		OntProperty timestampAnnProp = consertEngine.getContextAnnotationIndex()
 				.getByResource(ConsertAnnotation.HAS_TIMESTAMP).getBindingProperty();
 		
 		String queryString = 

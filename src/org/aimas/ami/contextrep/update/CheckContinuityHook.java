@@ -1,12 +1,10 @@
 package org.aimas.ami.contextrep.update;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 import org.aimas.ami.contextrep.datatype.CalendarInterval;
 import org.aimas.ami.contextrep.datatype.CalendarIntervalList;
@@ -51,8 +49,8 @@ import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckContinuityHook extends ContextUpdateHook {
 	
-	public CheckContinuityHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
-		super(updateRequest, contextAssertion, contextAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE);
+	public CheckContinuityHook(Engine consertEngine, UpdateRequest updateRequest, ContextAssertion contextAssertion, Node contextAssertionUUID) {
+		super(consertEngine, updateRequest, contextAssertion, contextAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE);
 	}
 	
 	@Override
@@ -175,7 +173,7 @@ public class CheckContinuityHook extends ContextUpdateHook {
 				
 				CalendarIntervalList mergedValidityIntervals = validityIntervals.joinCloseEnough(newValidityIntervals, CalendarInterval.MAX_GAP_MILLIS);
 				Literal mergedValidityLiteral = ResourceFactory.createTypedLiteral(mergedValidityIntervals);
-				revisedStructuredAnnotations.put(Engine.getContextAnnotationIndex().getStructuredByResource(ConsertAnnotation.TEMPORAL_VALIDITY), 
+				revisedStructuredAnnotations.put(consertEngine.getContextAnnotationIndex().getStructuredByResource(ConsertAnnotation.TEMPORAL_VALIDITY), 
 					NodeValue.makeNode(mergedValidityLiteral.asNode()));
 				
 				/*
@@ -268,10 +266,10 @@ public class CheckContinuityHook extends ContextUpdateHook {
 		Map<ContextAnnotation, Pair<Statement, Set<Statement>>> newAssertionBasicAnnotations = 
 			new HashMap<ContextAnnotation, Pair<Statement,Set<Statement>>>();
 		
-		Set<OntProperty> structuredAnnProperties = Engine.getContextAnnotationIndex().getStructuredAnnotationProperties();
+		Set<OntProperty> structuredAnnProperties = consertEngine.getContextAnnotationIndex().getStructuredAnnotationProperties();
 		for (OntProperty structuredAnnProp : structuredAnnProperties) {
 			StructuredAnnotation structuredAnn = 
-				(StructuredAnnotation)ContextAnnotationUtil.getAnnotationType(structuredAnnProp, newAssertionUUIDRes, assertionStoreModel);
+				(StructuredAnnotation)ContextAnnotationUtil.getAnnotationType(consertEngine, structuredAnnProp, newAssertionUUIDRes, assertionStoreModel);
 			
 			if (structuredAnn != null) {	// if the new ContextAssertion has the type of ContextAnnotation bound by this structuredAnnProp
 				NodeValue newAssertionAnnVal = NodeValue.makeNode( ContextAnnotationUtil.getStructuredAnnotationValue(structuredAnnProp, 
@@ -280,9 +278,9 @@ public class CheckContinuityHook extends ContextUpdateHook {
 			}
 		}
 		
-		Set<OntProperty> basicAnnProperties = Engine.getContextAnnotationIndex().getBasicAnnotationProperties();
+		Set<OntProperty> basicAnnProperties = consertEngine.getContextAnnotationIndex().getBasicAnnotationProperties();
 		for (OntProperty basicAnnProp : basicAnnProperties) {
-			ContextAnnotation basicAnn = ContextAnnotationUtil.getAnnotationType(basicAnnProp, newAssertionUUIDRes, assertionStoreModel); 
+			ContextAnnotation basicAnn = ContextAnnotationUtil.getAnnotationType(consertEngine, basicAnnProp, newAssertionUUIDRes, assertionStoreModel); 
 			if (basicAnn != null) {		// if the new ContextAssertion has the type of basic ContextAnnotation bound by this basicAnnProp
 				Pair<Statement, Set<Statement>> basicAnnContents = 
 					ContextAnnotationUtil.getAnnotationFor(basicAnnProp, newAssertionUUIDRes, assertionStoreModel);

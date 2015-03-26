@@ -161,18 +161,19 @@ public class DerivationRuleDictionary {
 	 * in which it plays a role. The SPIN rules are selected from those attached
 	 * by a <code>spin:deriveassertion</code> property to a ContextEntity of the context model given
 	 * by <code>basicContextModel</code>.
+	 * @param consertEngine The CONSERT Engine instance for which the derivation dictionary is built
 	 * @param contextAssertionIndex The index of ContextAssertions defined in the Context Model
 	 * @param contextModelRules The ontology defining Rules module of the domain Context Model
 	 * @return A {@link DerivationRuleDictionary} instance which contains maps of ContextEntity to 
 	 * list of SPIN Rules and ContextAssertion to list of SPIN Rules.
 	 */
-	public static DerivationRuleDictionary create(ContextAssertionIndex contextAssertionIndex, OntModel contextModelRules) {
+	public static DerivationRuleDictionary create(Engine consertEngine, ContextAssertionIndex contextAssertionIndex, OntModel contextModelRules) {
 		DerivationRuleDictionary dict = new DerivationRuleDictionary();
 		
 		Map<CommandWrapper, Map<String,RDFNode>> initialTemplateBindings = new HashMap<CommandWrapper, Map<String,RDFNode>>();
 		
 		// build the extended Rules Module including the SPL, SP and SPIN namespaces
-		OntModel extendedRulesModel = Engine.getModelLoader().ensureSPINImported(contextModelRules);
+		OntModel extendedRulesModel = consertEngine.getModelLoader().ensureSPINImported(contextModelRules);
 		
 		// make sure to register the templates as they will be searched for when collecting the constraints
 		SPINModuleRegistry.get().registerAll(extendedRulesModel, null);

@@ -29,16 +29,17 @@ public class ContextAnnotationUtil {
 	/**
 	 * Get all the annotations of a <i>ContextAssertion</i> instance identified by <code>assertionUUID</code>, 
 	 * grouped by the Statements which bind the <i>ContextAssertion</i> to its <i>ContextAnnotations</i>.
+	 * @param consertEngine
 	 * @param contextAssertion
 	 * @param assertionUUID
 	 * @param contextStoreDataset
 	 * @return A mapping from the <i>ContextAnnotation</i> {@link Statement} to the list of statements that define the annotations. 
 	 */
-	public static Map<Statement, Set<Statement>> getAnnotationsFor(ContextAssertion contextAssertion, Resource assertionUUID, Dataset contextStoreDataset) {
+	public static Map<Statement, Set<Statement>> getAnnotationsFor(Engine consertEngine, ContextAssertion contextAssertion, Resource assertionUUID, Dataset contextStoreDataset) {
 		Map<Statement, Set<Statement>> annotationsMap = new HashMap<Statement, Set<Statement>>();
 		
 		// get the all annotation properties defined in the Context Model
-		Set<OntProperty> annotationProperties = Engine.getContextAnnotationIndex().getAnnotationProperties();
+		Set<OntProperty> annotationProperties = consertEngine.getContextAnnotationIndex().getAnnotationProperties();
 		
 		// get the assertion store for the ContextAssertion
 		String assertionStoreURI = contextAssertion.getAssertionStoreURI();
@@ -93,6 +94,7 @@ public class ContextAnnotationUtil {
 	 * model that contains them. If the statement is insufficient in order to collect the contents of the ContextAnnotation instance it is supposed 
 	 * to identify, a null value will be returned. <p>
 	 * This method is reserved for internal usage by the CheckInferenceHook mechanism during CONSERT Engine Derivation Rule reasoning.
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param annotationIdentifierStmt The statement acting as an identifier for the ContextAnnotation instance
 	 * @param contentModel The model that contains the ContextAnnotation contents
 	 * @return A mapping specifying: 
@@ -102,7 +104,7 @@ public class ContextAnnotationUtil {
 	 * 		</ul>		
 	 * 		The method returns null if no ContextAnnotation could be identified.
 	 */
-	public static Map<ContextAnnotation, Pair<Resource, Set<Statement>>> getAnnotationContents(Statement annotationIdentifierStmt, Model contentModel) {
+	public static Map<ContextAnnotation, Pair<Resource, Set<Statement>>> getAnnotationContents(Engine consertEngine, Statement annotationIdentifierStmt, Model contentModel) {
 		Map<ContextAnnotation, Pair<Resource, Set<Statement>>> annotationInstance = new HashMap<ContextAnnotation, Pair<Resource,Set<Statement>>>();
 		
 		// The identifier statement has as subject a blank node that identifies an instance of a triggered Derivation Rule CONSTRUCT query.
@@ -117,7 +119,7 @@ public class ContextAnnotationUtil {
 		while(annTypeList.hasNext()) {
 			RDFNode annTypeNode = annTypeList.nextNode();
 			if (annTypeNode.isURIResource()) {
-				ContextAnnotation annotation = Engine.getContextAnnotationIndex().getByResource(annTypeNode.asResource());
+				ContextAnnotation annotation = consertEngine.getContextAnnotationIndex().getByResource(annTypeNode.asResource());
 				if (annotation != null) {
 					// we have found a definition of an annotation so we can collect all the statements that start out
 					// with the annotation root node
@@ -193,12 +195,13 @@ public class ContextAnnotationUtil {
 	 * <code>assertionUUIDResource</code> by the property <code>annotationProp</code>. <p> 
 	 * This method is used internally by the {@link CheckContinuityHook} mechanism activated on insertion of a 
 	 * new ContextAssertion.
+	 * @param consertEngine 	The CONSERT Engine instance in which the ContextStore is kept
 	 * @param annotationProp 	The annotation property binding the <code>assertionUUIDResource</code> ContextAssertion to its annotation.
 	 * @param assertionUUIDRes		The named graph ContextAssertion identifier, wrapped as a URI Resource
 	 * @param assertionStoreModel	The ContextAssertion store where the annotations of ContextAssertion instances are kept.
 	 * @return	The {@link StructuredAnnotation} giving the details about the attached annotation or null if no such annotation exists.
 	 */
-	public static ContextAnnotation getAnnotationType(Property annotationProp, Resource assertionUUIDRes, Model assertionStoreModel) {
+	public static ContextAnnotation getAnnotationType(Engine consertEngine, Property annotationProp, Resource assertionUUIDRes, Model assertionStoreModel) {
 		// We first get the annotation statement (since, per recommendations, there can be only one annotation of each type per 
 		// ContextAssertion, we only need to retrieve one such statement)
 		Statement annotationStmt = assertionStoreModel.getProperty(assertionUUIDRes, annotationProp);
@@ -210,7 +213,7 @@ public class ContextAnnotationUtil {
 			Statement annotationTypeStmt = assertionStoreModel.getProperty(annotationRes, RDF.type); 
 			if (annotationTypeStmt != null && annotationTypeStmt.getObject().isURIResource()) {
 				Resource annotationTypeRes = annotationTypeStmt.getResource();
-				return Engine.getContextAnnotationIndex().getByResource(annotationTypeRes);
+				return consertEngine.getContextAnnotationIndex().getByResource(annotationTypeRes);
 			}
 		}
 		

@@ -37,18 +37,18 @@ import com.hp.hpl.jena.vocabulary.RDF;
 
 public class ContextSPINConstraints {
 	
-	public static List<ContextConstraintViolation> check(Model constraintContextModel, ContextAssertion assertion, 
+	public static List<ContextConstraintViolation> check(Engine consertEngine, Model constraintContextModel, ContextAssertion assertion, 
 			Node assertionUUID, UpdateRequest triggeringRequest, ConstraintsWrapper constraints, List<SPINStatistics> stats) {
 		
 		Resource anchorResource = constraints.getAnchorResource();
 		List<CommandWrapper> constraintCommands = constraints.getConstraintCommands();
 		Map<CommandWrapper, Map<String, RDFNode>> templateBindings = constraints.getConstraintTemplateBindings();
 		
-		return run(constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, constraintCommands, templateBindings, stats);
+		return run(consertEngine, constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, constraintCommands, templateBindings, stats);
 		//return run(constraintContextModel, assertion, anchorResource, constraintCommands, stats);
 	}
 	
-	private static List<ContextConstraintViolation> run(Model constraintContextModel, ContextAssertion assertion, 
+	private static List<ContextConstraintViolation> run(Engine consertEngine, Model constraintContextModel, ContextAssertion assertion, 
 			Node assertionUUID, UpdateRequest triggeringRequest, Resource anchorResource, List<CommandWrapper> constraintCommands,
 			Map<CommandWrapper, Map<String, RDFNode>> templateBindings,
 			List<SPINStatistics> stats) {
@@ -63,12 +63,12 @@ public class ContextSPINConstraints {
 			Query arq = queryConstraintWrapper.getQuery();
 			String label = arqConstraint.getLabel();
 			
-			runQueryOnClass(results, arq, queryConstraintWrapper.getSPINQuery(), label, constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, initialBindings, arqConstraint.isThisUnbound(), arqConstraint.isThisDeep(), arqConstraint.getSource(), stats);
+			runQueryOnClass(consertEngine, results, arq, queryConstraintWrapper.getSPINQuery(), label, constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, initialBindings, arqConstraint.isThisUnbound(), arqConstraint.isThisDeep(), arqConstraint.getSource(), stats);
 			
 			if(!arqConstraint.isThisUnbound()) {
 				Set<Resource> subClasses = JenaUtil.getAllSubClasses(anchorResource);
 				for(Resource subClass : subClasses) {
-					runQueryOnClass(results, arq, queryConstraintWrapper.getSPINQuery(), label, constraintContextModel, assertion, assertionUUID, triggeringRequest, subClass, initialBindings, arqConstraint.isThisUnbound(), arqConstraint.isThisDeep(), arqConstraint.getSource(), stats);
+					runQueryOnClass(consertEngine, results, arq, queryConstraintWrapper.getSPINQuery(), label, constraintContextModel, assertion, assertionUUID, triggeringRequest, subClass, initialBindings, arqConstraint.isThisUnbound(), arqConstraint.isThisDeep(), arqConstraint.getSource(), stats);
 				}
 			}
 		}
@@ -76,7 +76,7 @@ public class ContextSPINConstraints {
 		return results;
 	}
 
-	private static void runQueryOnClass(
+	private static void runQueryOnClass(Engine consertEngine,
             List<ContextConstraintViolation> results, Query arq,
             org.topbraid.spin.model.Query spinQuery, String label,
             Model constraintContextModel, ContextAssertion assertion, 
@@ -96,7 +96,7 @@ public class ContextSPINConstraints {
 				}
 			}
 			
-			long startTime = Engine.currentTimeMillis();
+			long startTime = consertEngine.currentTimeMillis();
 			Model cm = JenaUtil.createDefaultModel();
 			
 			if(thisDeep && !thisUnbound) {
@@ -115,7 +115,7 @@ public class ContextSPINConstraints {
 				qexec.close();
 			}
 			
-			long endTime = Engine.currentTimeMillis();
+			long endTime = consertEngine.currentTimeMillis();
 			if(stats != null) {
 				long duration = endTime - startTime;
 				String queryText = SPINLabels.get().getLabel(spinQuery);
@@ -125,12 +125,12 @@ public class ContextSPINConstraints {
 				stats.add(new SPINStatistics(label, queryText, duration, startTime, anchorResource.asNode()));
 			}
 			
-			addConstructedProblemReports(cm, results, constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, null, label, source);
+			addConstructedProblemReports(consertEngine, cm, results, constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, null, label, source);
 		}
 	    
     }
 
-	private static void addConstructedProblemReports(Model cm,
+	private static void addConstructedProblemReports(Engine consertEngine, Model cm,
             List<ContextConstraintViolation> results, Model constraintContextModel,
             ContextAssertion assertion, Node triggeringAssertionUUID, UpdateRequest triggeringRequest, Resource anchorResource, Resource matchRoot, String label,
             Resource source) {
@@ -203,8 +203,8 @@ public class ContextSPINConstraints {
 					String assertionUUID1 = conflictingAssertions.get(0).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
 					String assertionUUID2 = conflictingAssertions.get(1).getResource().getProperty(ConsertConstraint.HAS_ASSERTION_INSTANCE).getResource().getURI();
 					
-					ViolationAssertionWrapper violatingAssertion1 = new ViolationAssertionWrapper(Engine.getContextAssertionIndex().getAssertionFromResource(assertionType1), assertionUUID1);
-					ViolationAssertionWrapper violatingAssertion2 = new ViolationAssertionWrapper(Engine.getContextAssertionIndex().getAssertionFromResource(assertionType2), assertionUUID2);
+					ViolationAssertionWrapper violatingAssertion1 = new ViolationAssertionWrapper(consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionType1), assertionUUID1);
+					ViolationAssertionWrapper violatingAssertion2 = new ViolationAssertionWrapper(consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionType2), assertionUUID2);
 					
 					results.add(createIntegrityConstraintViolation(new ViolationAssertionWrapper[] {violatingAssertion1, violatingAssertion2}, 
 							triggeringAssertionUUID, triggeringRequest, source));

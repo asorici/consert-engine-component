@@ -24,9 +24,11 @@ import com.hp.hpl.jena.rdf.model.StmtIterator;
 public class ContextStoreSnapshot implements ContextStore {
 	
 	private Dataset contextStore;
+	private Engine consertEngine;
 	
-	public ContextStoreSnapshot(Dataset contextStore) {
-	    this.contextStore = contextStore;
+	public ContextStoreSnapshot(Engine consertEngine, Dataset contextStore) {
+	    this.consertEngine = consertEngine;
+		this.contextStore = contextStore;
     }
 
 	@Override
@@ -36,7 +38,7 @@ public class ContextStoreSnapshot implements ContextStore {
 	
 	@Override
 	public List<String> listContextAssertionInstances(Resource assertionResource) {
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		Model assertionStoreModel = contextStore.getNamedModel(assertion.getAssertionStoreURI());
 		
 		List<String> assertionInstances = new LinkedList<String>();
@@ -53,7 +55,7 @@ public class ContextStoreSnapshot implements ContextStore {
 	public AnnotationWrapper getAnnotationContent(Resource assertionResource, String assertionUUID, 
 			Property annotationProperty) {
 		
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		Model assertionStoreModel = contextStore.getNamedModel(assertion.getAssertionStoreURI());
 		
 		Pair<Statement, Set<Statement>> annotation = ContextAnnotationUtil.getAnnotationFor(annotationProperty, 
@@ -75,7 +77,7 @@ public class ContextStoreSnapshot implements ContextStore {
 	public RDFNode getStructuredAnnotationValue(Resource assertionResource, String assertionUUID, 
 			Property structuredAnnotationProperty) {
 		
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		Model assertionStoreModel = contextStore.getNamedModel(assertion.getAssertionStoreURI());
 		
 		RDFNode annVal = ContextAnnotationUtil.getStructuredAnnotationValue(structuredAnnotationProperty, 
@@ -86,10 +88,10 @@ public class ContextStoreSnapshot implements ContextStore {
 	
 	@Override
 	public List<AnnotationWrapper> listAnnotationContents(Resource assertionResource, String assertionUUID) {
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		
-		Map<Statement, Set<Statement>> annotations = ContextAnnotationUtil.getAnnotationsFor(assertion, 
-				ResourceFactory.createResource(assertionUUID), contextStore);
+		Map<Statement, Set<Statement>> annotations = ContextAnnotationUtil.getAnnotationsFor(consertEngine, 
+				assertion, ResourceFactory.createResource(assertionUUID), contextStore);
 		
 		List<AnnotationWrapper> annotationList = new LinkedList<ContextStore.AnnotationWrapper>();
 		

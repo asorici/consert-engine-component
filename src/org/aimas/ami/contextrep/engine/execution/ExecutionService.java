@@ -2,13 +2,21 @@ package org.aimas.ami.contextrep.engine.execution;
 
 import java.util.Properties;
 
-public interface ExecutionService {
+import org.aimas.ami.contextrep.engine.core.Engine;
+
+public abstract class ExecutionService {
 	
-	public void init(Properties configuration);
+	protected Engine engine;
 	
-	public void start();
+	protected ExecutionService(Engine engine) {
+		this.engine = engine;
+	}
 	
-	public void stop();
+	public abstract void init(Properties configuration);
 	
-	public void close();
+	public abstract void start();
+	
+	public abstract void stop();
+	
+	public abstract void close();
 }

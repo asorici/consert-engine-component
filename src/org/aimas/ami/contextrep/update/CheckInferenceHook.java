@@ -54,10 +54,11 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	
 	private DerivationRuleWrapper derivationRule;
 	
-	public CheckInferenceHook(UpdateRequest triggeringRequest, ContextAssertion contextAssertion, 
+	public CheckInferenceHook(Engine consertEngine, UpdateRequest triggeringRequest, ContextAssertion contextAssertion, 
 			Node contextAssertionUUID, DerivationRuleWrapper derivationRule) {
+		
 		// WE CURRENTLY CONSIDER THAT A DERIVED ContextAssertion ALWAYS WORKS WITH A TIME-BASED UPDATE MODE
-		super(triggeringRequest, contextAssertion, contextAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE);
+		super(consertEngine, triggeringRequest, contextAssertion, contextAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE);
 		
 		this.derivationRule = derivationRule;
 	}
@@ -76,9 +77,9 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	
 	@Override
 	public InferenceResult doHook(Dataset contextDataset) {
-		//System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
+		System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
 		// get the context model
-		OntModel contextModelCore = Engine.getModelLoader().getCoreContextModel();
+		OntModel contextModelCore = consertEngine.getModelLoader().getCoreContextModel();
 		
 		return attemptContextSPINInference(contextDataset, contextModelCore);
 	}
@@ -95,7 +96,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		if (!inferredContext.isEmpty()) {
 			for (UpdateRequest inferredAssertionReq : inferredContext) {
 				ExecutionMonitor.getInstance().logDerivedInsertEnqueue(insertionRequest.hashCode(), inferredAssertionReq.hashCode());
-				Engine.getInsertionService().executeRequest(inferredAssertionReq, null, updateMode);
+				consertEngine.getInsertionService().executeRequest(inferredAssertionReq, null, updateMode);
 			}
 			
 			return new InferenceResult(contextAssertion, null, derivationRule.getDerivedAssertion());
@@ -110,7 +111,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 			Model queryModel, OntModel contextModelCore, Dataset contextDataset) {
 		List<UpdateRequest> inferred = new ArrayList<UpdateRequest>();
 		
-		DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
+		DerivationRuleDictionary ruleDict = consertEngine.getDerivationRuleDictionary();
 		
 		// Create Model for inferred triples
 		//Model newTriples = ModelFactory.createDefaultModel(ReificationStyle.Minimal);
@@ -144,7 +145,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 		//long timestamp = System.currentTimeMillis();
 		ARQFactory.set(new ContextARQFactory(contextDataset));
 		
-		ContextInferenceResult inferenceResult = ContextSPINInferences.runContextInference(queryModel, newTriples,
+		ContextInferenceResult inferenceResult = ContextSPINInferences.runContextInference(consertEngine, queryModel, newTriples,
 			cls2Query, cls2Constructor, initialTemplateBindings, null, ConsertRules.DERIVE_ASSERTION, comparator);
 		//ContextInferenceResult inferenceResult = ContextSPINInferences.runContextInference(queryModel, newTriples,
 		//	cls2Query, cls2Constructor, null, ConsertRules.DERIVE_ASSERTION, comparator);
@@ -180,7 +181,7 @@ public class CheckInferenceHook extends ContextUpdateHook {
 			for (Statement derivedAssertionStmt : derivedAssertionStatements) {
 				// TODO: add error handling if for some unknown reason the object of the derivedAssertionStatement is not a Resource
 				OntResource derivedAssertionResource = contextModelCore.getOntResource(derivedAssertionStmt.getResource());
-				ContextAssertion derivedAssertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
+				ContextAssertion derivedAssertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
 				
 				// The subject of the derived assertion statement is the one to which all elements (assertion and annotation content) bind
 				Resource derivationSubject = derivedAssertionStmt.getSubject();
@@ -193,14 +194,15 @@ public class CheckInferenceHook extends ContextUpdateHook {
 				
 				Map<ContextAnnotation, Pair<Resource, Set<Statement>>> derivedAssertionAnnotations = new HashMap<ContextAnnotation, Pair<Resource,Set<Statement>>>();
 				for (Statement annIdentifierStmt : derivedAnnIdentifierStatements) {
-					Map<ContextAnnotation, Pair<Resource, Set<Statement>>> derivedAnnContents = ContextAnnotationUtil.getAnnotationContents(annIdentifierStmt, newTriples);
+					Map<ContextAnnotation, Pair<Resource, Set<Statement>>> derivedAnnContents = 
+							ContextAnnotationUtil.getAnnotationContents(consertEngine, annIdentifierStmt, newTriples);
 					derivedAssertionAnnotations.putAll(derivedAnnContents);
 				}
 				
 				// Step 3: retrieve the :assertionContent statement that acts as root for getting all the contents of the derived assertion
 				Statement contentStatement = newTriples.getProperty(derivationSubject, ConsertCore.CONTEXT_ASSERTION_CONTENT);
 				Set<Statement> derivedAssertionContents = 
-					ContextAssertionUtil.getDerivedAssertionContents(derivedAssertionResource, contentStatement, newTriples);
+					ContextAssertionUtil.getDerivedAssertionContents(consertEngine, derivedAssertionResource, contentStatement, newTriples);
 				
 				
 				// Step 4: create the new identifier graph and add the derived assertion statements in it creating an Update object

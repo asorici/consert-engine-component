@@ -12,8 +12,8 @@ public class InferenceRequestWrapper implements InferenceRequest {
 	CheckInferenceHook inferenceRequest;
 	
 	
-	public InferenceRequestWrapper(CheckInferenceHook inferenceRequest) {
-		this.enqueueTimestamp = Engine.currentTimeMillis();
+	public InferenceRequestWrapper(Engine consertEngine, CheckInferenceHook inferenceRequest) {
+		this.enqueueTimestamp = consertEngine.currentTimeMillis();
 		this.inferenceRequest = inferenceRequest;
 		
 		// by default, priority of an inference request is its enqueue timestamp

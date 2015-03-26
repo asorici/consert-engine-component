@@ -50,13 +50,17 @@ import com.hp.hpl.jena.update.UpdateRequest;
  */
 public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 	
+	private Engine consertEngine;
+	
 	private UpdateRequest request;
 	private InsertionResultNotifier resultNotifier;
 	
 	private boolean inferenceProbable;
 	
 	
-	public ProfiledOneShotUpdateTask(UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier) {
+	public ProfiledOneShotUpdateTask(Engine consertEngine, UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier) {
+		this.consertEngine = consertEngine;
+		
 		this.request = profiledAssertionRequest;
 		this.resultNotifier = notifier;
 		
@@ -66,7 +70,7 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 	@Override
     public InsertResult call() throws Exception {
 		// STEP 1: start a new WRITE transaction on the contextStoreDataset
-		Dataset contextDataset = Engine.getRuntimeContextStore();
+		Dataset contextDataset = consertEngine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.WRITE);
 		
 		// STEP 2: analyze request
@@ -86,9 +90,9 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 			// 		   since for each update there is only one corresponding ContextAssertion we can break at the first
 			//		   match
 			for (Node graphNode : updatedContextStores) {
-				if (Engine.getContextAssertionIndex().isContextAssertionUUID(graphNode)) {
+				if (consertEngine.getContextAssertionIndex().isContextAssertionUUID(graphNode)) {
 					// get the inserted assertion
-					insertedAssertion = Engine.getContextAssertionIndex().getAssertionFromGraphUUID(graphNode);
+					insertedAssertion = consertEngine.getContextAssertionIndex().getAssertionFromGraphUUID(graphNode);
 					insertedAssertionUUID = graphNode;
 					break;	// break since WE IMPOSE !!! that there be only one instance in the UpdateRequest
 				}
@@ -110,7 +114,7 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 			if (entityStoreUpdate) {
 				// TODO: see if there's a better / more elegant way to do this
 				Model entityStore = contextDataset.getNamedModel(ConsertCore.ENTITY_STORE_URI);
-				InfModel entityStoreInfModel = ModelFactory.createInfModel(Engine.getEntityStoreReasoner(), entityStore);
+				InfModel entityStoreInfModel = ModelFactory.createInfModel(consertEngine.getEntityStoreReasoner(), entityStore);
 				
 				Model newData = entityStoreInfModel.difference(entityStore);
 				entityStore.add(newData);
@@ -121,7 +125,7 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 				// For this type of insertion we do not perform a ContinuityCheck
 				
 				// STEP 5A: check for constraints - we set the update mode to TIME-BASED since that is safest
-				constraintResult = (ConstraintResult) new CheckConstraintHook(request, insertedAssertion, insertedAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE).exec(contextDataset);
+				constraintResult = (ConstraintResult) new CheckConstraintHook(consertEngine, request, insertedAssertion, insertedAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE).exec(contextDataset);
 				ExecutionMonitor.getInstance().logConstraintCheckDuration(request.hashCode(), constraintResult.getDuration());
 				
 				if (constraintResult.hasError()) {
@@ -133,12 +137,12 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 					// IF WE DETECT A VIOLATION WE INVOKE THE RESOLUTION SERVICE NOW
 					
 					// wrap this transaction of the ContextStore as a snapshot
-					ContextStoreSnapshot contextStoreSnapshot = new ContextStoreSnapshot(contextDataset);
+					ContextStoreSnapshot contextStoreSnapshot = new ContextStoreSnapshot(consertEngine, contextDataset);
 					
 					for (ContextConstraintViolation violation : constraintResult.getViolations()) {
 						// If we are dealing with a value constraint violation
 						if (violation.isValueConstraint()) {
-							ConstraintResolutionService resolutionService = Engine.getConstraintIndex().getValueResolutionService(insertedAssertion);
+							ConstraintResolutionService resolutionService = consertEngine.getConstraintIndex().getValueResolutionService(insertedAssertion);
 							if (resolutionService != null) {
 								if (resolutionService.resolveViolation(violation, contextStoreSnapshot) == null) {
 									// the assertion instance was rejected, so what we do is just break off the transaction and notify failure of insertion
@@ -154,12 +158,12 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 							// Otherwise we must distinguish between integrity and uniqueness constraint violations
 							ConstraintResolutionService resolutionService = null;
 							if (violation.isUniquenessConstraint()) {
-								resolutionService = Engine.getConstraintIndex().getUniquenessResolutionService(insertedAssertion); 
-								if (resolutionService == null) resolutionService = Engine.getConstraintIndex().getDefaultUniquenessResolutionService();
+								resolutionService = consertEngine.getConstraintIndex().getUniquenessResolutionService(insertedAssertion); 
+								if (resolutionService == null) resolutionService = consertEngine.getConstraintIndex().getDefaultUniquenessResolutionService();
 							}
 							else if (violation.isIntegrityConstraint()) {
-								resolutionService = Engine.getConstraintIndex().getUniquenessResolutionService(insertedAssertion); 
-								if (resolutionService == null) resolutionService = Engine.getConstraintIndex().getDefaultUniquenessResolutionService();
+								resolutionService = consertEngine.getConstraintIndex().getUniquenessResolutionService(insertedAssertion); 
+								if (resolutionService == null) resolutionService = consertEngine.getConstraintIndex().getDefaultUniquenessResolutionService();
 							}
 							
 							ContextAssertion firstAssertion = violation.getViolatingAssertions()[0].getAssertion();
@@ -198,7 +202,7 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 				}
 				
 				// STEP 5B: if all is well up to here, check for inheritance - we give the check a TIME-BASED update mode since that is safer.
-				inheritanceResult = (AssertionInheritanceResult) new CheckAssertionInheritanceHook(request, insertedAssertion, insertedAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE).exec(contextDataset);
+				inheritanceResult = (AssertionInheritanceResult) new CheckAssertionInheritanceHook(consertEngine, request, insertedAssertion, insertedAssertionUUID, InsertionHandler.TIME_BASED_UPDATE_MODE).exec(contextDataset);
 				ExecutionMonitor.getInstance().logInheritanceCheckDuration(request.hashCode(), inheritanceResult.getDuration());
 				
 				if (inheritanceResult.hasError()) {
@@ -210,7 +214,7 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 				}
 			
 				// STEP 5C: if all good up to here, add inference checks for the new assertion, if probable
-				DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
+				DerivationRuleDictionary ruleDict = consertEngine.getDerivationRuleDictionary();
 				if (ruleDict.getDerivationsForBodyAssertion(insertedAssertion) != null) {
 					inferenceProbable = true;
 				}
@@ -262,10 +266,10 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 		
 		for (Update up : request.getOperations()) {
 			if (updatedContextStores == null) {
-				updatedContextStores = ContextUpdateUtil.getInsertionGraphs(up, dataset, templateBindings, false);
+				updatedContextStores = ContextUpdateUtil.getInsertionGraphs(consertEngine, up, dataset, templateBindings, false);
 			}
 			else {
-				updatedContextStores.addAll(ContextUpdateUtil.getInsertionGraphs(up, dataset, templateBindings, false));
+				updatedContextStores.addAll(ContextUpdateUtil.getInsertionGraphs(consertEngine, up, dataset, templateBindings, false));
 			}
 		}
 		
@@ -274,18 +278,18 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 	
 	
 	private void enqueueInferenceChecks(ContextAssertion insertedAssertion, Node insertedAssertionUUID) {
-		DerivationRuleDictionary ruleDict = Engine.getDerivationRuleDictionary();
+		DerivationRuleDictionary ruleDict = consertEngine.getDerivationRuleDictionary();
 		List<DerivationRuleWrapper> derivations = ruleDict.getDerivationsForBodyAssertion(insertedAssertion);
 		
 		for (DerivationRuleWrapper derivationCommand : derivations) {
 			ContextAssertion derivedAssertion = derivationCommand.getDerivedAssertion();
 			
 			// if the rules for this derivedAssertion are active, submit the inference request
-			if (Engine.getDerivationRuleDictionary().isDerivedAssertionActive(derivedAssertion)) {
-				CheckInferenceHook inferenceHook = new CheckInferenceHook(request, insertedAssertion, insertedAssertionUUID, derivationCommand);
+			if (consertEngine.getDerivationRuleDictionary().isDerivedAssertionActive(derivedAssertion)) {
+				CheckInferenceHook inferenceHook = new CheckInferenceHook(consertEngine, request, insertedAssertion, insertedAssertionUUID, derivationCommand);
 				
 				ExecutionMonitor.getInstance().logInferenceEnqueue(request.hashCode());
-				Engine.getInferenceService().executeRequest(inferenceHook);
+				consertEngine.getInferenceService().executeRequest(inferenceHook);
 			}
 		}
     }

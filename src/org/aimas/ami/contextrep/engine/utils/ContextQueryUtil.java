@@ -25,6 +25,7 @@ public class ContextQueryUtil {
 	
 	/**
 	 * Retrieve the set of all ContextAssertions that are relevant to the execution of the <code>query</code>.
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param query	The ContextQuery to be analyzed.
 	 * @param initialBindings A {variable:value} map of initial bindings for the query.
 	 * @param coreContextModel The core module of the Context Model which contains the ontology definitions for 
@@ -32,7 +33,7 @@ public class ContextQueryUtil {
 	 * @return The set of all ContextAssertions referenced in the <code>query</code> or null if the query does
 	 * 	not conform to the ContextQuery SELECT or ASK format (MUST have a relevant where section).
 	 */
-	public static Set<ContextAssertion> analyzeContextQuery(Query query, QuerySolutionMap initialBindings, 
+	public static Set<ContextAssertion> analyzeContextQuery(Engine consertEngine, Query query, QuerySolutionMap initialBindings, 
 			OntModel coreContextModel) {
 		Set<ContextAssertion> referencedAssertions = new HashSet<ContextAssertion>();
 		
@@ -42,12 +43,12 @@ public class ContextQueryUtil {
 		for (String uri : fromURIs) {
 			Node uriNode = Node.createURI(uri);
 			
-			ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromGraphUUID(uriNode);
+			ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromGraphUUID(uriNode);
 			if (assertion != null) {
 				referencedAssertions.add(assertion);
 			}
 			else {
-				assertion = Engine.getContextAssertionIndex().getAssertionFromGraphStore(uriNode);
+				assertion = consertEngine.getContextAssertionIndex().getAssertionFromGraphStore(uriNode);
 				if (assertion != null) {
 					referencedAssertions.add(assertion);
 				}
@@ -78,7 +79,7 @@ public class ContextQueryUtil {
 		}
 		
 		ContextAssertionFinder assertionFinder = new ContextAssertionFinder(whereElements, 
-				Engine.getContextAssertionIndex(), bindingsMap);
+				consertEngine.getContextAssertionIndex(), bindingsMap);
 		assertionFinder.run();
 		Set<ContextAssertionGraph> visitedAssertionGraphs = assertionFinder.getResult();
 		

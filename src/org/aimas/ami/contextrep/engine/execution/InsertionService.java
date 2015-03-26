@@ -8,21 +8,23 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.aimas.ami.contextrep.engine.api.InsertResult;
 import org.aimas.ami.contextrep.engine.api.InsertionResultNotifier;
 import org.aimas.ami.contextrep.engine.core.ConfigKeys;
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.update.ContextBulkUpdateTask;
 import org.aimas.ami.contextrep.update.ContextUpdateTask;
+import org.aimas.ami.contextrep.update.EntityDescriptionUpdateTask;
 import org.aimas.ami.contextrep.update.ProfiledOneShotUpdateTask;
 
 import com.hp.hpl.jena.update.UpdateRequest;
 
-public class InsertionService implements ExecutionService {
-	private static InsertionService instance;
-	
+public class InsertionService extends ExecutionService {
 	private static final int DEFAULT_NUM_WORKERS = 1;
 	
 	private ThreadPoolExecutor insertionExecutor;
 	private int numWorkers = DEFAULT_NUM_WORKERS;
 	
-	private InsertionService() {}
+	public InsertionService(Engine engine) {
+		super(engine);
+	}
 
 	@Override
     public void init(Properties execConfiguration) {
@@ -50,19 +52,19 @@ public class InsertionService implements ExecutionService {
 	
 	
 	public Future<InsertResult> executeRequest(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode) {
-		return insertionExecutor.submit(new ContextUpdateTask(insertionRequest, notifier, updateMode));
+		return insertionExecutor.submit(new ContextUpdateTask(engine, insertionRequest, notifier, updateMode));
 	}
 	
 	public Future<?> executeBulkRequest(UpdateRequest bulkRequest) {
-		return insertionExecutor.submit(new ContextBulkUpdateTask(bulkRequest));
+		return insertionExecutor.submit(new ContextBulkUpdateTask(engine, bulkRequest));
 	}
 	
 	public Future<?> executeEntityDescriptionRequest(UpdateRequest entityDescriptionRequest) {
-	    return insertionExecutor.submit(new EntityDescriptionUpdateTask(entityDescriptionRequest));
+	    return insertionExecutor.submit(new EntityDescriptionUpdateTask(engine, entityDescriptionRequest));
     }
 	
 	public Future<InsertResult> executeProfiledAssertionRequest(UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier) {
-	    return insertionExecutor.submit(new ProfiledOneShotUpdateTask(profiledAssertionRequest, notifier));
+	    return insertionExecutor.submit(new ProfiledOneShotUpdateTask(engine, profiledAssertionRequest, notifier));
     }
 	
 	private ThreadPoolExecutor createInsertionExecutor(Properties execConfiguration) {
@@ -75,14 +77,5 @@ public class InsertionService implements ExecutionService {
         }
 		
 		return (ThreadPoolExecutor)Executors.newFixedThreadPool(numWorkers, new ContextInsertThreadFactory());
-	}
-	
-	
-	public static InsertionService getInstance() {
-		if (instance == null) {
-			instance = new InsertionService();
-		}
-		
-		return instance;
 	}
 }

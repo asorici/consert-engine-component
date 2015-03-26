@@ -63,6 +63,11 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	private org.apache.felix.dm.Component engineComponent;
 	
 	/**
+	 * The back-end workhorse that does actually implements the CONSERT Engine.
+	 */
+	private Engine engine;
+	
+	/**
 	 * The Bundle that contains the configuration and context model ontology files 
 	 * that this CONSERT Engine component instance uses.
 	 */
@@ -101,6 +106,8 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	private Map<Resource, Dependency> specificValueResolutionDependenies;
 	
 	public EngineFrontend() {
+		engine = new Engine();
+		
 		specificIntegrityResolutionDependenies = new HashMap<Resource, Dependency>();
 		specificUniquenessResolutionDependenies = new HashMap<Resource, Dependency>();
 		specificValueResolutionDependenies = new HashMap<Resource, Dependency>();
@@ -116,7 +123,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	@SuppressWarnings("unused")
 	private void addedInferencePriorityProvider(InferencePriorityProvider provider) {
 		inferencePriorityProvider = provider;
-		Engine.getInferenceService().setPriorityProvider(provider, false);
+		engine.getInferenceService().setPriorityProvider(provider, false);
 	}
 	
 	@SuppressWarnings("unused")
@@ -124,7 +131,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		if (provider == inferencePriorityProvider) {
 			// if the priority provider we were currently using was removed, revert to the default one
 			inferencePriorityProvider = FCFSPriorityProvider.getInstance();
-			Engine.getInferenceService().setPriorityProvider(inferencePriorityProvider, false);
+			engine.getInferenceService().setPriorityProvider(inferencePriorityProvider, false);
 		}
 		
 		/* 
@@ -138,32 +145,32 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@SuppressWarnings("unused")
 	private void addedDefaultUniquenessResolution(ConstraintResolutionService uniquenessResolutionService) {
-		Engine.getConstraintIndex().setDefaultUniquenessResolutionService(uniquenessResolutionService);
+		engine.getConstraintIndex().setDefaultUniquenessResolutionService(uniquenessResolutionService);
 	}
 	
 	@SuppressWarnings("unused")
 	private void removedDefaultUniquenessResolution(ConstraintResolutionService uniquenessResolutionService) {
-		ConstraintResolutionService currentUniquenessResolutionService = Engine.getConstraintIndex().getDefaultUniquenessResolutionService();
+		ConstraintResolutionService currentUniquenessResolutionService = engine.getConstraintIndex().getDefaultUniquenessResolutionService();
 		
 		if (currentUniquenessResolutionService == uniquenessResolutionService) {
 			// if the priority provider we were currently using was removed, revert to the default implementation (PreferNewest)
-			Engine.getConstraintIndex().setDefaultUniquenessResolutionService(PreferNewestConstraintResolution.getInstance());
+			engine.getConstraintIndex().setDefaultUniquenessResolutionService(PreferNewestConstraintResolution.getInstance());
 		}
 	}
 	
 	
 	@SuppressWarnings("unused")
 	private void addedDefaultIntegrityResolution(ConstraintResolutionService integrityResolutionService) {
-		Engine.getConstraintIndex().setDefaultIntegrityResolutionService(integrityResolutionService);
+		engine.getConstraintIndex().setDefaultIntegrityResolutionService(integrityResolutionService);
 	}
 	
 	@SuppressWarnings("unused")
 	private void removedDefaultIntegrityResolution(ConstraintResolutionService integrityResolutionService) {
-		ConstraintResolutionService currentIntegrityResolutionService = Engine.getConstraintIndex().getDefaultIntegrityResolutionService();
+		ConstraintResolutionService currentIntegrityResolutionService = engine.getConstraintIndex().getDefaultIntegrityResolutionService();
 		
 		if (currentIntegrityResolutionService == integrityResolutionService) {
 			// if the priority provider we were currently using was removed, revert to the default implementation (PreferNewest)
-			Engine.getConstraintIndex().setDefaultIntegrityResolutionService(PreferNewestConstraintResolution.getInstance());
+			engine.getConstraintIndex().setDefaultIntegrityResolutionService(PreferNewestConstraintResolution.getInstance());
 		}
 	}
 	
@@ -187,17 +194,17 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 			try {
 	            // initialize the EngineResourceManager
 				ResourceManager resourceManager = new BundleResourceManager(modelResourceBundle);
-				Engine.setResourceManager(resourceManager);
+				engine.setResourceManager(resourceManager);
 	            
 				// set CONSERT Engine time service
-				Engine.setTimeService(timeService);
+				engine.setTimeService(timeService);
 				
 				// set CONSERT Engine logging service
 				//Engine.setLogService(logService);
 				//logReaderService.addLogListener(ExecutionMonitor.getInstance());
 				
 	            // initialize the engine - engineServiceProperties includes the model-definition-files dictionary 
-	            Engine.init(engineServiceProperties, true);
+	            engine.init(engineServiceProperties, true);
             }
             catch (EngineConfigException e) {
 				e.printStackTrace();
@@ -213,7 +220,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 			// More specifically, we first need to see if any configuration was placed on the type
 			// of service to use for the Inference Scheduling. If there is no specification, or none can 
 			// be found when invoking the search, the default FCFS service is used
-			Properties engineConfiguration = Engine.getConfiguration();
+			Properties engineConfiguration = engine.getConfiguration();
 			String schedulerType = engineConfiguration.getProperty(ConfigKeys.CONSERT_ENGINE_INFERENCE_SCHEDULER_TYPE);
 			
 			// save reference to the inference priority provider service
@@ -236,7 +243,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// Call this when the bundle containing the CONSERT Engine is destroyed
 	void closeEngine(org.apache.felix.dm.Component component) {
 		try {
-			Dataset contextStore = Engine.getRuntimeContextStore();
+			Dataset contextStore = engine.getRuntimeContextStore();
 			contextStore.begin(ReadWrite.READ);
 			try {
 				/*
@@ -292,7 +299,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 				contextStore.end();
 			}
 			
-			Engine.close(false);
+			engine.close(false);
 		}
 		catch (Exception e) {
 			log.error("This should not have happened to a dog!", e);
@@ -302,17 +309,17 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// Call this when the CONSERT Engine component is started
 	void startEngine(org.apache.felix.dm.Component component) {
 		// start all the execution services
-		Engine.getInsertionService().start();
-		Engine.getInferenceService().start();
-		Engine.getQueryService().start();
+		engine.getInsertionService().start();
+		engine.getInferenceService().start();
+		engine.getQueryService().start();
 	}
 	
 	// Call this when the CONSERT Engine component is stopped
 	void stopEngine(org.apache.felix.dm.Component component) {
 		// stop all the execution services
-		Engine.getInsertionService().stop();
-		Engine.getInferenceService().stop();
-		Engine.getQueryService().stop();
+		engine.getInsertionService().stop();
+		engine.getInferenceService().stop();
+		engine.getQueryService().stop();
 	}
 	
 	
@@ -320,14 +327,19 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void insertAssertion(UpdateRequest insertionRequest, InsertionResultNotifier notifier, int updateMode) {
+		//String appId = (String)engineComponent.getServiceProperties().get(CMMConstants.CONSERT_APPLICATION_ID_PROP); 
+		//if (appId.contains("SmartClassroom")) {
+		//	System.out.println("[" + EngineFrontend.class.getName() + "]: Performing INSERT");
+		//}
+		
 		ExecutionMonitor.getInstance().logInsertEnqueue(insertionRequest.hashCode());
-		Engine.getInsertionService().executeRequest(insertionRequest, notifier, updateMode);
+		engine.getInsertionService().executeRequest(insertionRequest, notifier, updateMode);
 	}
 	
 	@Override
 	public Future<InsertResult> insertAssertion(UpdateRequest insertionRequest, int updateMode) {
 		ExecutionMonitor.getInstance().logInsertEnqueue(insertionRequest.hashCode());
-		return Engine.getInsertionService().executeRequest(insertionRequest, null, updateMode);
+		return engine.getInsertionService().executeRequest(insertionRequest, null, updateMode);
 	}
 	
 	@Override
@@ -335,58 +347,62 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		//System.out.println("[" + EngineFrontend.class.getName() + "]: Performing BULK INSERT");
 		//System.out.println(bulkInsertionRequest.toString());
 		
-		Future<?> result = Engine.getInsertionService().executeBulkRequest(bulkInsertionRequest);
+		Future<?> result = engine.getInsertionService().executeBulkRequest(bulkInsertionRequest);
 		return result;
 	}
 	
 	@Override
     public Future<?> updateEntityDescriptions(UpdateRequest entityDescriptionRequest) {
-	    return Engine.getInsertionService().executeEntityDescriptionRequest(entityDescriptionRequest);
+	    return engine.getInsertionService().executeEntityDescriptionRequest(entityDescriptionRequest);
     }
 	
 	@Override
 	public void updateProfiledAssertion(UpdateRequest profiledAssertionRequest, InsertionResultNotifier notifier) {
-		Engine.getInsertionService().executeProfiledAssertionRequest(profiledAssertionRequest, notifier);
+		//System.out.println("[" + EngineFrontend.class.getName() + "]: Performing PROFILED INSERT");
+		//System.out.println(profiledAssertionRequest.toString());
+		//System.out.println();
+		
+		engine.getInsertionService().executeProfiledAssertionRequest(profiledAssertionRequest, notifier);
 	}
 	
 	// =============================== QUERY HANDLING =============================== //
 	////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void execQuery(Query query, QuerySolutionMap initialBindings, QueryResultNotifier notifier) {
-		Engine.getQueryService().executeRequest(query, initialBindings, notifier);
+		engine.getQueryService().executeRequest(query, initialBindings, notifier);
 	}
 	
 	@Override
 	public void execAsk(Query askQuery, QuerySolutionMap initialBindings, QueryResultNotifier notifier) {
-		Engine.getQueryService().executeRequest(askQuery, initialBindings, notifier);
+		engine.getQueryService().executeRequest(askQuery, initialBindings, notifier);
 	}
 	
 	@Override
 	public void registerSubscription(Query subscribeQuery) {
 		//Engine.subscriptionMonitor().newSubscription(subscribeQuery, initialBindings, notifier);
-		OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
-		Set<ContextAssertion> subscribedAssertions = ContextQueryUtil.analyzeContextQuery(subscribeQuery, null, coreContextModel);
+		OntModel coreContextModel = engine.getModelLoader().getCoreContextModel();
+		Set<ContextAssertion> subscribedAssertions = ContextQueryUtil.analyzeContextQuery(engine, subscribeQuery, null, coreContextModel);
 		
 		for (ContextAssertion assertion : subscribedAssertions) {
-			Engine.getQueryService().markSubscription(assertion);
+			engine.getQueryService().markSubscription(assertion);
 		}
 	}
 	
 	@Override
 	public void unregisterSubscription(Query subscribeQuery) {
-		OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
-		Set<ContextAssertion> subscribedAssertions = ContextQueryUtil.analyzeContextQuery(subscribeQuery, null, coreContextModel);
+		OntModel coreContextModel = engine.getModelLoader().getCoreContextModel();
+		Set<ContextAssertion> subscribedAssertions = ContextQueryUtil.analyzeContextQuery(engine, subscribeQuery, null, coreContextModel);
 		
 		for (ContextAssertion assertion : subscribedAssertions) {
-			Engine.getQueryService().unmarkSubscription(assertion);
+			engine.getQueryService().unmarkSubscription(assertion);
 		}
 	}
 	
 	@Override
 	public Set<ContextAssertion> analyzeQuery(Query query, QuerySolutionMap initialBindings) {
-		OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
+		OntModel coreContextModel = engine.getModelLoader().getCoreContextModel();
 		
-		return ContextQueryUtil.analyzeContextQuery(query, initialBindings, coreContextModel);
+		return ContextQueryUtil.analyzeContextQuery(engine, query, initialBindings, coreContextModel);
 	}
 	
 	@Override
@@ -403,20 +419,20 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	//////////////////////////////////////////////////////////////////////////////////////
 	@Override
     public Dataset getRuntimeContextStore() {
-	    return Engine.getRuntimeContextStore();
+	    return engine.getRuntimeContextStore();
     }
 	
 	@Override
 	public ContextAssertionType getAssertionType(Resource assertionResource) {
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		return assertion.getAssertionType();
 	}
 	
 	public Set<Resource> getReferencedAssertions(Resource derivedAssertionRes) {
 		Set<Resource> referencedAssertions = new HashSet<Resource>();
 		
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionRes);
-		for (DerivationRuleWrapper wrapper : Engine.getDerivationRuleDictionary().getDerivedAssertionRules(assertion)) {
+		ContextAssertion assertion = engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionRes);
+		for (DerivationRuleWrapper wrapper : engine.getDerivationRuleDictionary().getDerivedAssertionRules(assertion)) {
 			for (ContextAssertion bodyAssertion : wrapper.getBodyAssertions()) {
 				referencedAssertions.add(bodyAssertion.getOntologyResource());
 			}
@@ -433,7 +449,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		ElementList whereElements = constructCommand.getWhere();
 		
 		ContextAssertionFinder ruleBodyFinder = new ContextAssertionFinder(whereElements, 
-				Engine.getContextAssertionIndex(), templateBindings);
+				engine.getContextAssertionIndex(), templateBindings);
 		
 		// run context assertion rule body finder and collect results
 		ruleBodyFinder.run();
@@ -465,22 +481,22 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 
 	@Override
     public void setDefaultQueryRunWindow(long runWindow) {
-	    Engine.getQueryService().setDefaultRunWindow(runWindow);
+	    engine.getQueryService().setDefaultRunWindow(runWindow);
     }
 
 	@Override
     public void setSpecificQueryRunWindow(Resource assertionResource, long runWindow) {
-	    Engine.getQueryService().setSpecificRunWindow(assertionResource, runWindow);
+	    engine.getQueryService().setSpecificRunWindow(assertionResource, runWindow);
     }
 
 	@Override
     public void setDefaultInferenceRunWindow(long runWindow) {
-		Engine.getInferenceService().setDefaultRunWindow(runWindow);
+		engine.getInferenceService().setDefaultRunWindow(runWindow);
     }
 
 	@Override
     public void setSpecificInferenceRunWindow(Resource assertionResource, long runWindow) {
-	    Engine.getInferenceService().setSpecificRunWindow(assertionResource, runWindow);
+	    engine.getInferenceService().setSpecificRunWindow(assertionResource, runWindow);
     }
 	
 	// =============================== CONSERT Engine dynamic service configuration =============================== // 
@@ -610,31 +626,31 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 
 		@SuppressWarnings("unused")
         public void resolutionServiceAdded(ConstraintResolutionService resolutionService) {
-			ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+			ContextAssertion assertion = engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 			
 			if (constraintType == ConstraintType.Uniqueness) {
-				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, resolutionService);
+				engine.getConstraintIndex().setUniquenessResolutionService(assertion, resolutionService);
 			}
 			else if (constraintType == ConstraintType.Integrity) {
-				Engine.getConstraintIndex().setIntegrityResolutionService(assertion, resolutionService);
+				engine.getConstraintIndex().setIntegrityResolutionService(assertion, resolutionService);
 			}
 			else {
-				Engine.getConstraintIndex().setValueResolutionService(assertion, resolutionService);
+				engine.getConstraintIndex().setValueResolutionService(assertion, resolutionService);
 			}
 		}
 		
 		@SuppressWarnings("unused")
         public void resolutionServiceRemoved(ConstraintResolutionService resolutionService) {
-			ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+			ContextAssertion assertion = engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 			
-			if (constraintType == ConstraintType.Uniqueness && Engine.getConstraintIndex().getUniquenessResolutionService(assertion) == resolutionService) {
-				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
+			if (constraintType == ConstraintType.Uniqueness && engine.getConstraintIndex().getUniquenessResolutionService(assertion) == resolutionService) {
+				engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
 			}
-			else if (constraintType == ConstraintType.Integrity && Engine.getConstraintIndex().getIntegrityResolutionService(assertion) == resolutionService) {
-				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
+			else if (constraintType == ConstraintType.Integrity && engine.getConstraintIndex().getIntegrityResolutionService(assertion) == resolutionService) {
+				engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
 			}
-			else if (Engine.getConstraintIndex().getValueResolutionService(assertion) == resolutionService) {
-				Engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
+			else if (engine.getConstraintIndex().getValueResolutionService(assertion) == resolutionService) {
+				engine.getConstraintIndex().setUniquenessResolutionService(assertion, PreferNewestConstraintResolution.getInstance());
 			}
 		}
 	}
@@ -642,30 +658,30 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	// =============================== CONSERT Engine assertion update/inference management =============================== //
 	@Override
 	public void setAssertionInsertActiveByDefault(boolean activeByDefault) {
-		Engine.getContextAssertionIndex().setEnabledByDefault(activeByDefault);
+		engine.getContextAssertionIndex().setEnabledByDefault(activeByDefault);
 	}
 	
 	@Override
 	public void setAssertionInferenceActiveByDefault(boolean activeByDefault) {
-		Engine.getDerivationRuleDictionary().setActiveByDefault(activeByDefault);
+		engine.getDerivationRuleDictionary().setActiveByDefault(activeByDefault);
 	}
 	
 	@Override
 	public void setAssertionActive(Resource assertionResource, boolean active) {
-		Engine.getContextAssertionIndex().setAssertionUpdateEnabledActive(assertionResource, active);
+		engine.getContextAssertionIndex().setAssertionUpdateEnabledActive(assertionResource, active);
 		
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		if (assertion.getAssertionType() == ContextAssertionType.Derived) {
-			Engine.getDerivationRuleDictionary().setDerivedAssertionActive(assertion, active);
+			engine.getDerivationRuleDictionary().setDerivedAssertionActive(assertion, active);
 		}
 	}
 	
 	@Override
     public void setDerivationRuleActive(Resource derivedAssertionResource, boolean active) {
-		Engine.getContextAssertionIndex().setAssertionUpdateEnabledActive(derivedAssertionResource, active);
+		engine.getContextAssertionIndex().setAssertionUpdateEnabledActive(derivedAssertionResource, active);
 		
-		ContextAssertion derivedAssertion = Engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
-		Engine.getDerivationRuleDictionary().setDerivedAssertionActive(derivedAssertion, active);
+		ContextAssertion derivedAssertion = engine.getContextAssertionIndex().getAssertionFromResource(derivedAssertionResource);
+		engine.getDerivationRuleDictionary().setDerivedAssertionActive(derivedAssertion, active);
     }
 	
 	
@@ -692,12 +708,12 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	////////////////////////////////////////////////////////////////////////////////////
 	@Override
     public long getDefaultQueryRunWindow() {
-		return Engine.getQueryService().getDefaultRunWindow();
+		return engine.getQueryService().getDefaultRunWindow();
     }
 
 	@Override
     public long getQueryRunWindow(Resource assertionResource) {
-	    Long runWindow = Engine.getQueryService().getSpecificRunWindow(assertionResource);
+	    Long runWindow = engine.getQueryService().getSpecificRunWindow(assertionResource);
 	    if (runWindow == null) {
 	    	return 0;
 	    }
@@ -707,12 +723,12 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
     public long getDefaultInferenceRunWindow() {
-		return Engine.getInferenceService().getDefaultRunWindow();
+		return engine.getInferenceService().getDefaultRunWindow();
     }
 
 	@Override
     public long getInferenceRunWindow(Resource assertionResource) {
-		Long runWindow = Engine.getInferenceService().getSpecificRunWindow(assertionResource);
+		Long runWindow = engine.getInferenceService().getSpecificRunWindow(assertionResource);
 	    if (runWindow == null) {
 	    	return 0;
 	    }
@@ -723,19 +739,19 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
     public EngineInferenceStats getInferenceStatistics() {
-	    return Engine.getInferenceService();
+	    return engine.getInferenceService();
     }
 
 	@Override
     public ContextDerivationRule getLastDerivation() {
-	    return Engine.getInferenceService().lastDerivation();
+	    return engine.getInferenceService().lastDerivation();
     }
 
 	@Override
     public int nrDerivations(Resource derivedAssertionResource) {
 	    int ct = 0;
 	    
-	    Map<ContextDerivationRule, Integer> derivations = Engine.getInferenceService().nrDerivations(); 
+	    Map<ContextDerivationRule, Integer> derivations = engine.getInferenceService().nrDerivations(); 
 	    for (ContextDerivationRule rule : derivations.keySet()) {
 	    	if (derivedAssertionResource.equals(rule.getDerivedAssertion().getOntologyResource())) {
 	    		ct += derivations.get(rule);
@@ -749,7 +765,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
     public int nrSuccessfulDerivations(Resource derivedAssertionResource) {
 		int ct = 0;
 	    
-	    Map<ContextDerivationRule, Integer> successDerivations = Engine.getInferenceService().nrSuccessfulDerivations(); 
+	    Map<ContextDerivationRule, Integer> successDerivations = engine.getInferenceService().nrSuccessfulDerivations(); 
 	    for (ContextDerivationRule rule : successDerivations.keySet()) {
 	    	if (derivedAssertionResource.equals(rule.getDerivedAssertion().getOntologyResource())) {
 	    		ct += successDerivations.get(rule);
@@ -761,40 +777,40 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 
 	@Override
     public EngineQueryStats getQueryStatistics() {
-		return Engine.getQueryService();
+		return engine.getQueryService();
     }
 
 	@Override
     public int nrQueries(Resource assertionResource) {
-		Integer ct = Engine.getQueryService().nrQueries().get(assertionResource);
+		Integer ct = engine.getQueryService().nrQueries().get(assertionResource);
 		return ct == null ? 0 : ct;
     }
 	
 	@Override
 	public int nrSubscriptions(Resource assertionResource) {
-		Integer ct = Engine.getQueryService().nrSubscriptions().get(assertionResource);
+		Integer ct = engine.getQueryService().nrSubscriptions().get(assertionResource);
 		return ct == null ? 0 : ct;
 	}
 	
 	@Override
     public int nrSuccessfulQueries(Resource assertionResource) {
-		Integer ct = Engine.getQueryService().nrSuccessfulQueries().get(assertionResource);
+		Integer ct = engine.getQueryService().nrSuccessfulQueries().get(assertionResource);
 		return ct == null ? 0 : ct;
     }
 
 	@Override
     public long timeSinceLastQuery(Resource assertionResource) {
-	    Long time = Engine.getQueryService().timeSinceLastQuery().get(assertionResource);
+	    Long time = engine.getQueryService().timeSinceLastQuery().get(assertionResource);
 	    return time == null ? 0 : time;
 	}
 
 	@Override
     public AssertionEnableStatus getAssertionEnableStatus(Resource assertionResource) {
-		boolean containedInModel = Engine.getContextAssertionIndex().containsAssertion(assertionResource);
+		boolean containedInModel = engine.getContextAssertionIndex().containsAssertion(assertionResource);
 		boolean updatesEnabled = false;
 		
 		if (containedInModel) {
-			updatesEnabled = Engine.getContextAssertionIndex().isAssertionUpdateEnabled(assertionResource);
+			updatesEnabled = engine.getContextAssertionIndex().isAssertionUpdateEnabled(assertionResource);
 		}
 		
 		return new AssertionEnableStatus(containedInModel, updatesEnabled);
@@ -802,7 +818,7 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	
 	@Override
 	public List<Resource> getEnabledAssertions() {
-		return Engine.getContextAssertionIndex().listEnabledAssertions();
+		return engine.getContextAssertionIndex().listEnabledAssertions();
 	}
 	
 	

@@ -29,19 +29,19 @@ import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	
-	public CheckAssertionInheritanceHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, 
+	public CheckAssertionInheritanceHook(Engine consertEngine, UpdateRequest updateRequest, ContextAssertion contextAssertion, 
 			Node contextAssertionUUID, int updateMode) {
-		super(updateRequest, contextAssertion, contextAssertionUUID, updateMode);
+		super(consertEngine, updateRequest, contextAssertion, contextAssertionUUID, updateMode);
 	}
 	
 	@Override
 	public AssertionInheritanceResult doHook(Dataset contextStoreDataset) {
 		// get access to the datastore and the assertionIndex
-		OntModel contextModel = Engine.getModelLoader().getCoreContextModel();
+		OntModel contextModel = consertEngine.getModelLoader().getCoreContextModel();
 		
 		// determine if this ContextAssertion has ancestors from which it inherits
 		List<ContextAssertion> assertionAncestorList = 
-			ContextAssertionUtil.getContextAssertionAncestors(contextAssertion, contextModel);
+			ContextAssertionUtil.getContextAssertionAncestors(consertEngine, contextAssertion, contextModel);
 		
 		if (!assertionAncestorList.isEmpty()) {
 			// get the context assertion named graph UUID as a resource
@@ -49,7 +49,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 			
 			// get all annotations of the ContextAssertion
 			Map<Statement, Set<Statement>> assertionAnnotations = 
-				ContextAnnotationUtil.getAnnotationsFor(contextAssertion, assertionUUIDRes, contextStoreDataset);
+				ContextAnnotationUtil.getAnnotationsFor(consertEngine, contextAssertion, assertionUUIDRes, contextStoreDataset);
 			
 			try {
 				// create the appropriate UpdateRequest entries for each ancestor assertion
@@ -60,7 +60,7 @@ public class CheckAssertionInheritanceHook extends ContextUpdateHook {
 	            // enqueue them as individual insertion requests
 	            for (UpdateRequest req : ancestorAssertionInsertions) {
 	            	ExecutionMonitor.getInstance().logInsertEnqueue(req.hashCode());
-	            	Engine.getInsertionService().executeRequest(req, null, updateMode);
+	            	consertEngine.getInsertionService().executeRequest(req, null, updateMode);
 	            }
 	            
 	            return new AssertionInheritanceResult(contextAssertion, null, assertionAncestorList);

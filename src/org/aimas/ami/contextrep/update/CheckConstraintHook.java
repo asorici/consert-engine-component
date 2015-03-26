@@ -21,15 +21,16 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class CheckConstraintHook extends ContextUpdateHook {
-	public CheckConstraintHook(UpdateRequest insertionRequest, ContextAssertion contextAssertion, 
+	
+	public CheckConstraintHook(Engine consertEngine, UpdateRequest insertionRequest, ContextAssertion contextAssertion, 
 			Node contextAssertionUUID, int updateMode) {
-		super(insertionRequest, contextAssertion, contextAssertionUUID, updateMode);
+		super(consertEngine, insertionRequest, contextAssertion, contextAssertionUUID, updateMode);
 	}
 	
 	@Override
 	public ConstraintResult doHook(Dataset contextStoreDataset) {
 		// see if this context assertion has any constraints attached
-		ContextConstraintIndex constraintIndex = Engine.getConstraintIndex();
+		ContextConstraintIndex constraintIndex = consertEngine.getConstraintIndex();
 		ConstraintsWrapper constraints = constraintIndex.getConstraints(contextAssertion);  
 		
 		if (constraints != null) {
@@ -44,7 +45,7 @@ public class CheckConstraintHook extends ContextUpdateHook {
 			 * In addition, we add the SPIN ontology set to be on the safe side (in case we call any
 			 * functions or reference SPIN templates in the constraints)
 			 */    
-			Model assertionModel = ContextStoreUtil.unionModelForAssertion(contextAssertion, contextStoreDataset);
+			Model assertionModel = ContextStoreUtil.unionModelForAssertion(consertEngine, contextAssertion, contextStoreDataset);
 			Model constraintContextModel = ContextModelLoader.ensureSPINImported(assertionModel);
 			
 			ARQFactory.set(new ContextARQFactory(contextStoreDataset));
@@ -52,7 +53,7 @@ public class CheckConstraintHook extends ContextUpdateHook {
 			List<SPINStatistics> stats = new LinkedList<>();
 			
 			List<ContextConstraintViolation> constraintViolations = 
-				ContextSPINConstraints.check(constraintContextModel, contextAssertion, contextAssertionUUID, 
+				ContextSPINConstraints.check(consertEngine, constraintContextModel, contextAssertion, contextAssertionUUID, 
 						insertionRequest, constraints, stats);
 			
 			if (!constraintViolations.isEmpty()) {

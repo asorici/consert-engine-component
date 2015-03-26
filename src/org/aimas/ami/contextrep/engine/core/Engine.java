@@ -37,107 +37,109 @@ import com.hp.hpl.jena.tdb.base.file.Location;
 public class Engine {
 	// ========== CONSERT Engine configuration properties ==========
 	public static final String CONFIG_FILENAME = "etc/cmm/engine.properties";
-	private static Properties configurationProperties;
+	private Properties configurationProperties;
 	
-	public static Properties getConfiguration() {
+	public Properties getConfiguration() {
 		return configurationProperties;
 	}
 	
 	// ========== CONSERT Engine configuration properties ==========
-	private static ResourceManager engineResourceManager;
+	private ResourceManager engineResourceManager;
 	
-	public static void setResourceManager(ResourceManager manager) {
-		engineResourceManager = manager;
+	public void setResourceManager(ResourceManager manager) {
+		this.engineResourceManager = manager;
 	}
 	
-	public static ResourceManager getResourceManager() {
+	public ResourceManager getResourceManager() {
 		return engineResourceManager;
 	}
 	
 	// ========== CONSERT Engine time service ==========
-	private static TimeService engineTimeService;
+	private TimeService engineTimeService;
 	
-	public static void setTimeService(TimeService timeService) {
-		Engine.engineTimeService = timeService;
+	public void setTimeService(TimeService timeService) {
+		this.engineTimeService = timeService;
 	}
 	
-	public static TimeService getTimeService() {
+	public TimeService getTimeService() {
 		return engineTimeService;
 	}
 	
-	public static long currentTimeMillis() {
+	public long currentTimeMillis() {
 		return engineTimeService.getCurrentTimeMillis();
 	}
 	
-	public static Calendar now() {
+	public Calendar now() {
 		return engineTimeService.getCalendarInstance();
 	}
 	
 	// ========== CONSERT Engine log service ==========
-	private static LogService logService;
+	private LogService logService;
 	
-	public static void setLogService(LogService logService) {
-	    Engine.logService = logService;
+	public void setLogService(LogService logService) {
+	    this.logService = logService;
     }
 	
-	public static LogService getLogger() {
+	public LogService getLogger() {
 		return logService;
 	}
 	
 	// ========== CONSERT Engine storage ==========
 	/** Path to persistent TDB contextStore */
-	private static Location contextStorePersistentLocation;
+	private Location contextStorePersistentLocation;
 	
 	/** Path to in-memory TDB contextStore used at runtime */
-	private static Location contextStoreRuntimeLocation;
+	private Location contextStoreRuntimeLocation;
 	
 	/** Reference to the EntityStore */
-	private static InfModel entityStore;
+	private InfModel entityStore;
 	
 	// ========== CONSERT Engine Domain Context Model ==========
-	private static ContextModelLoader contextModelLoader;
+	private ContextModelLoader contextModelLoader;
 	
 	/** Map of rdfs ontology models for each module of the context model: 
 	 * 	core, annotations, constraints, functions, rules */
-	private static Map<String, OntModel> rdfsContextModelMap;
+	private Map<String, OntModel> rdfsContextModelMap;
 	
 	
 	// ========== CONSERT Engine Internal Data Structures ==========
 	
 	/** Index of Context Model ContextAssertions */
-	private static ContextAssertionIndex contextAssertionIndex;
+	private ContextAssertionIndex contextAssertionIndex;
 	
 	/** Index of Context Model ContextAnnotations */
-	private static ContextAnnotationIndex contextAnnotationIndex;
+	private ContextAnnotationIndex contextAnnotationIndex;
 		
 	/** Index of Context Model ContextConstraints */
-	private static ContextConstraintIndex contextConstraintIndex;
+	private ContextConstraintIndex contextConstraintIndex;
 	
 	/** ContextAssertion Derivation Rule Dictionary */
-	private static DerivationRuleDictionary derivationRuleDictionary;
+	private DerivationRuleDictionary derivationRuleDictionary;
 	
+	/** Index of custom ARQ and SPIN functions */
+	private FunctionIndex customFunctionIndex;
 	
 	// ========== CONSERT Engine Internal Execution Elements ==========
 	
 	// Reasoners
-	static Reasoner entityStoreReasoner;
+	Reasoner entityStoreReasoner;
 	
-	public static Reasoner getEntityStoreReasoner() {
+	public Reasoner getEntityStoreReasoner() {
 		return entityStoreReasoner;
 	}
 	
 	// Execution: ContextAssertion insertion, inference-hook and query execution
-	private static InsertionService insertionService;
-	private static InferenceService inferenceService;
-	private static QueryService queryService;
+	private InsertionService insertionService;
+	private InferenceService inferenceService;
+	private QueryService queryService;
 	
 	// Subscription Monitor
-	private static SubscriptionMonitor subscriptionMonitor;
+	private SubscriptionMonitor subscriptionMonitor;
 	
 	
 	// ========================= INTIALIZATION =========================
 	////////////////////////////////////////////////////////////////////
-	static Properties readConfiguration(String configurationFilename) 
+	Properties readConfiguration(String configurationFilename) 
 			throws EngineConfigException {
 		if (configurationFilename == null) {
 			configurationFilename = CONFIG_FILENAME;
@@ -154,7 +156,7 @@ public class Engine {
 	}
 	
 	
-	static Properties readConfiguration(InputStream configStream) throws EngineConfigException {
+	Properties readConfiguration(InputStream configStream) throws EngineConfigException {
 		try {
 			// load the properties file
 			Properties engineConfiguration = new Properties();
@@ -169,18 +171,18 @@ public class Engine {
 	}
 	
 	
-	private static void validate(Properties engineConfiguration) throws EngineConfigException {
+	private void validate(Properties engineConfiguration) throws EngineConfigException {
 	   // NOTHING TO DO YET
     }
 	
 	
-	public static void init(Dictionary<String, String> modelDefinitionFileDict, boolean printDurations) throws EngineConfigException {
+	public void init(Dictionary<String, String> modelDefinitionFileDict, boolean printDurations) throws EngineConfigException {
 		init(CONFIG_FILENAME, modelDefinitionFileDict, printDurations);
 	}
 	
 	
-	public static void init(String configFile, Dictionary<String, String> modelDefinitionFileDict, boolean printDurations) throws EngineConfigException {
-		long timestamp = Engine.currentTimeMillis();
+	public void init(String configFile, Dictionary<String, String> modelDefinitionFileDict, boolean printDurations) throws EngineConfigException {
+		long timestamp = currentTimeMillis();
 		
 		// ====================== read and store CONSERT Engine configuration ======================
 		if (engineResourceManager == null) {
@@ -204,9 +206,9 @@ public class Engine {
 		
 		if (printDurations) {
 			System.out.println("Task: create the contextStore. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		// ==================== setup CONSERT Engine execution monitoring ====================
 		Loader.configureExecutionMonitoring(configurationProperties);
@@ -225,27 +227,28 @@ public class Engine {
 		
 		if (printDurations) {
 			System.out.println("Task: load context model modules. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 
 		
 		// ==================== register custom elements (datatypes, functions) ====================
 		DatatypeIndex.registerCustomDatatypes();
 		if (printDurations) {
 			System.out.println("Task: register custom RDF datatypes. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		// register custom functions (defined either by SPARQL queries or custom Java classes)
-		FunctionIndex.registerCustomFunctions(contextModelLoader.getFunctionContextModel());
+		customFunctionIndex = new FunctionIndex(this);
+		customFunctionIndex.registerCustomFunctions(contextModelLoader.getFunctionContextModel());
 		
 		if (printDurations) {
 			System.out.println("Task: register custom SPARQL functions. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		
 		// ==================== Build CONSERT Engine index data structures ==================== 
@@ -255,9 +258,9 @@ public class Engine {
 		contextAssertionIndex = ContextAssertionIndex.create(rdfsCoreModule);
 		if (printDurations) {
 			System.out.println("Task: create the ContextAssertionIndex. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		//build the ContextAnnotation index
 		OntModel baseAnnotationModule = contextModelLoader.getAnnotationContextModel();
@@ -267,28 +270,28 @@ public class Engine {
 		
 		if (printDurations) {
 			System.out.println("Task: create the ContextAnnotationIndex. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		// build the ContextConstraint index
-		contextConstraintIndex = ContextConstraintIndex.create(contextAssertionIndex, contextModelLoader.getConstraintContextModel());
+		contextConstraintIndex = ContextConstraintIndex.create(this, contextAssertionIndex, contextModelLoader.getConstraintContextModel());
 		if (printDurations) {
 			System.out.println("Task: create the ContextConstraintIndex. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		// build the Derivation Rule dictionary
-		derivationRuleDictionary = DerivationRuleDictionary.create(contextAssertionIndex, contextModelLoader.getRuleContextModel());
+		derivationRuleDictionary = DerivationRuleDictionary.create(this, contextAssertionIndex, contextModelLoader.getRuleContextModel());
 		if (printDurations) {
 			System.out.println("Task: compute derivation rule dictionary. Duration: " + 
-				(Engine.currentTimeMillis() - timestamp) + " ms");
+				(currentTimeMillis() - timestamp) + " ms");
 		}
 		
 		//System.out.println("#### Derivation Rule Map : ");
 		//System.out.println(derivationRuleDictionary.getAssertion2QueryMap());
-		timestamp = Engine.currentTimeMillis();
+		timestamp = currentTimeMillis();
 		
 		// register custom TDB UpdateEgine to listen for ContextAssertion insertions
 		//ContextAssertionUpdateEngine.register();
@@ -296,21 +299,21 @@ public class Engine {
 		// ==================== Create CONSERT Engine execution services ==================== 
 		// create the named graph for ContextEntities and EntityDescriptions together with the
 		// corresponding EntityStore reasoner.
-		Engine.setupEntityStore(contextDataset, baseCoreModule);
+		setupEntityStore(contextDataset, baseCoreModule);
 				
 		
 		insertionService = initInsertionService(configurationProperties);
 		inferenceService = createInferenceService(configurationProperties);
 		queryService = createQueryService(configurationProperties);
 		
-		subscriptionMonitor = new SubscriptionMonitor();
+		subscriptionMonitor = new SubscriptionMonitor(this);
 	}
 	
 	
 	/**
 	 * Close context model and sync to persistent TDB-backed context data store before closing
 	 */
-	public static void close(boolean persist) {
+	public void close(boolean persist) {
 		// shutdown the executors and await their task termination
 		insertionService.close();
 		inferenceService.close();
@@ -323,12 +326,12 @@ public class Engine {
 		}
 	}
 		
-	private static void closeContextModel() {
+	private void closeContextModel() {
 		// close the basic context model modules
 		contextModelLoader.closeModel();
     }
 	
-	private static void syncToPersistent(Dataset contextDataset) {
+	private void syncToPersistent(Dataset contextDataset) {
 	    Dataset persistentContextStore = getPersistentContextStore();
 	    persistentContextStore.begin(ReadWrite.WRITE);
 	    try {
@@ -355,7 +358,7 @@ public class Engine {
 	 * ContextEntity and EntityDescription instances.
 	 * @param contextStoreDataset The TDB-backed dataset that holds the graphs
 	 */
-	static void setupEntityStore(Dataset contextStoreDataset, OntModel coreContextModel) {
+	void setupEntityStore(Dataset contextStoreDataset, OntModel coreContextModel) {
 		// The EntityStore is a OWL-MICRO inference model, so we first need to setup
 		// our entityStoreReasoner.
 		//entityStoreReasoner = ReasonerRegistry.getOWLMicroReasoner();
@@ -377,7 +380,7 @@ public class Engine {
 	/**
 	 * Clean out all statements from the named graphs in the persistent ContextStore 
 	 */
-	public static void cleanPersistentContextStore() {
+	public void cleanPersistentContextStore() {
 		Dataset contextStoreDataset = TDBFactory.createDataset(contextStorePersistentLocation); 
 		
 		Iterator<String> graphNameIt = contextStoreDataset.listNames();
@@ -396,12 +399,12 @@ public class Engine {
 	}
 	
 	
-	public static Dataset getPersistentContextStore() {
+	public Dataset getPersistentContextStore() {
 		return TDBFactory.createDataset(contextStorePersistentLocation);
 	}
 	
 	
-	public static Dataset getRuntimeContextStore() {
+	public Dataset getRuntimeContextStore() {
 		/*
 		 *  We're doing it like this such that every thread that asks for the dataset will
 		 *  get its own object. Synchronization happens on TDB.sync()
@@ -412,67 +415,67 @@ public class Engine {
 	
 	
 	// ######################## Access CONSERT Engine Context Model and Indexes ########################
-	public static ContextModelLoader getModelLoader() {
+	public ContextModelLoader getModelLoader() {
 		return contextModelLoader;
 	}
 	
-	public static ContextAssertionIndex getContextAssertionIndex() {
+	public ContextAssertionIndex getContextAssertionIndex() {
 		return contextAssertionIndex;
 	}
 	
-	public static ContextAnnotationIndex getContextAnnotationIndex() {
+	public ContextAnnotationIndex getContextAnnotationIndex() {
 		return contextAnnotationIndex;
 	}
 	
-	public static ContextConstraintIndex getConstraintIndex() {
+	public ContextConstraintIndex getConstraintIndex() {
 		return contextConstraintIndex;
 	}
 	
-	public static DerivationRuleDictionary getDerivationRuleDictionary() {
+	public DerivationRuleDictionary getDerivationRuleDictionary() {
 		return derivationRuleDictionary;
 	}
 	
 	
 	// ############################## Access Internal Execution handlers ############################## 
-	public static InsertionService getInsertionService() {
+	public InsertionService getInsertionService() {
 		return insertionService;
 	}
 	
 	
-	public static InferenceService getInferenceService() {
+	public InferenceService getInferenceService() {
 		return inferenceService;
 	}
 	
 	
-	public static QueryService getQueryService() {
+	public QueryService getQueryService() {
 		return queryService;
 	}
 	
 	
-	public static SubscriptionMonitor subscriptionMonitor() {
+	public SubscriptionMonitor subscriptionMonitor() {
 		return subscriptionMonitor;
 	}
 	
 	
-	private static InsertionService initInsertionService(Properties execConfiguration) {
-		InsertionService instance = InsertionService.getInstance();
-		instance.init(execConfiguration);
+	private InsertionService initInsertionService(Properties execConfiguration) {
+		InsertionService insertionService = new InsertionService(this);
+		insertionService.init(execConfiguration);
 		
-		return instance;
+		return insertionService;
 	}
 	
-	private static InferenceService createInferenceService(Properties execConfiguration) {
-		InferenceService instance = InferenceService.getInstance();
-		instance.init(execConfiguration);
+	private InferenceService createInferenceService(Properties execConfiguration) {
+		InferenceService inferenceService = new InferenceService(this);
+		inferenceService.init(execConfiguration);
 		
-		return instance;
+		return inferenceService;
 	}
 	
 	
-	private static QueryService createQueryService(Properties execConfiguration) {
-		QueryService instance = QueryService.getInstance();
-		instance.init(execConfiguration);
+	private QueryService createQueryService(Properties execConfiguration) {
+		QueryService queryService = new QueryService(this);
+		queryService.init(execConfiguration);
 		
-		return instance;
+		return queryService;
     }
 }

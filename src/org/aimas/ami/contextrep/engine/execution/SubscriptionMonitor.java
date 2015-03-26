@@ -12,7 +12,6 @@ import org.aimas.ami.contextrep.engine.api.QueryResultNotifier;
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.engine.utils.ContextQueryUtil;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.query.ContextQueryTask;
 import org.openjena.atlas.lib.SetUtils;
 
 import com.hp.hpl.jena.ontology.OntModel;
@@ -21,9 +20,12 @@ import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.util.IteratorCollection;
 
 public class SubscriptionMonitor implements ContextInsertListener {
+	private Engine consertEngine;
 	private Map<ContextAssertion, Map<SubscriptionWrapper, List<QueryResultNotifier>>> subscriptionIndex;
 	
-	public SubscriptionMonitor() {
+	
+	public SubscriptionMonitor(Engine consertEngine) {
+		this.consertEngine = consertEngine;
 		subscriptionIndex = new HashMap<ContextAssertion, Map<SubscriptionWrapper,List<QueryResultNotifier>>>();
 	}
 	
@@ -37,7 +39,7 @@ public class SubscriptionMonitor implements ContextInsertListener {
 				
 				for (QueryResultNotifier notifier : resultNotifiers) {
 					// submit the ContextQueryTask
-					Engine.getQueryService().executeRequest(sw.getQuery(), sw.getInitialBinding(), notifier);
+					consertEngine.getQueryService().executeRequest(sw.getQuery(), sw.getInitialBinding(), notifier);
 				}
 			}
 		}
@@ -74,8 +76,8 @@ public class SubscriptionMonitor implements ContextInsertListener {
 	
 	
 	private Set<ContextAssertion> analyzeSubscription(Query query, QuerySolutionMap initialBindings) {
-	    OntModel coreContextModel = Engine.getModelLoader().getCoreContextModel();
-	    return ContextQueryUtil.analyzeContextQuery(query, initialBindings, coreContextModel);
+	    OntModel coreContextModel = consertEngine.getModelLoader().getCoreContextModel();
+	    return ContextQueryUtil.analyzeContextQuery(consertEngine, query, initialBindings, coreContextModel);
     }
 
 

@@ -1,5 +1,6 @@
 package org.aimas.ami.contextrep.update;
 
+import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 
 import com.hp.hpl.jena.graph.Node;
@@ -8,13 +9,18 @@ import com.hp.hpl.jena.update.UpdateRequest;
 
 public abstract class ContextUpdateHook {
 	
+	protected Engine consertEngine;
+	
 	protected UpdateRequest insertionRequest;
 	protected ContextAssertion contextAssertion;
 	protected Node contextAssertionUUID;
 	protected int updateMode;
 	
-	public ContextUpdateHook(UpdateRequest updateRequest, ContextAssertion contextAssertion, 
+	public ContextUpdateHook(Engine consertEngine, UpdateRequest updateRequest, ContextAssertion contextAssertion, 
 			Node contextAssertionUUID, int updateMode) {
+		
+		this.consertEngine = consertEngine;
+		
 		this.insertionRequest = updateRequest;
 		this.contextAssertion = contextAssertion;
 		this.contextAssertionUUID = contextAssertionUUID;

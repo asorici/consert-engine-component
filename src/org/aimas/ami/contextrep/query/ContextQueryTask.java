@@ -25,6 +25,8 @@ import com.hp.hpl.jena.sparql.engine.binding.Binding;
 import com.hp.hpl.jena.sparql.engine.binding.BindingFactory;
 
 public class ContextQueryTask implements Runnable {
+	private Engine consertEngine;
+	
 	private Set<ContextAssertion> queriedAssertions;
 	
 	private Query query;
@@ -32,12 +34,14 @@ public class ContextQueryTask implements Runnable {
 	private QueryResultNotifier resultNotifier;
 	
 	
-	public ContextQueryTask(Query query, QuerySolutionMap initialBindings, QueryResultNotifier resultNotifier) {
+	public ContextQueryTask(Engine consertEngine, Query query, QuerySolutionMap initialBindings, QueryResultNotifier resultNotifier) {
+		this.consertEngine = consertEngine;
+		
 		this.query = query;
 		this.resultNotifier = resultNotifier;
 		this.initialBindings = initialBindings;
 		
-		queriedAssertions = ContextQueryUtil.analyzeContextQuery(query, initialBindings, Engine.getModelLoader().getCoreContextModel());
+		queriedAssertions = ContextQueryUtil.analyzeContextQuery(consertEngine, query, initialBindings, consertEngine.getModelLoader().getCoreContextModel());
 	}
 	
 	
@@ -49,7 +53,7 @@ public class ContextQueryTask implements Runnable {
 	@Override
     public void run() {
 		// STEP 1: start a new READ transaction on the contextStoreDataset
-		Dataset contextDataset = Engine.getRuntimeContextStore();
+		Dataset contextDataset = consertEngine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.READ);
 		
 		try {
@@ -61,7 +65,7 @@ public class ContextQueryTask implements Runnable {
 				    ResultSet results = qexec.execSelect();
 				    
 				    // notify query statistics collector
-				    Engine.getQueryService().markQueryExecution(queriedAssertions, results.hasNext());
+				    consertEngine.getQueryService().markQueryExecution(queriedAssertions, results.hasNext());
 				    
 				    // consume the ResultSet and build a ContextResultSet to detach all bindings from
 				    // the TDB binding, such that the read transaction can close properly
@@ -71,7 +75,7 @@ public class ContextQueryTask implements Runnable {
 				    resultNotifier.notifyQueryResult(new QueryResult(query, null, contextResults));
 				}
 				catch (Exception ex) {
-					Engine.getQueryService().markQueryExecution(queriedAssertions, false);
+					consertEngine.getQueryService().markQueryExecution(queriedAssertions, false);
 					resultNotifier.notifyQueryResult(new QueryResult(query, new QueryException("Query execution error.", ex)));
 				}
 				finally { qexec.close() ; }
@@ -81,14 +85,14 @@ public class ContextQueryTask implements Runnable {
 				    boolean askResult = qexec.execAsk();
 				    
 				    // notify query statistics collector
-				    Engine.getQueryService().markQueryExecution(queriedAssertions, askResult);
+				    consertEngine.getQueryService().markQueryExecution(queriedAssertions, askResult);
 				    
 				    // notify result handler
 				    resultNotifier.notifyAskResult(new QueryResult(query, null, askResult));
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
-					Engine.getQueryService().markQueryExecution(queriedAssertions, false);
+					consertEngine.getQueryService().markQueryExecution(queriedAssertions, false);
 					resultNotifier.notifyAskResult(new QueryResult(query, new QueryException("Query execution error.", ex)));
 				}
 				finally { qexec.close() ; }

@@ -1,4 +1,4 @@
-package org.aimas.ami.contextrep.engine.execution;
+package org.aimas.ami.contextrep.update;
 
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
@@ -14,16 +14,19 @@ import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 public class EntityDescriptionUpdateTask implements Runnable {
+	
+	private Engine consertEngine;
 	private UpdateRequest entityDescriptionUpdateRequest;
 	
-	public EntityDescriptionUpdateTask(UpdateRequest request) {
+	public EntityDescriptionUpdateTask(Engine consertEngine, UpdateRequest request) {
+		this.consertEngine = consertEngine;
 		this.entityDescriptionUpdateRequest = request;
 	}
 	
 	@Override
 	public void run() {
 		// STEP 1: start a new WRITE transaction on the contextStoreDataset
-		Dataset contextDataset = Engine.getRuntimeContextStore();
+		Dataset contextDataset = consertEngine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.WRITE);
 		
 		try {
@@ -33,7 +36,7 @@ public class EntityDescriptionUpdateTask implements Runnable {
 			
 			// TODO: see if there's a better / more elegant way to do this
 			Model entityStore = contextDataset.getNamedModel(ConsertCore.ENTITY_STORE_URI);
-			InfModel entityStoreInfModel = ModelFactory.createInfModel(Engine.getEntityStoreReasoner(), entityStore);
+			InfModel entityStoreInfModel = ModelFactory.createInfModel(consertEngine.getEntityStoreReasoner(), entityStore);
 				
 			Model newData = entityStoreInfModel.difference(entityStore);
 			entityStore.add(newData);

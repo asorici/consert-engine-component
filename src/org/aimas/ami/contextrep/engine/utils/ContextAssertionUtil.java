@@ -98,12 +98,12 @@ public class ContextAssertionUtil {
 	 * given as input, within the <code>contextModel</code>. As per the modeling recommendations of a 
 	 * CONSERT-based context model, a <i>ContextAssertion</i> can have at most a parent assertion. 
 	 * The method returns <code>null</code> if the input <code>contextAssertion</code> has no parent to inherit from.
-	 * 
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param contextAssertion
 	 * @param contextModel
 	 * @return the {@link ContextAssertion} that is a direct parent or null if no parent exists
 	 */
-	public static ContextAssertion getContextAssertionParent(ContextAssertion contextAssertion, OntModel contextModel) {
+	public static ContextAssertion getContextAssertionParent(Engine consertEngine, ContextAssertion contextAssertion, OntModel contextModel) {
 		OntResource assertionRes = contextAssertion.getOntologyResource();
 		
 		// we must make the distinction between assertion arity
@@ -111,7 +111,7 @@ public class ContextAssertionUtil {
 			Collection<Resource> directAssertionParents = JenaUtil.getSuperClasses(assertionRes);
 			
 			for (Resource res : directAssertionParents) {
-				ContextAssertion parentAssertion = validParentClass(res, assertionRes, contextModel);
+				ContextAssertion parentAssertion = validParentClass(consertEngine, res, assertionRes, contextModel);
 				if (parentAssertion != null) {
 					return parentAssertion;
 				}
@@ -122,7 +122,7 @@ public class ContextAssertionUtil {
 			for (;directParentIt.hasNext();) {
 				RDFNode parentProp = directParentIt.nextNode();
 				if (parentProp.isURIResource()) {
-					ContextAssertion parentAssertion = validParentProperty(parentProp.asResource(), assertionRes, contextModel);
+					ContextAssertion parentAssertion = validParentProperty(consertEngine, parentProp.asResource(), assertionRes, contextModel);
 					if (parentAssertion != null) {
 						return parentAssertion;
 					}
@@ -133,27 +133,27 @@ public class ContextAssertionUtil {
 		return null;
 	}
 	
-	private static ContextAssertion validParentClass(Resource parentRes, OntResource assertionRes, OntModel contextModel) {
+	private static ContextAssertion validParentClass(Engine consertEngine, Resource parentRes, OntResource assertionRes, OntModel contextModel) {
 		if (parentRes.isURIResource() && !parentRes.equals(assertionRes) 
 				&& !parentRes.equals(ConsertCore.UNARY_CONTEXT_ASSERTION)
 				&& !parentRes.equals(ConsertCore.NARY_CONTEXT_ASSERTION)
 				&& !parentRes.equals(OWL.Thing) && !parentRes.equals(RDFS.Resource)) {
 			
 			OntResource parentOntRes = contextModel.getOntResource(parentRes);
-			return Engine.getContextAssertionIndex().getAssertionFromResource(parentOntRes);
+			return consertEngine.getContextAssertionIndex().getAssertionFromResource(parentOntRes);
 		}
 		
 		return null;
     }
 	
 	
-	private static ContextAssertion validParentProperty(Resource parentRes, OntResource assertionRes, OntModel contextModel) {
+	private static ContextAssertion validParentProperty(Engine consertEngine, Resource parentRes, OntResource assertionRes, OntModel contextModel) {
 		if (parentRes.isURIResource() && !parentRes.equals(assertionRes)
 				&& !ConsertCore.ROOT_BINARY_RELATION_ASSERTION_SET.contains(parentRes) 
 				&& !ConsertCore.ROOT_BINARY_DATA_ASSERTION_SET.contains(parentRes)) {
 			
 			OntResource parentOntRes = contextModel.getOntResource(parentRes);
-			return Engine.getContextAssertionIndex().getAssertionFromResource(parentOntRes);
+			return consertEngine.getContextAssertionIndex().getAssertionFromResource(parentOntRes);
 		}
 		
 		return null;
@@ -164,15 +164,16 @@ public class ContextAssertionUtil {
 	/**
 	 * Returns the entire chain of {@link ContextAssertion} ancestor assertions up to the base ontology resources that
 	 * define a <i>ContextAssertion</i> in the CONSERT ontology. 
+	 * @param consertEngine 	The CONSERT Engine instance in which the ContextStore is kept
 	 * @param contextAssertion
 	 * @param contextModel
 	 * @return The list of {@link ContextAssertion} ancestor assertions from nearest to farthest.
 	 */
-	public static List<ContextAssertion> getContextAssertionAncestors(ContextAssertion contextAssertion, OntModel contextModel) {
+	public static List<ContextAssertion> getContextAssertionAncestors(Engine consertEngine, ContextAssertion contextAssertion, OntModel contextModel) {
 		List<ContextAssertion> assertionAncestorList = new ArrayList<ContextAssertion>();
 		ContextAssertion currentAssertion = contextAssertion;
 		
-		while( (currentAssertion = getContextAssertionParent(currentAssertion, contextModel)) != null ) {
+		while( (currentAssertion = getContextAssertionParent(consertEngine, currentAssertion, contextModel)) != null ) {
 			assertionAncestorList.add(currentAssertion);
 		}
 		
@@ -187,13 +188,14 @@ public class ContextAssertionUtil {
 	 * This <i>seed</i> statement depends on the arity of the assertion and allows to retrieve its entire content.
 	 * <p>
 	 * This method is reserved for internal usage by the {@link CheckInferenceHook} mechanism during CONSERT Engine Derivation Rule reasoning.
+	 * @param consertEngine The CONSERT Engine instance in which the ContextStore is kept
 	 * @param assertionResource The ontology resource that defines the type of this ContextAssertion
 	 * @param contentStatement	The statement that describes the ContextAssertion instance whose contents we are trying to retrieve.
 	 * @param contentModel	The model containing all the inferred triples as result of applying a Context Derivation Rule.
 	 * @return The set of statements that make up the contents of the derived ContextAssertion instance.
 	 * 		The method returns null, if the seed statement cannot be found or it does not correspond to the expected format.
 	 */
-	public static Set<Statement> getDerivedAssertionContents(OntResource assertionResource, Statement contentStatement, Model contentModel) {
+	public static Set<Statement> getDerivedAssertionContents(Engine consertEngine, OntResource assertionResource, Statement contentStatement, Model contentModel) {
 		Set<Statement> assertionInstanceContents = null;
 		
 		// The contentStatement object is a reified statement describing the seed statement
@@ -208,7 +210,7 @@ public class ContextAssertionUtil {
 		Statement seedStatement = contentModel.listStatements(new EqualsStatementSelector(seedEqualStatement)).next();
 		
 		// Now switch according to assertion arity
-		ContextAssertion assertion = Engine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
+		ContextAssertion assertion = consertEngine.getContextAssertionIndex().getAssertionFromResource(assertionResource);
 		if (assertion.isUnary()) {
 			assertionInstanceContents = collectUnaryAssertionStatements(assertion, seedStatement, contentModel);
 		}

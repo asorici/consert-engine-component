@@ -29,8 +29,7 @@ import org.aimas.ami.contextrep.update.ContextInferenceTask;
 
 import com.hp.hpl.jena.rdf.model.Resource;
 
-public class InferenceService implements ExecutionService, EngineInferenceStats, InferenceStatsCollector {
-	private static InferenceService instance;
+public class InferenceService extends ExecutionService implements EngineInferenceStats, InferenceStatsCollector {
 	
 	private static final int DEFAULT_NUM_WORKERS = 1;
 	private static final int DEFAULT_PRIORITY_QUEUE_CAPACITY = 10;
@@ -58,6 +57,11 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	// ================= Initialization and Configurations =================
 	////////////////////////////////////////////////////////////////////////
 	
+	public InferenceService(Engine engine) {
+	    super(engine);
+    }
+
+	
 	@Override
     public void init(Properties execConfiguration) {
     	// configure execution parameters
@@ -82,7 +86,8 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     			requestQueue.drainTo(temp);
     			
     			// set the new priority comparator for the inference request queue
-    			requestQueue = new PriorityBlockingQueue<InferenceRequestWrapper>(temp.size(), priorityComparator);
+    			int queueCapacity = temp.isEmpty() ? DEFAULT_PRIORITY_QUEUE_CAPACITY : temp.size();
+    			requestQueue = new PriorityBlockingQueue<InferenceRequestWrapper>(queueCapacity, priorityComparator);
     			
     			// re-add the re-prioritized requests to the queue 
     			requestQueue.addAll(temp);
@@ -248,12 +253,12 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
     
     
     private List<ContextDerivationRule> getActiveDerivationRules() {
-    	List<ContextAssertion> derivedAssertions = Engine.getContextAssertionIndex().getDerivedContextAssertions();
+    	List<ContextAssertion> derivedAssertions = engine.getContextAssertionIndex().getDerivedContextAssertions();
     	
     	List<ContextDerivationRule> activeDerivationRules = new LinkedList<ContextDerivationRule>();
 		for (ContextAssertion assertion: derivedAssertions) {
-			if (Engine.getDerivationRuleDictionary().isDerivedAssertionActive(assertion)) {
-				List<DerivationRuleWrapper> assertionDerivationRules = Engine.getDerivationRuleDictionary().getDerivedAssertionRules(assertion);
+			if (engine.getDerivationRuleDictionary().isDerivedAssertionActive(assertion)) {
+				List<DerivationRuleWrapper> assertionDerivationRules = engine.getDerivationRuleDictionary().getDerivedAssertionRules(assertion);
 				activeDerivationRules.addAll(assertionDerivationRules);
 			}
 		}
@@ -279,7 +284,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 		}
 		*/
 		
-		InferenceRequestWrapper wrappedRequest = new InferenceRequestWrapper(inferenceRequest);
+		InferenceRequestWrapper wrappedRequest = new InferenceRequestWrapper(engine, inferenceRequest);
 		requestQueue.add(wrappedRequest);
 		newRequests.set(true);
 	}
@@ -296,7 +301,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
             	
             	// STEP 1b: if we have a request submit it to the inference executors.
             	if (request != null) {
-            		inferenceExecutor.submit(new ContextInferenceTask(request.getInferenceRequest()));
+            		inferenceExecutor.submit(new ContextInferenceTask(engine, request.getInferenceRequest()));
             	}
             	else {
             		// Otherwise check if our timer is still accepting tasks (we are not stopped),
@@ -321,7 +326,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 			for (int i = 0; i < numWorkers - 1; i++) {
 	        	InferenceRequestWrapper req = requestQueue.poll();
 	        	if (req != null) {
-	        		inferenceExecutor.submit(new ContextInferenceTask(req.getInferenceRequest()));
+	        		inferenceExecutor.submit(new ContextInferenceTask(engine, req.getInferenceRequest()));
 	        	}
 	        }
 			
@@ -425,7 +430,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 	    	lastDerivation = rule;
 	    }
 	    
-	    derivationRuleTracker.markInferenceExecution(rule, Engine.currentTimeMillis(), successful);
+	    derivationRuleTracker.markInferenceExecution(rule, engine.currentTimeMillis(), successful);
     }
 	
 	
@@ -455,7 +460,7 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 		
 		
 		void siftTracker() {
-			long now = Engine.currentTimeMillis();
+			long now = engine.currentTimeMillis();
 			
 			for (ContextDerivationRule rule : ruleTracker.keySet()) {
 				ContextAssertion derivedAssertion = rule.getDerivedAssertion();
@@ -535,16 +540,5 @@ public class InferenceService implements ExecutionService, EngineInferenceStats,
 		public boolean successful() {
 			return successful;
 		}
-	}
-	
-	// ============================== Factory ==============================
-	////////////////////////////////////////////////////////////////////////
-	
-	public static InferenceService getInstance() {
-		if (instance == null) {
-			instance = new InferenceService();
-		}
-		
-		return instance;
 	}
 }

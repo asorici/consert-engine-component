@@ -14,9 +14,11 @@ import com.hp.hpl.jena.query.ReadWrite;
 
 
 public class ContextInferenceTask implements Callable<InferenceResult> {
+	private Engine consertEngine;
 	private CheckInferenceHook inferenceHook;
 	
-	public ContextInferenceTask(CheckInferenceHook inferenceHook) {
+	public ContextInferenceTask(Engine consertEngine, CheckInferenceHook inferenceHook) {
+		this.consertEngine = consertEngine;
 		this.inferenceHook = inferenceHook;
 	}
 	
@@ -35,7 +37,7 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 		InferenceResult inferenceHookResult = null;
 		
 		// STEP 1: start a new READ transaction on the contextStoreDataset
-		Dataset contextDataset = Engine.getRuntimeContextStore();
+		Dataset contextDataset = consertEngine.getRuntimeContextStore();
 		contextDataset.begin(ReadWrite.READ);
 			
 		try {
@@ -49,13 +51,13 @@ public class ContextInferenceTask implements Callable<InferenceResult> {
 				System.out.println("Inference ERROR!");
 				
 				// notify both the inference and query (for the rule body assertions) statistics collectors
-				Engine.getInferenceService().markInferenceExecution(derivationRule, false);
-				Engine.getQueryService().markQueryExecution(bodyAssertions, false);
+				consertEngine.getInferenceService().markInferenceExecution(derivationRule, false);
+				consertEngine.getQueryService().markQueryExecution(bodyAssertions, false);
 			}
 			else {
 				// notify both the inference and query (for the rule body assertions) statistics collectors
-				Engine.getInferenceService().markInferenceExecution(derivationRule, inferenceHookResult.hasInferred());
-				Engine.getQueryService().markQueryExecution(bodyAssertions, inferenceHookResult.hasInferred());
+				consertEngine.getInferenceService().markInferenceExecution(derivationRule, inferenceHookResult.hasInferred());
+				consertEngine.getQueryService().markQueryExecution(bodyAssertions, inferenceHookResult.hasInferred());
 			}
 		}
 		finally {
