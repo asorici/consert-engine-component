@@ -28,6 +28,7 @@ import org.aimas.ami.contextrep.resources.TimeService;
 import org.aimas.ami.contextrep.utils.BundleResourceManager;
 import org.aimas.ami.contextrep.utils.ResourceManager;
 import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
+import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 import org.apache.felix.dm.Dependency;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -48,8 +49,11 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.reasoner.ValidityReport;
 import com.hp.hpl.jena.update.UpdateRequest;
@@ -61,6 +65,9 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 	 * Keeps a reference to the Component view of the CONSERT Engine frontend.
 	 */
 	private org.apache.felix.dm.Component engineComponent;
+	
+	/** Keep a reference to the applicationIdentifier of the CMU for which this CONSERT Engine is deployed */
+	private String applicationIdentifier;
 	
 	/**
 	 * The back-end workhorse that does actually implements the CONSERT Engine.
@@ -186,6 +193,9 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		Dictionary<String, String> engineServiceProperties = component.getServiceProperties();
 		long cmmInstanceBundleId = Long.parseLong(engineServiceProperties.get(CMMConstants.CONSERT_INSTANCE_BUNDLE_ID));
 		
+		applicationIdentifier = engineServiceProperties.get(CMMConstants.CONSERT_APPLICATION_ID_PROP);
+		engine.setApplicationIdentifier(applicationIdentifier);
+		
 		// retrieve the 
 		BundleContext bundleContext = component.getDependencyManager().getBundleContext();
 		modelResourceBundle = bundleContext.getBundle(cmmInstanceBundleId);
@@ -281,19 +291,108 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 				*/
 				
 				System.out.println("#####################################################");
+				System.out.println("Contents of CONSERT Engine for application: " + applicationIdentifier);
 				
-				Model locatedInStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/person/locatedInStore"); 
-				StmtIterator personLocationIt = locatedInStore.listStatements(null, ConsertAnnotation.HAS_TIMESTAMP, (RDFNode)null);
-				while (personLocationIt.hasNext()) {
-					Model personLocationModel = contextStore.getNamedModel(personLocationIt.next().getSubject().getURI());
-					personLocationModel.write(System.out, "TTL");
+				if (applicationIdentifier.contains("SmartClassroom")) {
+					Model locatedInStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/person/locatedInStore"); 
+					StmtIterator personLocationIt = locatedInStore.listStatements(null, ConsertAnnotation.HAS_TIMESTAMP, (RDFNode)null);
+					while (personLocationIt.hasNext()) {
+						Model personLocationModel = contextStore.getNamedModel(personLocationIt.next().getSubject().getURI());
+						personLocationModel.write(System.out, "TTL");
+					}
+					
+					System.out.println("=========================================================");
+					System.out.println();
+					
+					Model discussionActivityStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core/HostsAdHocDiscussionStore"); 
+					discussionActivityStore.write(System.out, "TTL");
 				}
-				
-				System.out.println("=========================================================");
-				System.out.println();
-				
-				Model discussionActivityStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core/HostsAdHocDiscussionStore"); 
-				discussionActivityStore.write(System.out, "TTL");
+				else if (applicationIdentifier.contains("AlicePersonal")) {
+					System.out.println("#### engagedIn Assertion ####");
+					Model engagedInStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core/engagedInStore"); 
+					StmtIterator engagedInIt = engagedInStore.listStatements(null, ConsertCore.CONTEXT_ASSERTION_TYPE_PROPERTY, (RDFNode)null);
+					while (engagedInIt.hasNext()) {
+						Model engagedInModel = contextStore.getNamedModel(engagedInIt.next().getSubject().getURI());
+						engagedInModel.write(System.out, "TTL");
+						
+						Property engagedInProp = ResourceFactory.createProperty("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core#engagedIn");
+						Property takesPlaceProp = ResourceFactory.createProperty("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core#takesPlaceIn");
+						
+						Property fromProp = ResourceFactory.createProperty("http://pervasive.semanticweb.org/ont/2004/06/time#from");
+						Property toProp = ResourceFactory.createProperty("http://pervasive.semanticweb.org/ont/2004/06/time#to");
+						Property atProp = ResourceFactory.createProperty("http://pervasive.semanticweb.org/ont/2004/06/time#at");
+						
+						Resource activityRes = engagedInModel.getProperty(null, engagedInProp).getResource();
+						
+						System.out.println("#### EntityStore ####");
+						Model entityStore = contextStore.getNamedModel(ConsertCore.ENTITY_STORE_URI);
+						Statement activityPlaceStmt = entityStore.listStatements(activityRes, takesPlaceProp, (RDFNode)null).next();
+						System.out.println(activityPlaceStmt);
+						
+						/*
+						List<Statement> activityDescriptions = entityStore.listStatements(activityRes, null, (RDFNode)null).toList();
+						for (Statement s : activityDescriptions) {
+							System.out.println(s);
+						}
+						*/
+						
+						//System.out.println(entityStore.listStatements(activityPlaceStmt.getResource(), RDF.type, (RDFNode)null).toList());
+						//System.out.println();
+						
+						/*
+						System.out.println(entityStore.listStatements(activityRes, fromProp, (RDFNode)null).next());
+						Resource activityStartRes = entityStore.listStatements(activityRes, fromProp, (RDFNode)null).next().getResource();
+						
+						System.out.println(entityStore.listStatements(activityRes, toProp, (RDFNode)null).next());
+						Resource activityEndRes = entityStore.listStatements(activityRes, toProp, (RDFNode)null).next().getResource();
+						
+						System.out.println(entityStore.listStatements(activityStartRes, atProp, (RDFNode)null).next());
+						System.out.println(entityStore.listStatements(activityEndRes, atProp, (RDFNode)null).next());
+						System.out.println();
+						*/
+					}
+					
+					/*
+					System.out.println("#### locatedIn ####");
+					Model locatedInStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2004/06/person/locatedInStore"); 
+					StmtIterator personLocationIt = locatedInStore.listStatements(null, ConsertAnnotation.HAS_TIMESTAMP, (RDFNode)null);
+					while (personLocationIt.hasNext()) {
+						Model personLocationModel = contextStore.getNamedModel(personLocationIt.next().getSubject().getURI());
+						personLocationModel.write(System.out, "TTL");
+					}
+					
+					locatedInStore.write(System.out, "TTL");
+					System.out.println();
+					*/
+					
+					/*
+					System.out.println("#### hasPersonCount ####");
+					Model personCountStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2015/01/alicepersonal/core/hasPersonCountStore"); 
+					StmtIterator personCountIt = personCountStore.listStatements(null, ConsertCore.CONTEXT_ASSERTION_TYPE_PROPERTY, (RDFNode)null);
+					while (personCountIt.hasNext()) {
+						Model personCountModel = contextStore.getNamedModel(personCountIt.next().getSubject().getURI());
+						personCountModel.write(System.out, "TTL");
+					}
+					System.out.println();
+					
+					System.out.println("#### hasPersonCountStore ####");
+					personCountStore.write(System.out, "TTL");
+					*/
+					
+					System.out.println("#### availability Assertion ####");
+					Model availabilityStore = contextStore.getNamedModel("http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core/hasAvailabilityStatusStore"); 
+					StmtIterator availabilityIt = availabilityStore.listStatements(null, ConsertAnnotation.HAS_TIMESTAMP, (RDFNode)null);
+					while (availabilityIt.hasNext()) {
+						Model availabilityModel = contextStore.getNamedModel(availabilityIt.next().getSubject().getURI());
+						availabilityModel.write(System.out, "TTL");
+					}
+					
+					System.out.println("#### availabilityStore ####");
+					availabilityStore.write(System.out, "TTL");
+					
+					System.out.println("=========================================================");
+					System.out.println();
+				}
 			}
 			finally {
 				contextStore.end();
@@ -561,8 +660,9 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		Dependency oldDependency = specificUniquenessResolutionDependenies.get(assertionResource);
 		Dependency newDependency = 
 			engineComponent.getDependencyManager().createServiceDependency()
-				.setService(ConstraintResolutionService.class, "(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")")
-				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setService(ConstraintResolutionService.class, "(&(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")"
+															   + "(" + ConstraintResolutionService.ASSERTION_TYPE + "=" + assertionResource.getURI() + "))")
+				//.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
 				.setCallbacks(serviceTracker, "resolutionServiceAdded", "resolutionServiceRemoved");
 		
 		// add the new dependency
@@ -581,8 +681,9 @@ public class EngineFrontend implements InsertionHandler, QueryHandler, CommandHa
 		Dependency oldDependency = specificIntegrityResolutionDependenies.get(assertionResource);
 		Dependency newDependency = 
 			engineComponent.getDependencyManager().createServiceDependency()
-				.setService(ConstraintResolutionService.class, "(type=" + resolutionServiceName + ")")
-				.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
+				.setService(ConstraintResolutionService.class, "(&(" + ConstraintResolutionService.RESOLUTION_TYPE + "=" + resolutionServiceName + ")"
+															   + "(" + ConstraintResolutionService.ASSERTION_TYPE + "=" + assertionResource.getURI() + "))")
+				//.setDefaultImplementation(PreferNewestConstraintResolution.getInstance())
 				.setCallbacks(serviceTracker, "resolutionServiceAdded", "resolutionServiceRemoved");
 		
 		// add the new dependency

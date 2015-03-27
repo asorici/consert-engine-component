@@ -6,12 +6,10 @@ import java.util.List;
 
 import org.aimas.ami.contextrep.engine.core.Engine;
 import org.aimas.ami.contextrep.model.ContextAssertion;
-import org.aimas.ami.contextrep.vocabulary.ConsertAnnotation;
 import org.aimas.ami.contextrep.vocabulary.ConsertCore;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.compose.MultiUnion;
-import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -68,22 +66,18 @@ public class ContextStoreUtil {
 		// get the URIs of named graphs that identify instances of the ContextAssertion
 		Model assertionStoreModel = contextDatasetSnapshot.getNamedModel(contextAssertion.getAssertionStoreURI());
 		
-		// Since all ContextAssertions MUST have a timestamp annotation it is by this feature that we identify all
-		// the named graphs that act as identifiers of ContextAssertion instances. In the ContextAssertion Store, 
-		// their URI will be bound by the timestamp property to a resource that represents the timestamp annotation.
-		OntProperty timestampAnnProp = consertEngine.getContextAnnotationIndex()
-				.getByResource(ConsertAnnotation.HAS_TIMESTAMP).getBindingProperty();
-		
+		// Since all ContextAssertions MUST have an assertionType property (specifying their sensed, profiled or derived acquisition) annotation 
+		// it is by this feature that we identify all the named graphs that act as identifiers of ContextAssertion instances. 
 		String queryString = 
 			"SELECT DISTINCT ?assertionUUID WHERE {"
 			+ 	"GRAPH ?assertionStore {"
-			+ 		"?assertionUUID ?timestampProp ?ts ."
+			+ 		"?assertionUUID ?acquisitionType ?acqType ."
 			+	"}"
 			+ "}"; 
 		
 		QuerySolutionMap initialBinding = new QuerySolutionMap();
 		initialBinding.add("assertionStore", ResourceFactory.createResource(contextAssertion.getAssertionStoreURI()));
-		initialBinding.add("timestampProp", timestampAnnProp);
+		initialBinding.add("acquisitionType", ConsertCore.CONTEXT_ASSERTION_TYPE_PROPERTY);
 		QueryExecution qexec = QueryExecutionFactory.create(queryString, assertionStoreModel, initialBinding);
 		
 		List<String> assertionUUIDs = new LinkedList<String>();

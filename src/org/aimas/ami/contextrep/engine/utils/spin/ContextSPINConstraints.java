@@ -1,12 +1,14 @@
 package org.aimas.ami.contextrep.engine.utils.spin;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aimas.ami.contextrep.engine.core.ContextConstraintIndex;
 import org.aimas.ami.contextrep.engine.core.Engine;
-import org.aimas.ami.contextrep.engine.utils.ConstraintsWrapper;
+import org.aimas.ami.contextrep.engine.utils.ConstraintWrapper;
 import org.aimas.ami.contextrep.model.ContextAssertion;
 import org.aimas.ami.contextrep.model.ContextConstraintViolation;
 import org.aimas.ami.contextrep.model.ContextIntegrityConstraintViolation;
@@ -30,6 +32,7 @@ import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.update.UpdateRequest;
@@ -38,14 +41,49 @@ import com.hp.hpl.jena.vocabulary.RDF;
 public class ContextSPINConstraints {
 	
 	public static List<ContextConstraintViolation> check(Engine consertEngine, Model constraintContextModel, ContextAssertion assertion, 
-			Node assertionUUID, UpdateRequest triggeringRequest, ConstraintsWrapper constraints, List<SPINStatistics> stats) {
+			Node assertionUUID, UpdateRequest triggeringRequest, List<ConstraintWrapper> constraints, List<SPINStatistics> stats) {
 		
-		Resource anchorResource = constraints.getAnchorResource();
-		List<CommandWrapper> constraintCommands = constraints.getConstraintCommands();
-		Map<CommandWrapper, Map<String, RDFNode>> templateBindings = constraints.getConstraintTemplateBindings();
+		// prepare constraintCommands per anchor resource mapping
+		Map<Resource, List<CommandWrapper>> constraintCommandMapping = new HashMap<Resource, List<CommandWrapper>>();
+		Map<CommandWrapper, Map<String, RDFNode>> templateBindings = new HashMap<CommandWrapper, Map<String,RDFNode>>();
 		
-		return run(consertEngine, constraintContextModel, assertion, assertionUUID, triggeringRequest, anchorResource, constraintCommands, templateBindings, stats);
-		//return run(constraintContextModel, assertion, anchorResource, constraintCommands, stats);
+		for (ConstraintWrapper constraintWrapper : constraints) {
+			// == build mapping
+			Resource anchorResource = constraintWrapper.getAnchorResource();
+			
+			List<CommandWrapper> commands = constraintCommandMapping.get(anchorResource);
+			if (commands != null) {
+				commands.add(constraintWrapper.getConstraintCommand());
+			}
+			else {
+				commands = new LinkedList<CommandWrapper>();
+				commands.add(constraintWrapper.getConstraintCommand());
+				constraintCommandMapping.put(anchorResource, commands);
+			}
+			
+			// == set templateBindings - get the ones from the constraintWrapper and add the triggeredAssertionUUID and triggeredAssertionType params
+			Map<String, RDFNode> varBindings = new HashMap<String, RDFNode>(constraintWrapper.getConstraintBindings());
+			varBindings.put(ContextConstraintIndex.TRIGGER_ASSERTION_UUID_PARAM, ResourceFactory.createResource(assertionUUID.getURI()));
+			varBindings.put(ContextConstraintIndex.TRIGGER_ASSERTION_TYPE_PARAM, assertion.getOntologyResource());
+			
+			templateBindings.put(constraintWrapper.getConstraintCommand(), varBindings);
+		}
+		
+		
+		// now run all defined constraints for the given assertion
+		List<ContextConstraintViolation> allConstraintResults = new LinkedList<ContextConstraintViolation>();
+		for (Resource anchorResource: constraintCommandMapping.keySet()) {
+			List<CommandWrapper> constraintCommands = constraintCommandMapping.get(anchorResource);
+			
+			List<ContextConstraintViolation> results = run(consertEngine, constraintContextModel, 
+					assertion, assertionUUID, triggeringRequest, 
+					anchorResource, constraintCommands, templateBindings, stats);
+			// run(constraintContextModel, assertion, anchorResource, constraintCommands, stats);
+			
+			allConstraintResults.addAll(results);
+		}
+		
+		return allConstraintResults;
 	}
 	
 	private static List<ContextConstraintViolation> run(Engine consertEngine, Model constraintContextModel, ContextAssertion assertion, 
@@ -53,7 +91,7 @@ public class ContextSPINConstraints {
 			Map<CommandWrapper, Map<String, RDFNode>> templateBindings,
 			List<SPINStatistics> stats) {
 		
-		List<ContextConstraintViolation> results = new LinkedList<>();
+		List<ContextConstraintViolation> results = new LinkedList<ContextConstraintViolation>();
 		
 		for(CommandWrapper arqConstraint : constraintCommands) {
 			QueryWrapper queryConstraintWrapper = (QueryWrapper) arqConstraint;

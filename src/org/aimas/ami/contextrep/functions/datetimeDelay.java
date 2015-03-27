@@ -8,7 +8,6 @@ import org.aimas.ami.contextrep.utils.ContextModelUtils;
 import com.hp.hpl.jena.sparql.expr.ExprEvalException;
 import com.hp.hpl.jena.sparql.expr.NodeValue;
 import com.hp.hpl.jena.sparql.function.FunctionBase2;
-import com.hp.hpl.jena.sparql.util.Context;
 
 public class datetimeDelay extends FunctionBase2 {
 	
@@ -22,8 +21,6 @@ public class datetimeDelay extends FunctionBase2 {
 			throw new ExprEvalException("delay in seconds: argument not an integer value: " + v2) ;
 		}
 		
-		
-		Context c = getContext();
 		
 		//Calendar timestamp = v1.getDateTime().toGregorianCalendar(TimeZone.getTimeZone("Europe/Bucharest"), null, null);
 		Calendar timestamp = v1.getDateTime().toGregorianCalendar(TimeZone.getTimeZone("GMT"), null, null);

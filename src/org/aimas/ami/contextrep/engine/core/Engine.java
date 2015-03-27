@@ -38,9 +38,18 @@ public class Engine {
 	// ========== CONSERT Engine configuration properties ==========
 	public static final String CONFIG_FILENAME = "etc/cmm/engine.properties";
 	private Properties configurationProperties;
+	private String applicationIdentifier;
 	
 	public Properties getConfiguration() {
 		return configurationProperties;
+	}
+	
+	public void setApplicationIdentifier(String appId) {
+		applicationIdentifier = appId;
+	}
+	
+	public String getApplicationIdentifier() {
+		return applicationIdentifier;
 	}
 	
 	// ========== CONSERT Engine configuration properties ==========
@@ -281,6 +290,9 @@ public class Engine {
 				(currentTimeMillis() - timestamp) + " ms");
 		}
 		timestamp = currentTimeMillis();
+		System.out.println("#### Constraint Index : ");
+		System.out.println(contextConstraintIndex.getAllConstraints());
+		System.out.println();
 		
 		// build the Derivation Rule dictionary
 		derivationRuleDictionary = DerivationRuleDictionary.create(this, contextAssertionIndex, contextModelLoader.getRuleContextModel());
@@ -288,10 +300,10 @@ public class Engine {
 			System.out.println("Task: compute derivation rule dictionary. Duration: " + 
 				(currentTimeMillis() - timestamp) + " ms");
 		}
-		
+		timestamp = currentTimeMillis();
 		//System.out.println("#### Derivation Rule Map : ");
 		//System.out.println(derivationRuleDictionary.getAssertion2QueryMap());
-		timestamp = currentTimeMillis();
+		
 		
 		// register custom TDB UpdateEgine to listen for ContextAssertion insertions
 		//ContextAssertionUpdateEngine.register();

@@ -167,10 +167,10 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 							}
 							
 							ContextAssertion firstAssertion = violation.getViolatingAssertions()[0].getAssertion();
-							Resource firstAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[0].getAssertionInstanceUUID());
+							Resource firstAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[0].getAssertionInstanceURI());
 							
 							ContextAssertion secondAssertion = violation.getViolatingAssertions()[1].getAssertion();
-							Resource secondAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[1].getAssertionInstanceUUID());
+							Resource secondAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[1].getAssertionInstanceURI());
 							
 							ViolationAssertionWrapper keptAssertionWrapper = resolutionService.resolveViolation(violation, contextStoreSnapshot);
 							if (keptAssertionWrapper == null) {
@@ -185,7 +185,7 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 								return res;
 							}
 							else {
-								if (keptAssertionWrapper.getAssertionInstanceUUID().equals(insertedAssertionUUID)) {
+								if (!keptAssertionWrapper.getAssertionInstanceURI().equals(insertedAssertionUUID.getURI())) {
 									// If we must delete the newly inserted ContextAssertion instance, abandon the transaction and return insertion failure
 									InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), false, false); 
 									if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
@@ -193,8 +193,13 @@ public class ProfiledOneShotUpdateTask implements Callable<InsertResult> {
 								}
 								else {
 									// Otherwise an existing assertion instance must be deleted and afterward we continue normally with the checks
-									ContextUpdateUtil.deleteContextAssertionInstance(keptAssertionWrapper.getAssertion(), 
-											ResourceFactory.createResource(keptAssertionWrapper.getAssertionInstanceUUID()), contextDataset);
+									// We have to determine which of the two it is
+									if (keptAssertionWrapper.getAssertionInstanceURI().equals(firstAssertionUUID.getURI())) {
+										ContextUpdateUtil.deleteContextAssertionInstance(secondAssertion, secondAssertionUUID, contextDataset);
+									}
+									else if (keptAssertionWrapper.getAssertionInstanceURI().equals(secondAssertionUUID.getURI())) {
+										ContextUpdateUtil.deleteContextAssertionInstance(firstAssertion, firstAssertionUUID, contextDataset);
+									}
 								}
 							}
 						}

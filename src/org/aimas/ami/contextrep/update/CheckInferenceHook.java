@@ -77,7 +77,12 @@ public class CheckInferenceHook extends ContextUpdateHook {
 	
 	@Override
 	public InferenceResult doHook(Dataset contextDataset) {
-		System.out.println("======== CHECKING INFERENCE FOR assertion <" + contextAssertion + ">. ");
+		/*
+		if (consertEngine.getApplicationIdentifier().contains("AlicePersonal")) {
+			System.out.println("======== CHECKING INFERENCE FOR assertion <" + getDerivedAssertion() + "> triggered by <" + contextAssertion + ">. ");
+		}
+		*/
+		
 		// get the context model
 		OntModel contextModelCore = consertEngine.getModelLoader().getCoreContextModel();
 		

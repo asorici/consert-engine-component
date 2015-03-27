@@ -7,6 +7,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 public interface ConstraintResolutionService {
 	public static final String RESOLUTION_TYPE = "type";
+	public static final String ASSERTION_TYPE = "assertion";
 	
 	/**
 	 * Implementation of the resolution policy for a constraint conflict involving two ContextAssertion instances. The method will return the 
