@@ -215,10 +215,10 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 							}
 							
 							ContextAssertion firstAssertion = violation.getViolatingAssertions()[0].getAssertion();
-							Resource firstAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[0].getAssertionInstanceURI());
+							Resource firstAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[0].getAssertionInstanceUUID());
 							
 							ContextAssertion secondAssertion = violation.getViolatingAssertions()[1].getAssertion();
-							Resource secondAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[1].getAssertionInstanceURI());
+							Resource secondAssertionUUID = ResourceFactory.createResource(violation.getViolatingAssertions()[1].getAssertionInstanceUUID());
 							
 							ViolationAssertionWrapper keptAssertionWrapper = resolutionService.resolveViolation(violation, contextStoreSnapshot);
 							if (keptAssertionWrapper == null) {
@@ -233,7 +233,7 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 								return res;
 							}
 							else {
-								if (!keptAssertionWrapper.getAssertionInstanceURI().equals(insertedAssertionUUID.getURI())) {
+								if (!keptAssertionWrapper.getAssertionInstanceUUID().equals(insertedAssertionUUID.getURI())) {
 									// If we must delete the newly inserted ContextAssertion instance, abandon the transaction and return insertion failure
 									InsertResult res = new InsertResult(request, null, constraintResult.getViolations(), continuityResult.hasContinuity(), false); 
 									if (resultNotifier != null) resultNotifier.notifyInsertionResult(res);
@@ -242,10 +242,10 @@ public class ContextUpdateTask implements Callable<InsertResult> {
 								else {
 									// Otherwise an existing assertion instance must be deleted and afterward we continue normally with the checks
 									// We have to determine which of the two it is
-									if (keptAssertionWrapper.getAssertionInstanceURI().equals(firstAssertionUUID.getURI())) {
+									if (keptAssertionWrapper.getAssertionInstanceUUID().equals(firstAssertionUUID.getURI())) {
 										ContextUpdateUtil.deleteContextAssertionInstance(secondAssertion, secondAssertionUUID, contextDataset);
 									}
-									else if (keptAssertionWrapper.getAssertionInstanceURI().equals(secondAssertionUUID.getURI())) {
+									else if (keptAssertionWrapper.getAssertionInstanceUUID().equals(secondAssertionUUID.getURI())) {
 										ContextUpdateUtil.deleteContextAssertionInstance(firstAssertion, firstAssertionUUID, contextDataset);
 									}
 								}

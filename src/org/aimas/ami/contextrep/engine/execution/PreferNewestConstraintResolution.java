@@ -22,10 +22,10 @@ public class PreferNewestConstraintResolution implements ConstraintResolutionSer
 		// STEP 1: access the type and instance UUID for each conflicting ContextAssertion
 		// Since this is used as default for Integrity and Uniqueness constraint violations, we know there are 2 ContextAssertion instances
 		ContextAssertion firstAssertion = constraintViolation.getViolatingAssertions()[0].getAssertion();
-		String firstAssertionUUID = constraintViolation.getViolatingAssertions()[0].getAssertionInstanceURI();
+		String firstAssertionUUID = constraintViolation.getViolatingAssertions()[0].getAssertionInstanceUUID();
 		
 		ContextAssertion secondAssertion = constraintViolation.getViolatingAssertions()[1].getAssertion();
-		String secondAssertionUUID = constraintViolation.getViolatingAssertions()[1].getAssertionInstanceURI();
+		String secondAssertionUUID = constraintViolation.getViolatingAssertions()[1].getAssertionInstanceUUID();
 		
 		// STEP 2: access the timestamp annotation of each conflicting ContextAssertion
 		// If one of the assertions does not have a timestamp annotation, return the other one as the one to keep. If both don't have it, return null
